@@ -1,0 +1,37 @@
+{
+  "name": "extension-test-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": "true",
+  "scripts": {
+    "build": "tsc",
+    "che:test": "TESTER_LIB=theia-extension-tester node -r './out/bootstrap.js' -r dotenv/config out/che.runner.js out/tests/*.test.js",
+    "che:refresh": "npm rm theia-extension-tester && npm install file:../theia-extension-tester/theia-extension-tester-1.0.0.tgz",
+    "theia-browser:test": "TESTER_LIB=theia-extension-tester node -r './out/bootstrap.js' -r dotenv/config out/theia.runner.js out/tests/*.test.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "vscode:test": "TESTER_LIB=vscode-extension-tester node -r './out/bootstrap.js' out/vscode.runner.js",
+    "page-objects:refresh": "cd ../extension-tester-page-objects && npm pack",
+    "theia-extension-tester:refresh": "cd ../theia-extension-tester && npm run page-objects:refresh && npm pack",
+    "all:refresh": "npm run page-objects:refresh && npm run theia-extension-tester:refresh && npm run che:refresh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.3.0",
+    "dotenv": "^8.2.0",
+    "fs-extra": "^9.1.0",
+    "mocha": "^8.3.0",
+    "theia-extension-tester": "file:../theia-extension-tester/theia-extension-tester-1.0.0.tgz"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.15",
+    "@types/fs-extra": "^9.0.7",
+    "@types/mocha": "^8.2.1",
+    "@types/node": "^14.14.31",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.0.3",
+    "selenium-webdriver": "3.6.0"
+  }
+}

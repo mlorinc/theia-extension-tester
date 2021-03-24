@@ -1,0 +1,8 @@
+out
+node_modules
+test-resources
+test-extensions
+test-folder
+.env
+*.html
+*.tgz
