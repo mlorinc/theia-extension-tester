@@ -173,12 +173,21 @@ export class CheBrowser extends SeleniumBrowser {
         await this.driver.switchTo().alert().accept();
 
         console.log('Attaching to Eclipse Che editor...');
-        await this.driver.switchTo().frame(theiaFrame);
+        await this.driver.wait(until.ableToSwitchToFrame(theiaFrame), timeout);
         console.log('Successfully attached to Eclipse Che.');
 
         try {
             console.log('Waiting for workbench to be ready...');
             await this.driver.wait(until.elementLocated(TheiaElement.locators.widgets.editorLoadedComponent.locator), timeout);
+            await this.driver.wait(async () => {
+                const chevron = new TheiaElement(TheiaElement.locators.dashboard.cheChevron);
+                try {
+                    return (await chevron.getLocation()).x < 5;
+                }
+                catch {
+                    return false;
+                }
+            }, timeout, 'Yellow chevron on top left is not on x = 0.');
             console.log('Workbench is ready.');
         }
         catch (e) {
