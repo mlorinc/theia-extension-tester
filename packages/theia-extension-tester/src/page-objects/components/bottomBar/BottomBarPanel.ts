@@ -1,7 +1,8 @@
-import { IBottomBarPanel } from "extension-tester-page-objects";
-import { Input } from "../../..";
+import { getTimeout, IBottomBarPanel } from "extension-tester-page-objects";
+import { until } from "selenium-webdriver";
 import { TheiaElement } from "../../theia-components/TheiaElement";
 import { TitleBar } from "../menu/TitleBar";
+import { Input } from "../workbench/input/Input";
 import { DebugConsoleView } from './DebugConsoleView';
 import { OutputView } from './OutputView';
 import { ProblemsView } from './ProblemsView';
@@ -16,20 +17,25 @@ export class BottomBarPanel extends TheiaElement implements IBottomBarPanel {
         super(TheiaElement.locators.components.bottomBar.bottomBarPanel);
     }
 
-    toggle(open: boolean): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    
-    /**
-     * Open/Close the bottom bar panel
-     * @param open true to open. false to close
-     * @returns Promise resolving when the view visibility is toggled
-     */
-    static async toggle(open: boolean): Promise<void> {
+    async toggle(open: boolean): Promise<void> {
+        const displayed = await this.isDisplayed();
+
+        // the same state, no change needed
+        if (displayed === open) {
+            return;
+        }
+
         const titleBar = new TitleBar();
         await titleBar.select('View', 'Toggle Bottom Panel');
-    }
 
+        if (open) {
+            await this.getDriver().wait(until.elementIsVisible(this), getTimeout());
+        }
+        else {
+            await this.getDriver().wait(until.elementIsNotVisible(this), getTimeout());
+        }
+    }
+    
     /**
      * Open the Problems view in the bottom panel
      * @returns Promise resolving to a ProblemsView object
