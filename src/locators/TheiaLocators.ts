@@ -1,15 +1,107 @@
-import { By } from "selenium-webdriver";
+import { By, Locator, WebElement } from "selenium-webdriver";
+import { TheiaElement } from "../page-objects/theia-components/TheiaElement";
 
 export interface TheiaLocator {
     locator: By;
     class?: Object;
     dependency?: (locators: TheiaLocators) => TheiaLocator;
+    properties?: TheiaLocatorProperties
+}
+
+export type PropertyGetter<T> = (element: TheiaElement, locators: TheiaLocators) => Promise<T>
+
+export type TheiaLocatorProperty = 
+    'collapsed' | 'dirty' | 'enabled' | 'expandable' | 'focused' | 'index' | 'main' | 'secondary' | 'selected' | 'title';
+
+export interface TheiaLocatorProperties {
+    collapsed?: PropertyGetter<boolean>;
+    dirty?: PropertyGetter<boolean>;
+    enabled?: PropertyGetter<boolean>;
+    expandable?: PropertyGetter<boolean>;
+    focused?: PropertyGetter<boolean>;
+    index?: PropertyGetter<number>;
+    main?: PropertyGetter<boolean>;
+    secondary?: PropertyGetter<boolean>;
+    selected?: PropertyGetter<boolean>;
+    title?: PropertyGetter<string>;
 }
 
 export interface TheiaLocatorQuery {
     locator: (args: { [key: string]: string }) => By;
     class?: Object;
     dependency?: (locators: TheiaLocators) => TheiaLocator;
+}
+
+type ElementPath = TheiaElement | Locator | TheiaLocator | ((locators: TheiaLocators) => TheiaLocator);
+
+async function getElementFromPath(element: TheiaElement, locators: TheiaLocators, path: Array<ElementPath>): Promise<TheiaElement> {
+    for (const item of path) {
+        if (item instanceof WebElement) {
+            element = item;
+        }
+        else if (item instanceof Function) {
+            element = await element.findElement(item(locators)) as TheiaElement;
+        }
+        else {
+            element = await element.findElement(item) as TheiaElement;
+        }
+    }
+    return element;
+}
+
+export function has(attribute: string, value: string, ...path: Array<ElementPath>): PropertyGetter<boolean> {
+    return async (element: TheiaElement, locators: TheiaLocators) => {
+        element = await getElementFromPath(element, locators, path);
+        return (await element.getAttribute(attribute)).includes(value);
+    };
+}
+
+export function hasNot(attribute: string, value: string, ...path: Array<ElementPath>): PropertyGetter<boolean> {
+    return async (element: TheiaElement, locators: TheiaLocators) => {
+        element = await getElementFromPath(element, locators, path);
+        return (await element.getAttribute(attribute)).includes(value) === false
+    };
+}
+
+export function getAttribute(attribute: string, ...path: Array<ElementPath>) {
+    return async (element: TheiaElement, locators: TheiaLocators) => {
+        element = await getElementFromPath(element, locators, path);
+        return await element.getAttribute(attribute);
+    };
+}
+
+export function getIntegerAttribute(attribute: string, ...path: Array<ElementPath>) {
+    return async (element: TheiaElement, locators: TheiaLocators) => {
+        element = await getElementFromPath(element, locators, path);
+        return Number.parseInt(await element.getAttribute(attribute));
+    };
+}
+
+export function attributeEquals<T>(attribute: string, comparator: any | ((value: T) => PromiseLike<boolean>), ...path: Array<ElementPath>) {
+    return async(element: TheiaElement, locators: TheiaLocators) => {
+        const attributeGetter = getAttribute(attribute, path);
+        const attributeValue = await attributeGetter(element, locators);
+
+        if (typeof comparator === 'function') {
+            return await comparator(attributeValue);
+        }
+        else {
+            return attributeValue === comparator;
+        }
+    };
+}
+
+export interface MonacoScrollLocator {
+    constructor: TheiaLocator;
+    item: TheiaLocator;
+    verticalScroll: {
+        constructor: TheiaLocator,
+        container: TheiaLocator
+    }
+    horizontalScroll: {
+        constructor: TheiaLocator,
+        container: TheiaLocator
+    }
 }
 
 export interface TheiaLocators {
@@ -26,47 +118,130 @@ export interface TheiaLocators {
         list: TheiaLocator;
         listItem: TheiaLocator;
         input: TheiaLocator;
+        tree: {
+            constructor: TheiaLocator,
+            yScroll: TheiaLocator,
+            indent: TheiaLocator,
+            node: TheiaLocator,
+            nodeWrapper: TheiaLocator,
+            file: {
+                expandToggle: TheiaLocator,
+                label: TheiaLocator
+            }
+        },
+        editorFrame: TheiaLocator;
+        editorLoadedComponent: TheiaLocator;
+        monacoScroll: MonacoScrollLocator;
     }
     components: {
-        workbench: {
-            input: TheiaLocator;
-            quickPickContainer: TheiaLocator;
+        activityBar: {
+            constructor: TheiaLocator,
+            container: TheiaLocator,
+            viewControl: {
+                constructor: TheiaLocator,
+            },
+            action: {
+                constructor: TheiaLocator,
+            }
         },
+        dialog: {
+            constructor: TheiaLocator,
+            content: {
+                message: TheiaLocator,
+                details: TheiaLocator
+            }
+            control: {
+                button: TheiaLocator,
+                error: TheiaLocator
+            }
+            close: TheiaLocator,
+            navigationUp: TheiaLocator
+        }
+        workbench: {
+            input: {
+                back: TheiaLocator,
+                constructor: TheiaLocator,
+                error: TheiaLocator,
+                message: TheiaLocator,
+                progress: TheiaLocator,
+                counter: TheiaLocator,
+                scroll: MonacoScrollLocator
+                quickPickItem: {
+                    description: TheiaLocator,
+                    label: TheiaLocator
+                }
+            }
+        }
         menu: {
             titleBar: TheiaLocator,
             titleBarItem: TheiaLocator,
-            titleBarItemByLabel: TheiaLocatorQuery,
-            titleBarItemLabel: TheiaLocatorQuery,
             contextMenu: TheiaLocator,
             contextMenuItem: TheiaLocator,
-            contextMenuItemByLabel: TheiaLocatorQuery,
-            contextMenuItemLabel: TheiaLocatorQuery,
             label: TheiaLocator
         },
         editor: {
-            editor: TheiaLocatorQuery,
-            activeEditor: TheiaLocator,
-            editorView: TheiaLocator,
-            editorTab: TheiaLocator,
-            editorTabByLabel: TheiaLocatorQuery,
-            editorTabLabel: TheiaLocator,
-            editorTabClose: TheiaLocator,
-            editorTabDirty: TheiaLocator,
-            contentAssist: TheiaLocator,
-            contentAssistMenuItem: TheiaLocator,
-            contentAssistMenuItemLabel: TheiaLocator,
-            contentAssistMenuItemByLabel: TheiaLocatorQuery,
-            contentAssistLoading: TheiaLocator,
-            textEditorLines: TheiaLocator,
-            textEditorLine: TheiaLocator,
-            textEditorLineQuery: TheiaLocatorQuery,
-            textEditorBody: TheiaLocator
+            constructor: TheiaLocator,
+            cursor: TheiaLocator,
+            view: TheiaLocator,
+            tabBar: {
+                constructor: TheiaLocator,
+                tab: {
+                    constructor: TheiaLocator,
+                    close: TheiaLocator
+                }
+            },
+            contentAssist: {
+                constructor: TheiaLocator;
+                scroll: MonacoScrollLocator;
+                itemLabel: TheiaLocator;
+                loading: TheiaLocator
+            }
+            lines: TheiaLocator,
+            line: TheiaLocator,
+            body: TheiaLocator
         },
         bottomBar: {
             bottomBarPanel: TheiaLocator,
             bottomBarPanelTabs: TheiaLocator,
             problemsViewCollapseAll: TheiaLocator,
             problemsViewClearAll: TheiaLocator
+        },
+        sideBar: {
+            constructor: TheiaLocator,
+            tree: {
+                default: {
+                    constructor: TheiaLocator
+                },
+            },
+            viewContent: {
+                constructor: TheiaLocator,
+                progress: TheiaLocator
+            },
+            sections: {
+                constructor: TheiaLocator,
+                section: {
+                    body: TheiaLocator,
+                    constructor: TheiaLocator,
+                    header: {
+                        constructor: TheiaLocator
+                        title: TheiaLocator,
+                        toggle: TheiaLocator,
+                        toolbar: {
+                            constructor: TheiaLocator
+                            action: TheiaLocator
+                        }
+                    }
+                }
+            }
+            viewTitlePart: {
+                constructor: TheiaLocator,
+                action: {
+                    constructor: TheiaLocator
+                }
+            }
+        },
+        statusBar: {
+            constructor: TheiaLocator
         }
     }
 }
