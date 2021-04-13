@@ -4,7 +4,7 @@ import { TheiaElement } from "../../../theia-components/TheiaElement";
 export class QuickPickItem extends TheiaElement implements IQuickPickItem {
     async getLabel(): Promise<string> {
         const label = await this.findElement(QuickPickItem.locators.components.workbench.input.quickPickItem.label);
-        return await label.getText();
+        return await label.getAttribute('innerText');
     }
 
     async getDescription(): Promise<string> {
