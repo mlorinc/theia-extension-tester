@@ -1,25 +1,25 @@
-import { By, Key, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { Menu } from "./Menu";
+import { IMenu, IMenuItem } from 'extension-tester-page-objects';
+import { WebElement } from 'selenium-webdriver';
+import { Menu } from './Menu';
+import { TheiaElement } from '../../theia-components/TheiaElement';
+import { ContextMenuItem } from './ContextMenuItem';
 
 export class ContextMenu extends Menu {
-    constructor(element: WebElement, parent: WebElement) {
-        super(element, parent);
+
+    constructor(element?: WebElement, parent?: IMenu, level: number = 0) {
+        super(element || TheiaElement.locators.components.menu.contextMenu, undefined, level);
+        this.enclosingItem = parent || this.enclosingItem;
     }
 
-    protected itemQuery(name?: string): By {
-        if (name) {
-            return TheiaElement.locators.components.menu.contextMenuItemByLabel.locator({name});
-        }
-        else {
-            return TheiaElement.locators.components.menu.contextMenuItem.locator;
-        }
-    }
-    protected createItem(element: WebElement): Menu {
-        return new ContextMenu(element, this);
-    }
+    async getItems(): Promise<IMenuItem[]> {
+        const elements = await this.findElements(TheiaElement.locators.components.menu.contextMenuItem);
+        const out: IMenuItem[] = [];
 
-    async close(): Promise<void> {
-        await this.sendKeys(Key.ARROW_LEFT);
+        for (const element of elements) {
+           if (await element.getAttribute('data-type') !== 'separator') {
+               out.push(new ContextMenuItem(element, this, this.level));
+           }
+        }
+        return out;
     }
 }
