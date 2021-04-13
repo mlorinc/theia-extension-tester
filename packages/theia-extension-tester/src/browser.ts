@@ -6,27 +6,31 @@ import {
     By,
     Capabilities,
     logging,
-    WebDriver
+    until,
+    WebDriver,
 } from 'selenium-webdriver';
+import {
+    Options as ChromeOptions
+} from 'selenium-webdriver/chrome';
 import { TheiaElement } from './page-objects/theia-components/TheiaElement';
 import { TheiaLocatorLoader } from './LocatorLoader';
-import { SeleniumBrowser } from 'extension-tester-page-objects';
-
-export interface CheBrowserOptionsCredentials {
-    login: string;
-    password: string;
-}
+import { ExtestUntil, SeleniumBrowser } from 'extension-tester-page-objects';
 
 export interface ITimeouts {
     implicit?: number;
     pageLoad?: number;
 }
 
+export module CheDistribution {
+    export const CHE = 'che';
+    export const CODEREADY_WORKSPACES = 'codeready';
+}
+
 export interface CheBrowserOptions {
     browserName: string;
+    distribution: string;
     location?: string;
     logLevel?: logging.Level;
-    credentials: CheBrowserOptionsCredentials;
     authenticator?: Authenticator;
     timeouts?: ITimeouts;
 }
@@ -35,18 +39,25 @@ export class CheBrowser extends SeleniumBrowser {
     private static baseVersion = "1.10.0";
     public static BROWSER_NAME = "Eclipse Che";
     private _name!: string;
-    private _driver!: WebDriver;
+    private _driver: WebDriver | undefined;
     private _version!: string;
-    private _implicitTimeout!: number;
+    private _findElementTimeout: number;
+    private _pageLoadTimeout: number;
+    private _windowHandle!: string;
 
     constructor(private options: CheBrowserOptions) {
         super();
         this._name = CheBrowser.BROWSER_NAME;
-        this._implicitTimeout = options?.timeouts?.implicit || 0;
+        this._findElementTimeout = options?.timeouts?.implicit || 0;
+        this._pageLoadTimeout = options?.timeouts?.pageLoad || 0;
         SeleniumBrowser.instance = this;
     }
 
     public get driver(): WebDriver {
+        if (this._driver === undefined) {
+            throw new Error('WebDriver has not been started.');
+        }
+
         return this._driver;
     }
 
@@ -66,14 +77,29 @@ export class CheBrowser extends SeleniumBrowser {
         return this._version;
     }
 
-    async getImplicitTimeout(): Promise<number> {
-        return this._implicitTimeout;
+    public get findElementTimeout(): number {
+        return this._findElementTimeout;
     }
 
-    async setImplicitTimeout(value: number): Promise<void> {
-        this._implicitTimeout = value;
-        await this.driver.manage().timeouts().implicitlyWait(value);
+    public set findElementTimeout(value: number) {
+        this._findElementTimeout = value;
     }
+
+    
+    public get pageLoadTimeout() : number {
+        return this._pageLoadTimeout;
+    }
+    
+    
+    public set pageLoadTimeout(value : number) {
+        this._pageLoadTimeout = value;
+    }
+    
+
+    public get windowHandle() : string {
+        return this._windowHandle;
+    }
+    
 
     async start(): Promise<this> {
         const preferences = new logging.Preferences();
@@ -82,29 +108,40 @@ export class CheBrowser extends SeleniumBrowser {
         const capabilities = new Capabilities();
         capabilities.set('acceptInsecureCerts', true);
 
+        const chromeOptions = new ChromeOptions();
+        const chromeOptionsPath = path.resolve('.', 'test-resources', 'chrome-profile');
+        fs.mkdirpSync(chromeOptionsPath);
+        chromeOptions.addArguments(`user-data-dir=${chromeOptionsPath}`);
+
+
         this._driver = await new Builder()
             .withCapabilities(capabilities)
             .forBrowser(this.options.browserName)
             .setLoggingPrefs(preferences)
+            .setChromeOptions(chromeOptions)
             .build();
 
-        if (this.options.timeouts) {
-            await this.driver.manage().timeouts().implicitlyWait(this.options.timeouts.implicit || 0);
-            await this.driver.manage().timeouts().pageLoadTimeout(this.options.timeouts.pageLoad || -1);
-        }
 
         await this.driver.manage().window().maximize();
 
         this._version = CheBrowser.baseVersion;
 
-        const locatorLoader = new TheiaLocatorLoader(this.version, CheBrowser.baseVersion, path.join(__dirname, 'locators', 'versions'));
+        const locatorLoader = new TheiaLocatorLoader(
+            this.version, CheBrowser.baseVersion, path.join(__dirname, 'locators', this.options.distribution, 'versions'
+        ));
         TheiaElement.init(locatorLoader.loadLocators(), this.driver, this.name, this.version);
 
         fs.mkdirpSync(this.screenshotsStoragePath);
 
         if (this.options.location) {
             await this.driver.get(this.options.location);
-            await this.options?.authenticator?.authenticate(this, this.options.credentials);
+
+            // focus page instead of search bar
+            const html = new TheiaElement(By.css('body'));
+            await html.isDisplayed();
+            await this.driver.actions().mouseMove(html).doubleClick().perform();
+
+            await this.options?.authenticator?.authenticate();
         }
         else {
             throw new Error('Location detection is not supported.');
@@ -112,6 +149,7 @@ export class CheBrowser extends SeleniumBrowser {
 
         return this;
     }
+
     async quit(): Promise<void> {
         await this.driver.quit();
     }
@@ -120,23 +158,28 @@ export class CheBrowser extends SeleniumBrowser {
      * Waits until parts of the workbench are loaded
      */
     async waitForWorkbench(timeout?: number): Promise<void> {
-        const timeoutBackup = await SeleniumBrowser.instance.getImplicitTimeout();
-        await SeleniumBrowser.instance.setImplicitTimeout(timeout || timeoutBackup || 30000);
+        console.log('Loading workbench...');
+        timeout = timeout || this.pageLoadTimeout;
 
-        const theiaFrame = await this.driver.findElement(By.id('ide-iframe'));
-        await this.driver.wait(async () => {
-            try {
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                await this.driver.switchTo().frame(theiaFrame);
-                return true
-            } catch {
-                return false;
-            }
-        }, timeout);
+        const theiaFrame = await this.driver.wait(until.elementLocated(TheiaElement.locators.widgets.editorFrame.locator), timeout);
+        await this.driver.wait(ExtestUntil.elementInteractive(theiaFrame), timeout);
+        
+        console.log('Loaded workbench.');
+        
+        this._windowHandle = await this.driver.getWindowHandle();
+
+        // Focus webpage instead search bar
+        await this.driver.executeScript('alert("Focus window")');
+        await this.driver.switchTo().alert().accept();
+
+        console.log('Attaching to Eclipse Che editor...');
+        await this.driver.switchTo().frame(theiaFrame);
+        console.log('Successfully attached to Eclipse Che.');
 
         try {
-            await this.driver.findElement(By.id('theia-left-right-split-panel'));
-            await SeleniumBrowser.instance.setImplicitTimeout(timeoutBackup);
+            console.log('Waiting for workbench to be ready...');
+            await this.driver.wait(until.elementLocated(TheiaElement.locators.widgets.editorLoadedComponent.locator), timeout);
+            console.log('Workbench is ready.');
         }
         catch (e) {
             throw new Error(`${e} - Could not load Eclipse Che workbench. Increase timeout in browser.waitForWorkbench(timeout?: number).`);
