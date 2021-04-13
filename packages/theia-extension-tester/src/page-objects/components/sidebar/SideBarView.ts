@@ -1,17 +1,22 @@
-import { ISideBarView, IViewTitlePart, IViewContent, SeleniumBrowser } from "extension-tester-page-objects";
-import { By, WebElement } from "selenium-webdriver";
+import { ISideBarView, IViewTitlePart, IViewContent } from "extension-tester-page-objects";
 import { TheiaElement } from "../../theia-components/TheiaElement";
+import { ViewContent } from "./ViewContent";
+import { ViewTitlePart } from "./ViewTitlePart";
 
 export class SideBarView extends TheiaElement implements ISideBarView {
 
-    constructor(sidebar?: WebElement) {
-        super(sidebar || SeleniumBrowser.instance.driver.findElement(By.css("body")));
+    constructor() {
+        super(SideBarView.locators.components.sideBar.constructor);
     }
 
     getTitlePart(): IViewTitlePart {
-        throw new Error("Method not implemented.");
+        return new ViewTitlePart(this);
     }
     getContent(): IViewContent {
-        throw new Error("Method not implemented.");
+        return new ViewContent(this);
     }
+
+    static async isOpen(): Promise<boolean> {
+        return new SideBarView().isDisplayed();
+    } 
 }
