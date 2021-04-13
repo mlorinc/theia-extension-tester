@@ -64,6 +64,9 @@ export const locators: TheiaLocators = {
             mainSection: {
                 locator: By.className('pf-c-page__main')
             }
+        },
+        cheChevron: {
+            locator: By.className('che-dashboard')
         }
     },
     widgets: {

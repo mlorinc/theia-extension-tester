@@ -109,7 +109,8 @@ export interface TheiaLocators {
         menu: TheiaLocator,
         getStarted: {
             mainSection: TheiaLocator
-        }
+        },
+        cheChevron: TheiaLocator;
     },
     widgets: {
         tabs: TheiaLocator,
