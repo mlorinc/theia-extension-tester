@@ -1,9 +1,9 @@
-import { IEditorTab } from "extension-tester-page-objects";
-import { Button, until, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ContextMenu } from "../menu/ContextMenu";
-import { Menu } from "../menu/Menu";
-import { EditorView } from "./EditorView";
+import { Button, WebElement } from 'selenium-webdriver';
+import { ContextMenu } from '../menu/ContextMenu';
+import { EditorView } from './EditorView';
+import { getTimeout, IEditorTab } from 'extension-tester-page-objects';
+import { Menu } from '../menu/Menu';
+import { TheiaElement } from '../../theia-components/TheiaElement';
 
 export class EditorTab extends TheiaElement implements IEditorTab {
     constructor(element: WebElement, editor: EditorView) {
@@ -11,29 +11,51 @@ export class EditorTab extends TheiaElement implements IEditorTab {
     }
 
     async getTitle(): Promise<string> {
-        return (await this.findElement(TheiaElement.locators.components.editor.editorTabLabel.locator)).getText();
+        const fn = EditorTab.locators.components.editor.tabBar.tab.constructor.properties?.title;
+        
+        if (fn) {
+            return await fn(this, EditorTab.locators);
+        }
+        else {
+            throw new Error('EditorTab.locators.components.editor.tabBar.tab.constructor.properties.title is undefined.');
+        }
     }
 
     async select(): Promise<void> {
         await this.getDriver().wait(async () => {
-            await this.click();
+            await this.safeClick();
             return await this.isSelected();
-        });
+        }, getTimeout());
     }
 
     async openContextMenu(): Promise<Menu> {
-        await this.getDriver().actions().click(this, Button.RIGHT).perform();
-        const menus = await this.getDriver().findElements(TheiaElement.locators.components.menu.contextMenu.locator);
-        return new ContextMenu(menus[0], this);
-    }
-
-    async isSelected(): Promise<boolean> {
-        return (await this.getAttribute('class')).includes('p-mod-current');
+        await this.safeClick(Button.RIGHT);
+        return new ContextMenu();
     }
 
     async close(): Promise<void> {
-        const button = await this.findElement(TheiaElement.locators.components.editor.editorTabClose.locator);
-        await button.click();
-        await this.getDriver().wait(until.stalenessOf(this));
+        const button = await this.findElement(TheiaElement.locators.components.editor.tabBar.tab.close) as TheiaElement;
+        const label = await this.getTitle();
+
+        await this.getDriver().wait(async () => {
+            try {
+                await button.safeClick();
+                return false;
+            }
+            catch {
+                return true;
+            }
+        }, getTimeout(), `Could not close editor tab with title "${label}".`);
+    }
+
+    /**
+     * Parse tab id which contains useful info for editor - tab linking.
+     * @returns new array with following values: editor type, editor file URI or webview id
+     */
+    async parseTabType(): Promise<[string, string]> {
+        const id = await this.getAttribute('id');
+        const colon = id.indexOf(':');
+        // return editor type + (uri|id)
+        return [id.slice(0, colon), id.slice(colon + 1)];
     }
 }
