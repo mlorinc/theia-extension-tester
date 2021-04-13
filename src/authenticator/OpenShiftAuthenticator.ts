@@ -1,22 +1,66 @@
-import { By } from "selenium-webdriver";
-import { CheBrowserOptionsCredentials } from "../browser";
+import { getTimeout, SeleniumBrowser } from "extension-tester-page-objects";
+import { Button, By, Key, until } from "selenium-webdriver";
+import { CheBrowser } from "../browser";
 import { TheiaElement } from "../page-objects/theia-components/TheiaElement";
 import { Authenticator } from "./Authenticator";
 
-export class OpenShiftAuthenticator implements Authenticator {
-    constructor(private timeout: number = 15000) { }
+export module OpenShiftAuthenticatorMethod {
+    export const HTPASSWD_PROVIDER = 'htpasswd_provider';
+    export const OPENSHIFT_SRE = 'OpenShift_SRE';
+    export const DEVSANDBOX = 'DevSandbox';
+}
 
-    async authenticate(credentials: CheBrowserOptionsCredentials): Promise<void> {
-        const loginLink = new TheiaElement(By.xpath('//a[text()="htpasswd_provider"]'));
-        await loginLink.safeClick();
+export interface OpenShiftInputPair {
+    name: string;
+    value: string;
+}
+
+export interface OpenShiftAuthenticatorOptions {
+    inputData: Array<OpenShiftInputPair>;
+    loginMethod?: string;
+    multiStepForm?: boolean;
+    timeout?: number;
+}
+
+export class OpenShiftAuthenticator implements Authenticator {
+    constructor(private options: OpenShiftAuthenticatorOptions) { }
+
+    async authenticate(): Promise<void> {
+        const timeout = getTimeout(this.options.timeout);
+        const browser = SeleniumBrowser.instance as CheBrowser;
 
         const form = new TheiaElement(By.css('form'));
-        const usernameInput = await form.findElement(By.name('username')) as TheiaElement;
-        const passwordInput = await form.findElement(By.name('password')) as TheiaElement;
-        const submitButton = await form.findElement(By.xpath('.//button[@type="submit"]')) as TheiaElement;
+        console.log('Found form.');
+        
+        let counter = 0;
+        for (const pair of this.options.inputData) {
+            const input = await form.findElement(By.name(pair.name)) as TheiaElement;
+            console.log(`Filling out "${pair.name}". Visible: ${await input.isDisplayed()}, Enabled: ${await input.isEnabled()}`);
+            await input.safeSendKeys(timeout, pair.value);
+            console.log(`Filled out "${pair.name}".`);
+            counter += 1;
 
-        await usernameInput.safeSendKeys(this.timeout, credentials.login);
-        await passwordInput.safeSendKeys(this.timeout, credentials.password);
-        await submitButton.safeClick(undefined, this.timeout);
+            if (this.options.multiStepForm && counter !== this.options.inputData.length) {
+                console.log('Next step.');
+                await input.safeSendKeys(timeout, Key.ENTER);
+                await new Promise((resolve) => setTimeout(resolve, 750));
+            }
+        }
+
+        console.log('Looking for submit.');
+        const submitButton = await form.findElement(By.xpath('.//*[@type="submit"]')) as TheiaElement;
+        console.log('Found submit.');
+        await submitButton.safeClick(Button.LEFT, timeout);
+        console.log('Logged in user.');
+
+        if (this.options.loginMethod) {
+            const rawLink = await browser.driver.wait(
+                until.elementLocated(By.xpath(`//a[text()="${this.options.loginMethod}"]`)), getTimeout(browser.pageLoadTimeout)
+            );
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+            const loginLink = new TheiaElement(rawLink);
+            await loginLink.safeClick();
+            console.log(`Clicked on login method: "${this.options.loginMethod}".`);
+        }
     };
 }
