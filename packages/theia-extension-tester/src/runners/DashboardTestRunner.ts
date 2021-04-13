@@ -1,9 +1,10 @@
-import { SeleniumBrowser, TestRunner } from 'extension-tester-page-objects';
+import { getTimeout, TestRunner } from 'extension-tester-page-objects';
 import Mocha = require('mocha');
 import sanitize = require('sanitize-filename');
+import { CheBrowser } from '../browser';
 
 export class DashboardTestRunner implements TestRunner {
-    constructor(protected browser: SeleniumBrowser, protected mochaOptions?: Mocha.MochaOptions) {
+    constructor(protected browser: CheBrowser, protected mochaOptions?: Mocha.MochaOptions) {
 
     }
 
@@ -11,6 +12,7 @@ export class DashboardTestRunner implements TestRunner {
 
     async runTests(files: string[]): Promise<number> {
         const runner = this;
+        const browser = this.browser;
         const mochaRunner = new Mocha(this.mochaOptions);
         mochaRunner.files = files;
 
@@ -18,8 +20,8 @@ export class DashboardTestRunner implements TestRunner {
 
         return new Promise(async (resolve) => {
             mochaRunner.suite.beforeAll(async function () {
-                this.timeout(0);
-                await runner.browser.start();
+                this.timeout(getTimeout(browser.pageLoadTimeout));
+                await browser.start();
                 await runner.setup();
             });
 
@@ -41,8 +43,13 @@ export class DashboardTestRunner implements TestRunner {
             }));
 
             mochaRunner.suite.afterAll(async function () {
-                this.timeout(30000);
-                await runner.browser.quit();
+                this.timeout(getTimeout(browser.pageLoadTimeout));
+                try {
+                    await runner.browser.quit();
+                }
+                catch {
+                    // browser is undefined, ignore
+                }
             });
 
             mochaRunner.run(resolve);
