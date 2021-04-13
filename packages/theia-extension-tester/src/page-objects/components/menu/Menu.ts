@@ -1,59 +1,76 @@
-import { IMenu, SeleniumBrowser } from "extension-tester-page-objects";
-import { By, Key, Locator, WebElement } from "selenium-webdriver";
+import { getTimeout, IMenu, IMenuItem } from "extension-tester-page-objects";
+import { Key, Locator, WebElement } from "selenium-webdriver";
 import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ContextMenu } from "./ContextMenu";
 
 export abstract class Menu extends TheiaElement implements IMenu {
-    constructor(element: WebElement | Locator, parent?: WebElement | Locator) {
+    constructor(element: WebElement | Locator, parent?: WebElement, protected level: number = 0) {
         super(element, parent);
     }
 
-    protected abstract itemQuery(name?: string): By;
-    protected abstract createItem(element: WebElement): IMenu;
+    async getItem(name: string, timeout?: number): Promise<IMenuItem> {
+        return await this.getDriver().wait(async () => {
+            try {
+                for (const item of await this.getItems()) {
+                    if (await item.getLabel() === name) {
+                        return item;
+                    }
+                }
+                return undefined;
+            }
+            catch {
+                return undefined;
+            }
+        }, getTimeout(timeout), `Could not find item "${name}".`) as IMenuItem;
+    }
+
+    abstract getItems(): Promise<IMenuItem[]>;
 
     async hasItem(name: string): Promise<boolean> {
         try {
-            await this.getItem(name);
-            return true;
+            for (const item of await this.getItems()) {
+                if (await item.getLabel() === name) {
+                    return true;
+                }
+            }
+            return false;
         }
         catch {
             return false;
         }
     }
 
-    async getItem(name: string): Promise<IMenu> {
-        const query = this.itemQuery(name)
-        const element = await this.findElement(query);
-        return this.createItem(element);
-    }
-
-    async getItems(): Promise<IMenu[]> {
-        const elements = await this.findElements(this.itemQuery());
-        return elements.map(this.createItem);
-    }
-
     async select(...path: string[]): Promise<IMenu | undefined> {
         let currentMenu: IMenu = this;
-        let level = 0;
         for (const item of path) {
             const menuItem = await currentMenu.getItem(item);
-            await menuItem.waitInteractive(await SeleniumBrowser.instance.getImplicitTimeout());
-            await menuItem.click();
-            
-            if (path.length > level + 1) {
-                const menus = await this.getDriver().findElements(TheiaElement.locators.components.menu.contextMenu.locator);
-                currentMenu = new ContextMenu(menus[level], menuItem);
-                level++;
+
+            if (menuItem === undefined) {
+                throw new Error('Unexpected undefined menu item.');
             }
+
+            const subMenu = await menuItem.select();
+            if (subMenu === undefined) {
+                return undefined;
+            }
+            currentMenu = subMenu;
         }
+
         return currentMenu;
     }
 
     async close(): Promise<void> {
-        await this.sendKeys(Key.ARROW_LEFT);
-    }
+        await this.getDriver().wait(async () => {
+            try {
+                if (await this.isDisplayed() === false) {
+                    return true;
+                }
 
-    async getLabel(): Promise<string> {
-        return await (await this.findElement(TheiaElement.locators.components.menu.label.locator)).getText();
+                await this.sendKeys(Key.ESCAPE);
+                return false;
+            }
+            catch {
+                return true;
+            }
+        }, getTimeout(), 'Could not close menu.');
     }
 }
