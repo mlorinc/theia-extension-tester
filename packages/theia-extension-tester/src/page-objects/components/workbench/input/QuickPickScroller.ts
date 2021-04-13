@@ -42,18 +42,10 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
             console.log(`Comparing "${value}" with "${indexOrText}".`);
 
             if (typeof indexOrText === 'string') {
-                return (value as string).localeCompare(indexOrText);
+                return indexOrText.localeCompare(value as string);
             }
             else {
-                if (value === indexOrText) {
-                    return 0;
-                }
-                else if (value > indexOrText) {
-                    return 1;
-                }
-                else {
-                    return -1;
-                }
+                return indexOrText - (value as number); 
             }
         }
 
@@ -74,7 +66,20 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
 
         const errorMessage = `Could not find quick pick with ${typeof indexOrText === 'string' ? 'label' : 'index'} "${indexOrText}".`;
 
-        if (this.hasNextPage()) {
+        // index scroll position heuristic
+        if (typeof indexOrText === 'number') {
+            const quickPickHeight = (await items[0].getSize()).height;
+
+            const pickPercentage = quickPickHeight / (await this.getSize()).height;
+            const scroll = await this.getVerticalScroll();
+
+            const scrollSize = await scroll.getScrollSize();
+            const indexDelta = indexOrText - (await items[items.length - 1].getIndex());
+
+            await scroll.scroll(Math.ceil(pickPercentage * scrollSize * indexDelta));
+            return await this.findItemWithComparator(comparator.bind(this), timeout, errorMessage);
+        }
+        else if (this.hasNextPage()) {
             await this.nextPage(items[items.length - 1], timeout);
             return await this.findItemWithComparator(comparator.bind(this), timeout, errorMessage);
         }

@@ -106,16 +106,10 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             await scroll.scrollAfter(lastActiveItem, this, timeout);
         }
         else if (direction === ScrollDirection.PREVIOUS) {
-            await scroll.scrollBefore(lastActiveItem, this, timeout);
+            await scroll.scroll(- await scroll.getScrollSize(), timeout);
         }
 
-        const { index, items } = await this.findOffset(lastActiveItem);
-
-        if (index === -1) {
-            return items;
-        }
-
-        return items.slice(index + 1);
+        return await this.getVisibleItems();
     }
 
     async nextPage(lastItem: T, timeout?: number): Promise<T[]> {
@@ -123,6 +117,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             throw new Error('Could not get next page.');
         }
 
+        console.log(`Last label: ${await this.getElementId(lastItem)}`);
         return await this.movePage(ScrollDirection.NEXT, lastItem, timeout);
     }
 
@@ -131,6 +126,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             throw new Error('Could not get previous page.');
         }
 
+        console.log(`First label: ${await this.getElementId(firstItem)}`);
         return await this.movePage(ScrollDirection.PREVIOUS, firstItem, timeout);
     }
 
@@ -230,14 +226,15 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
                 return items[items.length - 1];
             }
 
-            if (firstItemCompareResult < 0) {
+            // searching element - currentElement
+            if (firstItemCompareResult < 0 && lastItemCompareResult < 0) {
                 if (await this.hasPreviousPage()) {
                     items = await this.previousPage(items[0], timeout);
                     return undefined;
                 }
                 throw new ScrollItemNotFound('There are not previous pages available.');
             }
-            else if (lastItemCompareResult > 0) {
+            else if (firstItemCompareResult > 0 && lastItemCompareResult > 0) {
                 if (await this.hasNextPage()) {
                     items = await this.nextPage(items[items.length - 1], timeout);
                     return undefined;
@@ -261,6 +258,10 @@ async function comparatorBinarySearch<T extends TheiaElement>(comparator: Scroll
         const median = Math.ceil((left + right) / 2);
         const comparatorValue = await comparator(items[median]);
 
+        if (comparatorValue === 0) {
+            return items[median];
+        }
+
         if (comparatorValue > 0) {
             left = median;
         }
@@ -269,11 +270,6 @@ async function comparatorBinarySearch<T extends TheiaElement>(comparator: Scroll
         }
     }
 
-    if (await comparator(items[right]) === 0) {
-        return items[right];
-    }
-    else {
-        throw new ScrollItemNotFound('Could not find scroll item.');
-    }
+    throw new ScrollItemNotFound('Could not find scroll item.');
 }
 

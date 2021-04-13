@@ -1,3 +1,4 @@
+import { getTimeout } from "extension-tester-page-objects";
 import { WebElement } from "selenium-webdriver";
 import { TheiaElement } from "../../TheiaElement";
 import { ScrollWidget, VerticalScrollWidget } from "./Scroll";
@@ -28,13 +29,17 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
         throw new Error('Could not find active item.');
     }
 
+    private async getParent(): Promise<TheiaElement> {
+        return await this.getDriver().wait(() => this.enclosingItem, getTimeout(), 'Could not get enclosing element.') as TheiaElement;
+    }
+
     protected async getVerticalScroll(): Promise<ScrollWidget> {
         if (this.verticalScroll) {
             return this.verticalScroll;
         }
         
         const scrollLocator = MonacoScrollWidget.locators.widgets.monacoScroll.verticalScroll;
-        const container = this.getEnclosingElement() as TheiaElement;
+        const container = await this.getParent();
 
         const scrollContainer = await container.findElement(scrollLocator.container) as TheiaElement;
         const scrollElement = await scrollContainer.findElement(scrollLocator.constructor);
@@ -49,7 +54,7 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
         }
         
         const scrollLocator = MonacoScrollWidget.locators.widgets.monacoScroll.verticalScroll;
-        const container = this.getEnclosingElement() as TheiaElement;
+        const container = await this.getParent();
 
         const scrollContainer = await container.findElement(scrollLocator.container) as TheiaElement;
         const scrollElement = await scrollContainer.findElement(scrollLocator.constructor);
