@@ -8,13 +8,11 @@
     "out/**/*.js",
     "out/**/*.d.ts"
   ],
-  "bin": {
-    "chetest": "out/main.js"
-  },
   "scripts": {
-    "prepack": "npm i && npm run build",
+    "prepack": "rm -r out && npm run build",
     "build": "tsc",
-    "test": "node out/main.js out/simple.js"
+    "test": "node out/main.js out/simple.js",
+    "page-objects:refresh": "npm rm extension-tester-page-objects && npm install file:../extension-tester-page-objects/extension-tester-page-objects-1.0.0.tgz"
   },
   "author": "",
   "license": "MIT",
