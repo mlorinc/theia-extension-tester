@@ -1,9 +1,13 @@
-import { getTimeout, IViewContent, IViewSection } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { SideBarView } from "./SideBarView";
-import { CustomTreeSection } from "./tree/custom/CustomTreeSection";
-import { DefaultTreeSection } from "./tree/default/DefaultTreeSection";
+import {
+    CustomTreeSection,
+    DefaultTreeSection,
+    getTimeout,
+    IViewContent,
+    IViewSection,
+    SideBarView,
+    TheiaElement,
+    WebElement
+} from '../../../module';
 
 export class ViewContent extends TheiaElement implements IViewContent {
     constructor(sideBar: SideBarView = new SideBarView()) {
@@ -61,7 +65,7 @@ export class ViewContent extends TheiaElement implements IViewContent {
             for (const view of views) {
                 if (await view.isDisplayed()) {
                     if (outputView) {
-                        throw new Error('Found another visible view. This is unexpected.');   
+                        throw new Error('Found another visible view. This is unexpected.');
                     }
                     outputView = view;
                 }

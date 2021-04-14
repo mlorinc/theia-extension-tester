@@ -1,12 +1,15 @@
-import { getTimeout, IBottomBarPanel } from "extension-tester-page-objects";
-import { until } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { TitleBar } from "../menu/TitleBar";
-import { Input } from "../workbench/input/Input";
-import { DebugConsoleView } from './DebugConsoleView';
-import { OutputView } from './OutputView';
+import {
+    DebugConsoleView,
+    getTimeout,
+    IBottomBarPanel,
+    Input,
+    OutputView,
+    TerminalView,
+    TheiaElement,
+    TitleBar,
+    until
+} from '../../../module';
 import { ProblemsView } from './ProblemsView';
-import { TerminalView } from "./TerminalView";
 
 /**
  * Page object for the bottom view panel
@@ -35,7 +38,7 @@ export class BottomBarPanel extends TheiaElement implements IBottomBarPanel {
             await this.getDriver().wait(until.elementIsNotVisible(this), getTimeout());
         }
     }
-    
+
     /**
      * Open the Problems view in the bottom panel
      * @returns Promise resolving to a ProblemsView object

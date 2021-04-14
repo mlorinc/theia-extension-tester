@@ -1,6 +1,4 @@
-import { getTimeout, IModalDialog } from "extension-tester-page-objects";
-import { until, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
+import { getTimeout, IModalDialog, TheiaElement, until, WebElement } from "../../../module";
 
 export class ModalDialog extends TheiaElement implements IModalDialog {
     constructor() {

@@ -1,7 +1,10 @@
-import { By, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../TheiaElement";
-import { TabsContentWidget } from "./TabContentWidget";
-import { TabWidget } from "./TabWidget";
+import {
+    By,
+    TabsContentWidget,
+    TabWidget,
+    TheiaElement,
+    WebElement
+} from '../../../../module';
 
 export class TabsWidget extends TheiaElement {
     constructor(parent: WebElement, element?: WebElement) {
@@ -40,5 +43,5 @@ export class TabsWidget extends TheiaElement {
             }
         }
         return Promise.reject('Could not find selected content widget');
-    } 
+    }
 }

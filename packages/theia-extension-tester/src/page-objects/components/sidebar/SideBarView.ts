@@ -1,7 +1,11 @@
-import { ISideBarView, IViewTitlePart, IViewContent } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ViewContent } from "./ViewContent";
-import { ViewTitlePart } from "./ViewTitlePart";
+import {
+    ISideBarView,
+    IViewContent,
+    IViewTitlePart,
+    TheiaElement,
+    ViewContent,
+    ViewTitlePart
+} from '../../../module';
 
 export class SideBarView extends TheiaElement implements ISideBarView {
 
@@ -18,5 +22,5 @@ export class SideBarView extends TheiaElement implements ISideBarView {
 
     static async isOpen(): Promise<boolean> {
         return new SideBarView().isDisplayed();
-    } 
+    }
 }

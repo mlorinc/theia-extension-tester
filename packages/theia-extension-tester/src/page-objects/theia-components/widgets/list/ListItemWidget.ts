@@ -1,6 +1,4 @@
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../TheiaElement";
-import { ListWidget } from "./ListWidget";
+import { ListWidget, TheiaElement, WebElement } from '../../../../module';
 
 export class ListItemWidget extends TheiaElement {
     constructor(element: WebElement, parent: ListWidget) {

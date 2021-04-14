@@ -1,6 +1,4 @@
-import { IMenu } from "extension-tester-page-objects";
-import { ContextMenu } from "./ContextMenu";
-import { MenuItem } from "./MenuItem";
+import { ContextMenu, IMenu, MenuItem } from '../../../module';
 
 export class TitleBarItem extends MenuItem {
     async getNextMenu(): Promise<IMenu> {

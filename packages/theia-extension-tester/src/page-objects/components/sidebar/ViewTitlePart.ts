@@ -1,7 +1,12 @@
-import { getTimeout, IMenu, ITitleActionButton, IViewTitlePart } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { SideBarView } from "./SideBarView";
-import { TitleActionButton } from "./TitleActionButton";
+import {
+    getTimeout,
+    IMenu,
+    ITitleActionButton,
+    IViewTitlePart,
+    SideBarView,
+    TheiaElement,
+    TitleActionButton
+} from '../../../module';
 
 export class ViewTitlePart extends TheiaElement implements IViewTitlePart {
     constructor(sideBar: SideBarView = new SideBarView()) {

@@ -1,13 +1,4 @@
-import { ActionsControl } from './ActionsControl';
-import {
-    getTimeout,
-    IActionsControl,
-    IActivityBar,
-    IMenu,
-    IViewControl
-} from 'extension-tester-page-objects';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { ViewControl } from './ViewControl';
+import { ActionsControl, getTimeout, IActionsControl, IActivityBar, IMenu, IViewControl, TheiaElement, ViewControl } from "../../../module";
 
 export class ActivityBar extends TheiaElement implements IActivityBar {
 

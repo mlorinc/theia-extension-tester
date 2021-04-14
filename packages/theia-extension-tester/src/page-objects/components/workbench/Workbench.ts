@@ -1,9 +1,10 @@
 import * as path from 'path';
-import { ActivityBar } from '../activityBar/ActivityBar';
-import { By, WebDriver } from 'selenium-webdriver';
-import { DialogHandler } from '../dialog/DialogHandler';
-import { EditorView } from '../editor/EditorView';
 import {
+    ActivityBar,
+    By,
+    DefaultTreeSection,
+    DialogHandler,
+    EditorView,
     getTimeout,
     IActivityBar,
     IBottomBarPanel,
@@ -11,23 +12,22 @@ import {
     IInput,
     INotification,
     INotificationsCenter,
+    Input,
     IOpenDialog,
     ISettingsEditor,
     ISideBarView,
     IStatusBar,
     ITitleBar,
+    IViewControl,
     IWorkbench,
-    SeleniumBrowser,
     PathUtils,
-    IViewControl
-
-} from 'extension-tester-page-objects';
-import { Input } from './input/Input';
-import { SideBarView } from '../sidebar/SideBarView';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { TitleBar } from '../menu/TitleBar';
-import { DefaultTreeSection } from '../sidebar/tree/default/DefaultTreeSection';
-import { StatusBar } from '../statusBar/StatusBar';
+    SeleniumBrowser,
+    SideBarView,
+    StatusBar,
+    TheiaElement,
+    TitleBar,
+    WebDriver
+} from '../../../module';
 
 export class Workbench extends TheiaElement implements IWorkbench {
     private static openFolder: string | undefined;

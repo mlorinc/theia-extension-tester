@@ -1,11 +1,17 @@
-import { AbstractElement, getTimeout, SeleniumBrowser } from 'extension-tester-page-objects';
 import {
+    AbstractElement,
+    getTimeout,
+    isTheiaLocator,
     Locator,
+    SeleniumBrowser,
+    TheiaLocator,
+    TheiaLocatorProperties,
+    TheiaLocatorProperty,
+    TheiaLocators,
     WebDriver,
     WebElement,
     WebElementPromise
-} from 'selenium-webdriver';
-import { isTheiaLocator, TheiaLocator, TheiaLocatorProperties, TheiaLocatorProperty, TheiaLocators } from '../../locators/TheiaLocators';
+} from '../../module';
 
 export class TheiaElement extends AbstractElement {
     protected static _locators: TheiaLocators;
@@ -97,7 +103,7 @@ export class TheiaElement extends AbstractElement {
         }
     }
 
-    hasProperty(property: TheiaLocatorProperty): boolean {    
+    hasProperty(property: TheiaLocatorProperty): boolean {
         if (this.theiaLocator) {
             return this.theiaLocator.properties !== undefined && this.theiaLocator.properties[property] !== undefined;
         }
@@ -191,7 +197,7 @@ export class TheiaElement extends AbstractElement {
 
                 if (Number.isNaN(parsedValue)) {
                     console.warn(`Value "${value}" was parsed to NaN.`);
-                    return 0;   
+                    return 0;
                 }
                 return parsedValue;
             }

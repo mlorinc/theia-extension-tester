@@ -1,11 +1,15 @@
-import { DashboardTestRunner } from './DashboardTestRunner';
+import {
+    By,
+    CheBrowser,
+    DashboardTestRunner,
+    getTimeout,
+    SeleniumBrowser,
+    TabsWidget,
+    TabWidget,
+    TheiaElement,
+    until
+} from '../module';
 import Mocha = require('mocha');
-import { TheiaElement } from '../page-objects/theia-components/TheiaElement';
-import { TabsWidget } from '../page-objects/theia-components/widgets/tabs/TabsWidget';
-import { TabWidget } from '../page-objects/theia-components/widgets/tabs/TabWidget';
-import { getTimeout, SeleniumBrowser } from 'extension-tester-page-objects';
-import { By, until } from 'selenium-webdriver';
-import { CheBrowser } from '../browser';
 
 export interface WorkspaceTestRunnerOptions {
     mochaOptions?: Mocha.MochaOptions,
@@ -48,13 +52,13 @@ export class WorkspaceTestRunner extends DashboardTestRunner {
             else {
                 throw new Error('Not supported.');
             }
-        } 
+        }
         else {
             const item = await navbar.findElement(By.xpath(`.//*[contains(text(), 'Get Started')]`)) as TheiaElement;
             await item.safeClick();
-            
+
             const mainSection = new TheiaElement(TheiaElement.locators.dashboard.getStarted.mainSection);
-    
+
             console.log('Searching tabs');
             const tabsWidget = new TabsWidget(mainSection);
             console.log('Get Started');

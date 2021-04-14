@@ -1,4 +1,4 @@
-import { TextView } from './TextView';
+import { TextView } from "../../../module";
 
 /**
  * Output view of the bottom panel

@@ -1,5 +1,4 @@
-import { INotificationsCenter, IStatusBar } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
+import { INotificationsCenter, IStatusBar, TheiaElement } from '../../../module';
 
 export class StatusBar extends TheiaElement implements IStatusBar {
     constructor() {

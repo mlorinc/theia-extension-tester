@@ -1,5 +1,4 @@
-import {  IQuickPickItem } from "extension-tester-page-objects";
-import { TheiaElement } from "../../../theia-components/TheiaElement";
+import { IQuickPickItem, TheiaElement } from '../../../../module';
 
 export class QuickPickItem extends TheiaElement implements IQuickPickItem {
     async getLabel(): Promise<string> {

@@ -1,8 +1,12 @@
-import { IMenu, SeleniumBrowser } from "extension-tester-page-objects";
-import { WebDriver, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ContextMenu } from "./ContextMenu";
-import { MenuItem } from "./MenuItem";
+import {
+    ContextMenu,
+    IMenu,
+    MenuItem,
+    SeleniumBrowser,
+    TheiaElement,
+    WebDriver,
+    WebElement
+} from '../../../module';
 
 export class ContextMenuItem extends MenuItem {
     constructor(element: WebElement, parent: IMenu, protected level: number) {

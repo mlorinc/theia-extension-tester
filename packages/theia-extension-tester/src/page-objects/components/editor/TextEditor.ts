@@ -1,13 +1,22 @@
-import { AbstractElement, getTimeout, IContentAssist, IEditorTab, IMenu, ITextEditor } from 'extension-tester-page-objects';
-import { ContentAssist } from './ContentAssist';
-import { Editor } from './Editor';
-import { EditorView } from './EditorView';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import * as clipboardy from "clipboardy";
-import { Button, Key, WebElementPromise } from 'selenium-webdriver';
+import * as clipboardy from 'clipboardy';
+import {
+    AbstractElement,
+    Button,
+    ContentAssist,
+    ContextMenu,
+    Editor,
+    EditorTab,
+    EditorView,
+    getTimeout,
+    IContentAssist,
+    IEditorTab,
+    IMenu,
+    ITextEditor,
+    Key,
+    TheiaElement,
+    WebElementPromise
+} from '../../../module';
 import { URL } from 'url';
-import { ContextMenu } from '../menu/ContextMenu';
-import { EditorTab } from './EditorTab';
 
 export class TextEditor extends Editor implements ITextEditor {
 

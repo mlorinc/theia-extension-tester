@@ -1,7 +1,14 @@
-import { ExtestUntil, getTimeout, repeat } from 'extension-tester-page-objects';
-import { Button, Key, Locator, WebElement } from 'selenium-webdriver';
-import { TheiaLocator } from '../../../../locators/TheiaLocators';
-import { TheiaElement } from '../../TheiaElement';
+import {
+    Button,
+    ExtestUntil,
+    getTimeout,
+    Key,
+    Locator,
+    repeat,
+    TheiaElement,
+    TheiaLocator,
+    WebElement
+} from '../../../../module';
 
 export interface InputWidgetOptions {
     element?: WebElement | Locator | TheiaLocator;

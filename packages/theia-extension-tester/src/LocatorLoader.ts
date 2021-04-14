@@ -1,5 +1,4 @@
-import { LocatorLoader } from "extension-tester-page-objects";
-import { TheiaLocators } from "./locators/TheiaLocators";
+import { LocatorLoader, TheiaLocators } from "./module";
 
 export class TheiaLocatorLoader extends LocatorLoader<TheiaLocators> {
     protected parseVersion(version: string): string {

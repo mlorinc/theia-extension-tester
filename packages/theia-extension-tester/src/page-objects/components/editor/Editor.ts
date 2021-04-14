@@ -1,9 +1,15 @@
-import { Button, Locator, WebElement } from 'selenium-webdriver';
-import { ContextMenu } from '../menu/ContextMenu';
-import { EditorView } from './EditorView';
-import { IEditor, IEditorTab, IMenu } from 'extension-tester-page-objects';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { TheiaLocator } from '../../../locators/TheiaLocators';
+import {
+    Button,
+    ContextMenu,
+    EditorView,
+    IEditor,
+    IEditorTab,
+    IMenu,
+    Locator,
+    TheiaElement,
+    TheiaLocator,
+    WebElement
+} from '../../../module';
 
 export class Editor extends TheiaElement implements IEditor {
     protected editorView: EditorView;

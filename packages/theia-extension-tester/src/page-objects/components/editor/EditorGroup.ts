@@ -1,6 +1,10 @@
-import { IEditor, IEditorGroup, IEditorTab } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { EditorView } from "./EditorView";
+import {
+    EditorView,
+    IEditor,
+    IEditorGroup,
+    IEditorTab,
+    TheiaElement
+} from '../../../module';
 
 export class EditorGroup extends TheiaElement implements IEditorGroup {
     private editorView: EditorView;

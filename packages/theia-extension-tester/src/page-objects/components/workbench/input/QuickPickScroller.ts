@@ -1,8 +1,10 @@
-import { Input } from './Input';
-import { QuickPickItem } from './QuickPickItem';
-import { TheiaElement } from '../../../theia-components/TheiaElement';
-import { MonacoScrollWidget } from '../../../theia-components/widgets/scrollable/MonacoScrollWidget';
-import { ScrollItemNotFound } from '../../../theia-components/widgets/scrollable/ScrollableWidget';
+import {
+    Input,
+    MonacoScrollWidget,
+    QuickPickItem,
+    ScrollItemNotFound,
+    TheiaElement
+} from '../../../../module';
 
 export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
     private input: Input;
@@ -17,7 +19,7 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
         return element.getLabel();
     }
 
-    async length(): Promise<number> {  
+    async length(): Promise<number> {
         const counter = await this.input.getEnclosingElement().findElement(QuickPickScroller.locators.components.workbench.input.counter);
         const text = await counter.getAttribute('innerText');
         const [count, ..._] = text.split(/\s+/);
@@ -45,7 +47,7 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
                 return indexOrText.localeCompare(value as string);
             }
             else {
-                return indexOrText - (value as number); 
+                return indexOrText - (value as number);
             }
         }
 

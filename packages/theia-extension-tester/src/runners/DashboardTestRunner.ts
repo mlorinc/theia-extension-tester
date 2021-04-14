@@ -1,7 +1,6 @@
-import { getTimeout, TestRunner } from 'extension-tester-page-objects';
 import Mocha = require('mocha');
 import sanitize = require('sanitize-filename');
-import { CheBrowser } from '../browser';
+import { CheBrowser, getTimeout, TestRunner } from '../module';
 
 export class DashboardTestRunner implements TestRunner {
     constructor(protected browser: CheBrowser, protected mochaOptions?: Mocha.MochaOptions) {

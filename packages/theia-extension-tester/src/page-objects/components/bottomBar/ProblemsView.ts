@@ -1,8 +1,4 @@
-import { IMarker, IProblemsView } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { Menu } from "../menu/Menu";
-import { BottomBarPanel } from "./BottomBarPanel";
+import { BottomBarPanel, IMarker, IProblemsView, Menu, TheiaElement, WebElement } from "../../../module";
 
 /**
  * Problems view in the bottom panel

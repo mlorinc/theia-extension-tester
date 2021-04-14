@@ -1,7 +1,13 @@
-import { ExtestUntil, getTimeout, IInputBox, IQuickPickItem, SeleniumBrowser } from 'extension-tester-page-objects';
-import { InputWidget } from '../../../theia-components/widgets/input/InputWidget';
-import { TheiaElement } from '../../../theia-components/TheiaElement';
-import { QuickPickScroller } from './QuickPickScroller';
+import {
+    ExtestUntil,
+    getTimeout,
+    IInputBox,
+    InputWidget,
+    IQuickPickItem,
+    QuickPickScroller,
+    SeleniumBrowser,
+    TheiaElement
+} from '../../../../module';
 
 export class Input extends InputWidget implements IInputBox {
     constructor() {
@@ -47,7 +53,7 @@ export class Input extends InputWidget implements IInputBox {
             await buttons[0].safeClick();
             return true;
         }
-        
+
         return false;
     }
 
@@ -58,7 +64,7 @@ export class Input extends InputWidget implements IInputBox {
 
     async getQuickPicks(): Promise<IQuickPickItem[]> {
         const scroll = new QuickPickScroller(this);
-        return scroll.getVisibleItems(); 
+        return scroll.getVisibleItems();
     }
 
     async getMessage(): Promise<string> {

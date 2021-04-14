@@ -1,6 +1,4 @@
-import { IContentAssistItem, IMenu } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { MenuItem } from "../menu/MenuItem";
+import { IContentAssistItem, IMenu, MenuItem, WebElement } from "../../../module";
 
 export class ContentAssistItem extends MenuItem implements IContentAssistItem {
     constructor(element: WebElement, parent: IMenu) {
