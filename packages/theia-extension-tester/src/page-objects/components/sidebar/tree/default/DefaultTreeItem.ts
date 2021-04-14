@@ -1,12 +1,19 @@
-import { IDefaultTreeItem, IMenu, ITreeItem, IViewItemAction } from "extension-tester-page-objects";
-import { Button, By, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../../../theia-components/TheiaElement";
-import { FileTreeNode } from "../../../../theia-components/widgets/tree/FileTreeNode";
-import { ContextMenu } from "../../../menu/ContextMenu";
+import {
+    Button,
+    By,
+    ContextMenu,
+    FileTreeNode,
+    IDefaultTreeItem,
+    IMenu,
+    ITreeItem,
+    IViewItemAction,
+    TheiaElement,
+    WebElement
+} from '../../../../../module';
 
 export class DefaultTreeItem extends FileTreeNode implements IDefaultTreeItem {
-    constructor(element: TheiaElement) {
-        super(element, element.getEnclosingElement() as TheiaElement);
+    constructor(element: TheiaElement, parent: TheiaElement) {
+        super(element, parent);
     }
 
     async isFile(): Promise<boolean> {

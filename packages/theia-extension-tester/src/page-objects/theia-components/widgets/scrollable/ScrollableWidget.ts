@@ -1,15 +1,26 @@
-import { Locator, WebElement } from 'selenium-webdriver';
-import { TheiaElement } from '../../TheiaElement';
-import { TheiaLocator } from '../../../../locators/TheiaLocators';
-import { ScrollWidget } from './Scroll';
+import { repeat } from 'extension-tester-page-objects';
+import {
+    Locator,
+    ScrollWidget,
+    TheiaElement,
+    TheiaLocator,
+    WebElement
+} from '../../../../module';
 
 export enum ScrollDirection {
     NEXT, PREVIOUS, NONE
 }
 
-export class ScrollItemNotFound extends Error {};
+export class ScrollItemNotFound extends Error {
+    constructor(message?: string) {
+        super(message);
+        this.name = 'ScrollItemNotFound';
+    }
+};
+
 export type ScrollComparator<T extends TheiaElement> = (scrollItem: T) => PromiseLike<number> | number;
 export type ScrollPredicate<T extends TheiaElement> = (scrollItem: T) => PromiseLike<boolean> | boolean;
+export type ScrollFilter<T extends TheiaElement> = (scrollItem: T) => PromiseLike<boolean> | boolean;
 
 export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElement {
     constructor(element: WebElement | Locator | TheiaLocator, parent?: WebElement) {
@@ -197,7 +208,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
     async findItemWithComparator(comparator: ScrollComparator<T>, timeout?: number, message?: string): Promise<T> {
         let items = await this.getVisibleItems();
 
-        return await this.getDriver().wait(async () => {
+        return await repeat(async () => {
             if (items.length === 0) {
                 throw new ScrollItemNotFound('Item was not found. Tree is empty.');
             }
@@ -245,11 +256,13 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             else {
                 return await comparatorBinarySearch(comparator, items);
             }
-        }, timeout, message ?? 'Could not find scroll item on time.') as T;
+        }, {
+            timeout, message: message ?? 'Could not find scroll item on time.'
+        }) as T;
     }
 }
 
-async function comparatorBinarySearch<T extends TheiaElement>(comparator: ScrollComparator<T>, items: T[]):  Promise<T> {
+async function comparatorBinarySearch<T extends TheiaElement>(comparator: ScrollComparator<T>, items: T[]): Promise<T> {
     // first and last item was already checked
     let left: number = 1;
     let right: number = items.length - 2;

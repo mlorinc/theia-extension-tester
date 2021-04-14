@@ -1,9 +1,15 @@
-import { ICustomTreeItem, IMenu, ITreeItem, IViewItemAction } from "extension-tester-page-objects";
-import { By, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../../../theia-components/TheiaElement";
-import { TreeNode } from "../../../../theia-components/widgets/tree/TreeNode";
+import {
+    By,
+    ICustomTreeItem,
+    IMenu,
+    ITreeItem,
+    IViewItemAction,
+    TheiaElement,
+    TreeNode,
+    WebElement
+} from '../../../../../module';
 
-export class CustomTreeItem extends TreeNode implements ICustomTreeItem  {
+export class CustomTreeItem extends TreeNode implements ICustomTreeItem {
     constructor(element: TheiaElement) {
         super(element, element.getEnclosingElement() as TheiaElement);
     }

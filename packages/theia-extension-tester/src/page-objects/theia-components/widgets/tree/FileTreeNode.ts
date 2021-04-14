@@ -1,6 +1,5 @@
-import { TheiaElement } from "../../TheiaElement";
-import { TreeNode } from "./TreeNode";
-import * as path from "path";
+import * as path from 'path';
+import { TheiaElement, TreeNode } from '../../../../module';
 
 export class FileTreeNode extends TreeNode {
     constructor(element: TheiaElement, parent: TheiaElement) {
@@ -15,7 +14,7 @@ export class FileTreeNode extends TreeNode {
     async isEnabled(): Promise<boolean> {
         if (await this.isExpandable()) {
             const toggle = await this.findElement(FileTreeNode.locators.widgets.tree.file.expandToggle) as TheiaElement;
-            return await super.isEnabled() && await toggle.isEnabled();
+            return await toggle.isEnabled();
         }
 
         return await super.isEnabled();
@@ -38,5 +37,9 @@ export class FileTreeNode extends TreeNode {
     async isDirectory(): Promise<boolean> {
         const classes = await this.getAttribute('class')
         return classes.includes('theia-DirNode');
+    }
+
+    async isFile(): Promise<boolean> {
+        return this.isExpandable();
     }
 }

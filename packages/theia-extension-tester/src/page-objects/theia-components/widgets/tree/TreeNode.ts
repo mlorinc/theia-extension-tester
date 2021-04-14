@@ -1,6 +1,4 @@
-import { getTimeout } from "extension-tester-page-objects";
-import { until } from "selenium-webdriver";
-import { TheiaElement } from "../../TheiaElement";
+import { getTimeout, TheiaElement, until } from '../../../../module';
 
 export abstract class TreeNode extends TheiaElement {
     constructor(element: TheiaElement, parent: TheiaElement) {
@@ -34,6 +32,15 @@ export abstract class TreeNode extends TheiaElement {
         }
         else {
             throw new Error('TreeNode.locators.widgets.tree.node.properties.expandable is undefined.');
+        }
+    }
+
+    async isEnabled(): Promise<boolean> {
+        if (TreeNode.locators.widgets.tree.node.properties?.enabled) {
+            return await TreeNode.locators.widgets.tree.node.properties?.enabled(this, TreeNode.locators);
+        }
+        else {
+            throw new Error('TreeNode.locators.widgets.tree.node.properties.enabled is undefined.');
         }
     }
 

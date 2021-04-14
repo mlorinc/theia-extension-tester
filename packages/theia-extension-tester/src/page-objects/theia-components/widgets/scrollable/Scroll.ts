@@ -1,6 +1,4 @@
-import { getTimeout } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../TheiaElement";
+import { getTimeout, TheiaElement, WebElement } from '../../../../module';
 
 export interface Scroll extends TheiaElement {
     getScrollPosition(): Promise<number>;
@@ -16,7 +14,7 @@ export abstract class ScrollWidget extends TheiaElement implements Scroll {
     }
 
     abstract getScrollPosition(): Promise<number>;
-    abstract getScrollSize(): Promise<number> ;
+    abstract getScrollSize(): Promise<number>;
     abstract getScrollContainerSize(): Promise<number>;
     abstract scroll(value: number, timeout?: number): Promise<void>
     abstract scrollTo(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;

@@ -1,17 +1,20 @@
-import { ICustomTreeItem, ICustomTreeSection } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { ScrollDirection } from "../../../../theia-components/widgets/scrollable/ScrollableWidget";
-import { FileTreeWidget } from "../../../../theia-components/widgets/tree/FileTreeWidget";
-import { ViewContent } from "../../ViewContent";
-import { ViewSection } from "../../ViewSection";
-import { CustomTreeItem } from "./CustomTreeItem";
+import {
+    CustomTreeItem,
+    ICustomTreeItem,
+    ICustomTreeSection,
+    ScrollDirection,
+    TreeWidget,
+    ViewContent,
+    ViewSection,
+    WebElement
+} from '../../../../../module';
 
-export class CustomTreeSection extends ViewSection implements ICustomTreeSection  {
-    private tree: FileTreeWidget;
+export class CustomTreeSection extends ViewSection implements ICustomTreeSection {
+    private tree: CustomTree;
 
     constructor(element: WebElement, parent?: ViewContent) {
         super(element, parent);
-        this.tree = new FileTreeWidget(undefined, element);
+        this.tree = new CustomTree(undefined, element);
     }
 
     async findItemByPath(...path: string[]): Promise<ICustomTreeItem> {
@@ -23,8 +26,7 @@ export class CustomTreeSection extends ViewSection implements ICustomTreeSection
     }
 
     async getVisibleItems(): Promise<ICustomTreeItem[]> {
-        const items = await this.tree.getVisibleItems();
-        return Promise.all(items.map((item) => new CustomTreeItem(item)));
+        return await this.tree.getVisibleItems();
     }
 
     async openItem(...path: string[]): Promise<ICustomTreeItem[]> {
@@ -37,5 +39,11 @@ export class CustomTreeSection extends ViewSection implements ICustomTreeSection
 
     async findItem(label: string, maxLevel?: number): Promise<ICustomTreeItem> {
         throw new Error('Not implemented error');
+    }
+}
+
+class CustomTree extends TreeWidget<CustomTreeItem> {
+    protected getItems(): Promise<CustomTreeItem[]> {
+        throw new Error("Method not implemented.");
     }
 }

@@ -1,8 +1,14 @@
-import { getTimeout, TreeItemNotFound } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { ScrollWidget, VerticalScrollWidget } from "../scrollable/Scroll";
-import { ScrollableWidget, ScrollDirection } from "../scrollable/ScrollableWidget";
-import { TreeNode } from "./TreeNode";
+import {
+    getTimeout,
+    ScrollableWidget,
+    ScrollDirection,
+    ScrollWidget,
+    TreeItemNotFound,
+    TreeNode,
+    until,
+    VerticalScrollWidget,
+    WebElement
+} from '../../../../module';
 
 export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T> {
     private verticalScroll: ScrollWidget;
@@ -57,19 +63,18 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
         const label = options.label;
         const timeout = getTimeout(options.timeout);
         const direction = options.direction;
-        const treeReady = options.treeReady;
         const earlyStopping = options.earlyStopping;
 
         let items: T[];
 
         if (root) {
             const rootDepth = await root.getTreeDepth();
-            
-            await this.treeReady(label, treeReady, timeout);
+
+            await this.getDriver().wait(until.elementIsEnabled(this), timeout);
 
             if (await root.isExpandable()) {
                 await root.expand();
-                await this.treeReady(label, treeReady, timeout);
+                await this.getDriver().wait(until.elementIsEnabled(this), timeout);
             }
 
             items = await this.getVisibleItems();
@@ -147,7 +152,6 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
         let direction = options.direction;
         const timeout = getTimeout(options.timeout);
         const strict = options.strict;
-        const isEnabled = options.treeReady;
 
         if (path.length === 0) {
             throw new Error('Path cannot be empty.');
@@ -164,24 +168,17 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
 
         let count = 0;
         for (const segment of path) {
-            await this.treeReady(segment, isEnabled, timeout);
+            await this.getDriver().wait(until.elementIsEnabled(this), timeout);
 
-            const fn = () => this.findNode({
+            node = await this.findNode({
                 direction,
                 label: segment,
                 reset: node === undefined,
                 startNode: node,
                 timeout,
-                treeReady: isEnabled,
                 earlyStopping: (depth, label) => true
             });
 
-            try {
-                node = await this.getDriver().wait(fn, timeout);
-            }
-            catch (e) {
-                throw new TreeItemNotFound(path, e.toString());
-            }
 
             count += 1;
 
@@ -202,19 +199,6 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
 
         throw new TreeItemNotFound(path);
     }
-
-    private async treeReady(label: string, treeReady?: () => PromiseLike<boolean> | boolean, timeout?: number): Promise<void> {
-        if (treeReady) {
-            try {
-                await this.getDriver().wait(
-                    treeReady, timeout,
-                    'Waiting for tree to be enabled.');
-            }
-            catch (e) {
-                throw new TreeItemNotFound([label], e.message);
-            }
-        }
-    }
 }
 
 export interface FindNodeOptions<T extends TreeNode> {
@@ -224,7 +208,6 @@ export interface FindNodeOptions<T extends TreeNode> {
     reset?: boolean;
     startNode?: T;
     timeout?: number;
-    treeReady?: () => PromiseLike<boolean> | boolean;
 }
 
 export interface FindNodeByPathOptions {
@@ -232,5 +215,4 @@ export interface FindNodeByPathOptions {
     path: string[];
     strict?: boolean;
     timeout?: number;
-    treeReady?: () => PromiseLike<boolean> | boolean;
 }

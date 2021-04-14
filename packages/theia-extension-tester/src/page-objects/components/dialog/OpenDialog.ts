@@ -1,11 +1,5 @@
-import { IOpenDialog } from "extension-tester-page-objects";
-import { FileTreeWidget } from "../../theia-components/widgets/tree/FileTreeWidget";
-import { ModalDialog } from "./ModalDialog";
+import { DialogTree, getTimeout, IOpenDialog, ModalDialog, ModalDialogButton, TheiaElement } from "../../../module";
 import * as pathLib from "path";
-import { ScrollDirection } from "../../theia-components/widgets/scrollable/ScrollableWidget";
-import { ModalDialogButton } from "./ModalDialogButton";
-import { PathUtils } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
 
 export class OpenDialog extends ModalDialog implements IOpenDialog {
     async selectPath(path: string): Promise<void> {
@@ -24,21 +18,17 @@ export class OpenDialog extends ModalDialog implements IOpenDialog {
         }
 
         console.log(`Looking for tree`);
-        const tree = new FileTreeWidget(undefined, content);
-        const segments = PathUtils.convertToTreePath(path);
-        console.log(`Opening: ${segments.join(', ')}`);
-        
+        const tree = new DialogTree(content);
+        console.log(`Opening: ${path}`);
+
         const items = await tree.getVisibleItems();
 
         for (const item of items) {
             console.log(`Item: "${await item.getLabel()}".`);
         }
 
-        const node = await tree.findNodeByPath({
-            direction: ScrollDirection.NEXT,
-            strict: true,
-            path: segments
-        });
+        await tree.resetScroll();
+        const node = await tree.findFile(path, getTimeout());
         await node.safeClick();
     }
 }
