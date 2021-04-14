@@ -1,5 +1,4 @@
-import { IDebugConsoleView } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
+import { IDebugConsoleView, TheiaElement } from "../../../module";
 
 /**
  * Debug Console view on the bottom panel

@@ -1,6 +1,4 @@
-import { ITerminalView} from 'extension-tester-page-objects';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { Menu } from '../menu/Menu';
+import { ITerminalView, Menu, TheiaElement } from "../../../module";
 
 /**
  * Terminal view on the bottom panel

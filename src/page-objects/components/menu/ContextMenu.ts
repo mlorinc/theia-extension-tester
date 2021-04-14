@@ -1,8 +1,11 @@
-import { IMenu, IMenuItem } from 'extension-tester-page-objects';
-import { WebElement } from 'selenium-webdriver';
-import { Menu } from './Menu';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { ContextMenuItem } from './ContextMenuItem';
+import {
+    ContextMenuItem,
+    IMenu,
+    IMenuItem,
+    Menu,
+    TheiaElement,
+    WebElement
+} from '../../../module';
 
 export class ContextMenu extends Menu {
 
@@ -16,9 +19,9 @@ export class ContextMenu extends Menu {
         const out: IMenuItem[] = [];
 
         for (const element of elements) {
-           if (await element.getAttribute('data-type') !== 'separator') {
-               out.push(new ContextMenuItem(element, this, this.level));
-           }
+            if (await element.getAttribute('data-type') !== 'separator') {
+                out.push(new ContextMenuItem(element, this, this.level));
+            }
         }
         return out;
     }

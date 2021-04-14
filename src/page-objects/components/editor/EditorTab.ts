@@ -1,9 +1,13 @@
-import { Button, WebElement } from 'selenium-webdriver';
-import { ContextMenu } from '../menu/ContextMenu';
-import { EditorView } from './EditorView';
-import { getTimeout, IEditorTab } from 'extension-tester-page-objects';
-import { Menu } from '../menu/Menu';
-import { TheiaElement } from '../../theia-components/TheiaElement';
+import {
+    Button,
+    ContextMenu,
+    EditorView,
+    getTimeout,
+    IEditorTab,
+    Menu,
+    TheiaElement,
+    WebElement
+} from '../../../module';
 
 export class EditorTab extends TheiaElement implements IEditorTab {
     constructor(element: WebElement, editor: EditorView) {
@@ -12,7 +16,7 @@ export class EditorTab extends TheiaElement implements IEditorTab {
 
     async getTitle(): Promise<string> {
         const fn = EditorTab.locators.components.editor.tabBar.tab.constructor.properties?.title;
-        
+
         if (fn) {
             return await fn(this, EditorTab.locators);
         }

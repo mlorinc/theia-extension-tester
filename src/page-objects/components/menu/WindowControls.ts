@@ -1,6 +1,10 @@
-import { SeleniumBrowser, IWindowControls, ITitleBar } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { TitleBar } from "./TitleBar";
+import {
+    ITitleBar,
+    IWindowControls,
+    SeleniumBrowser,
+    TheiaElement,
+    TitleBar
+} from '../../../module';
 
 export class WindowControls extends TheiaElement implements IWindowControls {
     constructor(bar?: ITitleBar) {

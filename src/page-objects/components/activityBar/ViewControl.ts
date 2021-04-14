@@ -1,14 +1,16 @@
-import { ActivityBar } from './ActivityBar';
-import { Button, until, WebElement } from 'selenium-webdriver';
-import { ContextMenu } from '../menu/ContextMenu';
 import {
+    ActivityBar,
+    Button,
+    ContextMenu,
     getTimeout,
     IMenu,
     ISideBarView,
-    IViewControl
-} from 'extension-tester-page-objects';
-import { SideBarView } from '../sidebar/SideBarView';
-import { TheiaElement } from '../../theia-components/TheiaElement';
+    IViewControl,
+    SideBarView,
+    TheiaElement,
+    until,
+    WebElement
+} from '../../../module';
 
 export class ViewControl extends TheiaElement implements IViewControl {
     constructor(element: WebElement, parent: ActivityBar) {
@@ -26,7 +28,7 @@ export class ViewControl extends TheiaElement implements IViewControl {
         await sideBar.getDriver().wait(async () => {
             const titlePart = sideBar.getTitlePart();
             const contentTitle = await titlePart.getTitle();
-            
+
             console.log(`"${contentTitle}".startsWith("${title}")`);
             return contentTitle.startsWith(title);
         }, getTimeout(), `Could not open view with title "${title}".`);

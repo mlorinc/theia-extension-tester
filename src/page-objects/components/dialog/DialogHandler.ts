@@ -1,4 +1,4 @@
-import { OpenDialog } from "./OpenDialog";
+import { OpenDialog } from "../../../module";
 
 /**
  * Handles native dialogs for different platforms

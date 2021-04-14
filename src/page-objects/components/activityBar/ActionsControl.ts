@@ -1,8 +1,4 @@
-import { IActionsControl, IMenu } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ContextMenu } from "../menu/ContextMenu";
-import { ActivityBar } from "./ActivityBar";
+import { ActivityBar, ContextMenu, IActionsControl, IMenu, TheiaElement, WebElement } from "../../../module";
 
 export class ActionsControl extends TheiaElement implements IActionsControl {
     constructor(element: WebElement, parent: ActivityBar) {

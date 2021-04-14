@@ -1,7 +1,11 @@
-import { IMenu, IViewItem } from "extension-tester-page-objects";
-import { Button, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ContextMenu } from "../menu/ContextMenu";
+import {
+    Button,
+    ContextMenu,
+    IMenu,
+    IViewItem,
+    TheiaElement,
+    WebElement
+} from '../../../module';
 
 export class ViewItem extends TheiaElement implements IViewItem {
     constructor(element: WebElement, parent?: WebElement) {

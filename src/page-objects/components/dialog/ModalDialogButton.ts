@@ -1,5 +1,4 @@
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ModalDialog } from "./ModalDialog";
+import { ModalDialog, TheiaElement } from "../../../module";
 
 export class ModalDialogButton extends TheiaElement {
     constructor(buttonElement: TheiaElement, parent: ModalDialog) {

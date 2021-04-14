@@ -1,6 +1,12 @@
-import { getTimeout, IMenu, IMenuItem } from "extension-tester-page-objects";
-import { Key, Locator, WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
+import {
+    getTimeout,
+    IMenu,
+    IMenuItem,
+    Key,
+    Locator,
+    TheiaElement,
+    WebElement
+} from '../../../module';
 
 export abstract class Menu extends TheiaElement implements IMenu {
     constructor(element: WebElement | Locator, parent?: WebElement, protected level: number = 0) {

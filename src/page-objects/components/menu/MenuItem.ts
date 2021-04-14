@@ -1,6 +1,9 @@
-import { IMenu, IMenuItem } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
+import {
+    IMenu,
+    IMenuItem,
+    TheiaElement,
+    WebElement
+} from '../../../module';
 
 export abstract class MenuItem extends TheiaElement implements IMenuItem {
     constructor(element: WebElement, parent: IMenu) {

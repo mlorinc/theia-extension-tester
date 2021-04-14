@@ -1,8 +1,10 @@
-import { IMenuItem } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { Menu } from "./Menu";
-import { TitleBarItem } from "./TitleBarItem";
-import { WindowControls } from "./WindowControls";
+import {
+    IMenuItem,
+    Menu,
+    TheiaElement,
+    TitleBarItem,
+    WindowControls
+} from '../../../module';
 
 export class TitleBar extends Menu {
     constructor() {

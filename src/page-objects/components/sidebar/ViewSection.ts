@@ -1,14 +1,19 @@
-import { getTimeout, IViewItem, IViewPanelAction, IViewSection } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ViewContent } from "./ViewContent";
-import { ViewPanelAction } from "./ViewPanelAction";
+import {
+    getTimeout,
+    IViewItem,
+    IViewPanelAction,
+    IViewSection,
+    TheiaElement,
+    ViewContent,
+    ViewPanelAction,
+    WebElement
+} from '../../../module';
 
 export abstract class ViewSection extends TheiaElement implements IViewSection {
     constructor(element: WebElement, parent: ViewContent = new ViewContent()) {
         super(element, parent);
     }
-    
+
     abstract getVisibleItems(): Promise<IViewItem[]>;
     abstract findItem(label: string, maxLevel?: number): Promise<IViewItem | undefined>;
     abstract openItem(...path: string[]): Promise<IViewItem[]>;
@@ -28,7 +33,7 @@ export abstract class ViewSection extends TheiaElement implements IViewSection {
         if (await this.isExpanded() === state) {
             return;
         }
-        
+
         const header = await this.findElement(ViewSection.locators.components.sideBar.sections.section.header.constructor);
         const toggle = await header.findElement(ViewSection.locators.components.sideBar.sections.section.header.toggle) as TheiaElement;
         await toggle.safeClick();

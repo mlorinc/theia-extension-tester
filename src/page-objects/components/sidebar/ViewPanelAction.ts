@@ -1,7 +1,9 @@
-import { IViewPanelAction } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { ViewSection } from "./ViewSection";
+import {
+    IViewPanelAction,
+    TheiaElement,
+    ViewSection,
+    WebElement
+} from '../../../module';
 
 export class ViewPanelAction extends TheiaElement implements IViewPanelAction {
     constructor(element: WebElement, section: ViewSection) {

@@ -1,9 +1,15 @@
-import { getTimeout, IContentAssist, IMenu, IMenuItem } from "extension-tester-page-objects";
-import { Key, until } from "selenium-webdriver";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { MonacoScrollWidget } from "../../theia-components/widgets/scrollable/MonacoScrollWidget";
-import { ContentAssistItem } from "./ContentAssistItem";
-import { TextEditor } from "./TextEditor";
+import {
+    ContentAssistItem,
+    getTimeout,
+    IContentAssist,
+    IMenu,
+    IMenuItem,
+    Key,
+    MonacoScrollWidget,
+    TextEditor,
+    TheiaElement,
+    until
+} from '../../../module';
 
 export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> implements IContentAssist {
     constructor(parent: TheiaElement = new TextEditor()) {
@@ -88,7 +94,7 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
     }
 
     private async findItem(label: string, timeout?: number): Promise<ContentAssistItem> {
-        async function predicate(item: ContentAssistItem): Promise<boolean> {   
+        async function predicate(item: ContentAssistItem): Promise<boolean> {
             return await item.getLabel() === label;
         }
 

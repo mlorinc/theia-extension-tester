@@ -1,20 +1,19 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Authenticator } from './authenticator/Authenticator';
 import {
+    Authenticator,
     Builder,
     By,
     Capabilities,
+    ChromeOptions,
+    ExtestUntil,
     logging,
+    SeleniumBrowser,
+    TheiaElement,
+    TheiaLocatorLoader,
     until,
-    WebDriver,
-} from 'selenium-webdriver';
-import {
-    Options as ChromeOptions
-} from 'selenium-webdriver/chrome';
-import { TheiaElement } from './page-objects/theia-components/TheiaElement';
-import { TheiaLocatorLoader } from './LocatorLoader';
-import { ExtestUntil, SeleniumBrowser } from 'extension-tester-page-objects';
+    WebDriver
+} from './module';
 
 export interface ITimeouts {
     implicit?: number;
@@ -85,21 +84,21 @@ export class CheBrowser extends SeleniumBrowser {
         this._findElementTimeout = value;
     }
 
-    
-    public get pageLoadTimeout() : number {
+
+    public get pageLoadTimeout(): number {
         return this._pageLoadTimeout;
     }
-    
-    
-    public set pageLoadTimeout(value : number) {
+
+
+    public set pageLoadTimeout(value: number) {
         this._pageLoadTimeout = value;
     }
-    
 
-    public get windowHandle() : string {
+
+    public get windowHandle(): string {
         return this._windowHandle;
     }
-    
+
 
     async start(): Promise<this> {
         const preferences = new logging.Preferences();
@@ -128,7 +127,7 @@ export class CheBrowser extends SeleniumBrowser {
 
         const locatorLoader = new TheiaLocatorLoader(
             this.version, CheBrowser.baseVersion, path.join(__dirname, 'locators', this.options.distribution, 'versions'
-        ));
+            ));
         TheiaElement.init(locatorLoader.loadLocators(), this.driver, this.name, this.version);
 
         fs.mkdirpSync(this.screenshotsStoragePath);
@@ -163,9 +162,9 @@ export class CheBrowser extends SeleniumBrowser {
 
         const theiaFrame = await this.driver.wait(until.elementLocated(TheiaElement.locators.widgets.editorFrame.locator), timeout);
         await this.driver.wait(ExtestUntil.elementInteractive(theiaFrame), timeout);
-        
+
         console.log('Loaded workbench.');
-        
+
         this._windowHandle = await this.driver.getWindowHandle();
 
         // Focus webpage instead search bar

@@ -1,9 +1,15 @@
-import { Editor } from './Editor';
-import { EditorTab } from './EditorTab';
-import { getTimeout, IEditor, IEditorGroup, IEditorTab, IEditorView } from 'extension-tester-page-objects';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { EditorGroup } from './EditorGroup';
-import { TextEditor } from './TextEditor';
+import {
+    Editor,
+    EditorGroup,
+    EditorTab,
+    getTimeout,
+    IEditor,
+    IEditorGroup,
+    IEditorTab,
+    IEditorView,
+    TextEditor,
+    TheiaElement
+} from '../../../module';
 
 export class EditorView extends TheiaElement implements IEditorView {
     constructor() {

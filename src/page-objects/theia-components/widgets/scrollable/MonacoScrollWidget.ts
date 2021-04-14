@@ -1,8 +1,11 @@
-import { getTimeout } from "extension-tester-page-objects";
-import { WebElement } from "selenium-webdriver";
-import { TheiaElement } from "../../TheiaElement";
-import { ScrollWidget, VerticalScrollWidget } from "./Scroll";
-import { ScrollableWidget } from "./ScrollableWidget";
+import {
+    getTimeout,
+    ScrollableWidget,
+    ScrollWidget,
+    TheiaElement,
+    VerticalScrollWidget,
+    WebElement
+} from '../../../../module';
 
 export abstract class MonacoScrollWidget<T extends TheiaElement> extends ScrollableWidget<T> {
     private verticalScroll?: ScrollWidget;
@@ -37,7 +40,7 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
         if (this.verticalScroll) {
             return this.verticalScroll;
         }
-        
+
         const scrollLocator = MonacoScrollWidget.locators.widgets.monacoScroll.verticalScroll;
         const container = await this.getParent();
 
@@ -52,7 +55,7 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
         if (this.horizontalScroll) {
             return this.horizontalScroll;
         }
-        
+
         const scrollLocator = MonacoScrollWidget.locators.widgets.monacoScroll.verticalScroll;
         const container = await this.getParent();
 

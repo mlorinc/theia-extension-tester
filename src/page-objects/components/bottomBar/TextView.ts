@@ -1,6 +1,4 @@
-import { ITextView } from "extension-tester-page-objects";
-import { TheiaElement } from "../../theia-components/TheiaElement";
-import { Menu } from "../menu/Menu";
+import { ITextView, Menu, TheiaElement } from "../../../module";
 
 /**
  * View with channel selection and text area

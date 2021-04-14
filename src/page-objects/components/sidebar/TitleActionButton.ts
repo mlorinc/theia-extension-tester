@@ -1,7 +1,9 @@
-import { ITitleActionButton } from 'extension-tester-page-objects';
-import { WebElement } from 'selenium-webdriver';
-import { TheiaElement } from '../../theia-components/TheiaElement';
-import { ViewTitlePart } from './ViewTitlePart';
+import {
+    ITitleActionButton,
+    TheiaElement,
+    ViewTitlePart,
+    WebElement
+} from '../../../module';
 
 export class TitleActionButton extends TheiaElement implements ITitleActionButton {
     constructor(element: WebElement, parent: ViewTitlePart) {
