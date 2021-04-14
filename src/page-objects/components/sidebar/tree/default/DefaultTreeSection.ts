@@ -1,25 +1,39 @@
-import { getTimeout, IDefaultTreeItem, IDefaultTreeSection, IEditor, IMenu, PathUtils, repeat, StopRepeat, TimeoutError, TreeItemNotFound } from "extension-tester-page-objects";
-import { Button, until, WebElement } from "selenium-webdriver";
-import { ScrollDirection } from "../../../../theia-components/widgets/scrollable/ScrollableWidget";
-import { FileTreeWidget } from "../../../../theia-components/widgets/tree/FileTreeWidget";
-import { EditorView } from "../../../editor/EditorView";
-import { ViewContent } from "../../ViewContent";
-import { ViewSection } from "../../ViewSection";
-import { DefaultTreeItem } from "./DefaultTreeItem";
-import * as path from "path";
-import { ModalDialog } from "../../../dialog/ModalDialog";
-import { Workbench } from "../../../workbench/Workbench";
-import { IElementWithContextMenu } from "extension-tester-page-objects/out/components/ElementWithContextMenu";
-import { ContextMenu } from "../../../menu/ContextMenu";
-import { InputWidget } from "../../../../theia-components/widgets/input/InputWidget";
-import { TextEditor } from "../../../editor/TextEditor";
+import * as path from 'path';
+import {
+    Button,
+    ContextMenu,
+    DefaultTreeItem,
+    EditorView,
+    FileTreeWidget,
+    FileType,
+    getTimeout,
+    IDefaultTreeItem,
+    IDefaultTreeSection,
+    IEditor,
+    IElementWithContextMenu,
+    IMenu,
+    InputWidget,
+    ModalDialog,
+    PathUtils,
+    repeat,
+    ScrollDirection,
+    TextEditor,
+    TheiaElement,
+    TimeoutError,
+    TreeItemNotFound,
+    until,
+    ViewContent,
+    ViewSection,
+    WebElement,
+    Workbench
+} from '../../../../../module';
 
 export class DefaultTreeSection extends ViewSection implements IDefaultTreeSection, IElementWithContextMenu {
-    private tree: FileTreeWidget;
+    private tree: DefaultTree;
 
     constructor(element: WebElement, parent?: ViewContent) {
         super(element, parent);
-        this.tree = new FileTreeWidget(undefined, element);
+        this.tree = new DefaultTree(this);
     }
 
     async openContextMenu(): Promise<IMenu> {
@@ -28,12 +42,11 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
     }
 
     async getVisibleItems(): Promise<IDefaultTreeItem[]> {
-        const items = await this.tree.getVisibleItems();
-        return Promise.all(items.map((item) => new DefaultTreeItem(item)));
+        return await this.tree.getVisibleItems();
     }
 
     async openItem(...path: string[]): Promise<IDefaultTreeItem[]> {
-        const item = await this.findItemSafe(path, getTimeout(), false);
+        const item = await this.findItemSafe(path, FileType.FILE, getTimeout(), false);
         await item.select();
         return [];
     }
@@ -61,11 +74,10 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
         const node = await this.tree.findNodeByPath({
             direction: ScrollDirection.NEXT,
-            path,
-            treeReady: async () => await this.hasProgress() === false
+            path
         });
 
-        return new DefaultTreeItem(node);
+        return node;
     }
 
     protected async findItemByPathStrict(path: string[], timeout?: number): Promise<IDefaultTreeItem> {
@@ -73,10 +85,9 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             direction: ScrollDirection.NEXT,
             strict: true,
             path,
-            timeout,
-            treeReady: async () => await this.hasProgress() === false
+            timeout
         });
-        return new DefaultTreeItem(node);
+        return node;
     }
 
     async findItem(label: string, maxLevel?: number): Promise<IDefaultTreeItem> {
@@ -92,55 +103,47 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             throw new Error('Timeout must not be zero.');
         }
 
-        filePath = await this.createFileObject(filePath, 'file', timeout);
-        filePath = path.join(await getOpenFolderPath(), filePath);
-        return await this.getEditor(filePath, timeout);
+        const relativePath = await getRelativePath(filePath);
+        await this.createFileObject(relativePath, FileType.FILE, timeout) as DefaultTreeItem;
+        return await this.getEditor(path.join(await getOpenFolderPath(), relativePath), timeout);
     }
 
     async createFolder(folderPath: string, timeout?: number): Promise<void> {
         if (timeout === 0) {
             throw new Error('Timeout must not be zero.');
         }
-        await this.createFileObject(folderPath, 'folder', timeout);
+        await this.createFileObject(await getRelativePath(folderPath), FileType.FOLDER, timeout);
     }
 
-    async deleteFile(filePath: string, timeout?: number): Promise<void> {
+    async delete(filePath: string, type: FileType, timeout?: number): Promise<void> {
         if (timeout === 0) {
             throw new Error('Timeout must not be zero.');
         }
 
-        filePath = await getRelativePath(filePath);
-        const item = await this.findItemSafe(filePath, timeout);
+        if (path.isAbsolute(filePath)) {
+            throw new Error(`Path must not be absolute. Got: ${filePath}`);
+        }
 
-        await item.safeClick();
-        await item.getDriver().wait(until.elementIsSelected(item), getTimeout(timeout));
-        const menu = await item.openContextMenu();
+        const item = await this.findItemSafe(filePath, type, timeout);
+        const menu = await this.toggleFileContextMenu(item, getTimeout(timeout));
         await menu.select('Delete');
+        await this.handleDialog();
 
-        const dialog = new ModalDialog();
-        await dialog.confirm();
-
-        const absolutePath = path.join(await getOpenFolderPath(), filePath);
-        await this.getDriver().wait(async () => {
-            for (const item of await this.getVisibleItems() as DefaultTreeItem[]) {
-                try {
-                    if (await item.getPath() === absolutePath) {
-                        return false;
-                    }
-                }
-                catch (e) {
-                    if (e.name !== 'StaleElementReferenceError') {
-                        throw e;
-                    }
-                    continue;
-                }
+        await repeat(
+            async () => await this.exists(filePath, type, 0) === false,
+            {
+                timeout: getTimeout(timeout),
+                message: `Could not delete "${filePath}".`
             }
-            return true;
-        }, getTimeout(timeout), `Could not delete "${filePath}".`);
+        );
     }
 
-    deleteFolder(folderPath: string, timeout?: number): Promise<void> {
-        return this.deleteFile(folderPath, timeout);
+    async deleteFile(filePath: string, timeout?: number): Promise<void> {
+        return this.delete(await getRelativePath(filePath), FileType.FILE, timeout);
+    }
+
+    async deleteFolder(folderPath: string, timeout?: number): Promise<void> {
+        return this.delete(await getRelativePath(folderPath), FileType.FOLDER, timeout);
     }
 
     async openFile(filePath: string, timeout?: number): Promise<IEditor> {
@@ -148,82 +151,101 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             throw new Error('Timeout must not be zero.');
         }
 
-        filePath = await getRelativePath(filePath);
-        const item = await this.findItemSafe(filePath, timeout);
+        const relativePath = await getRelativePath(filePath);
+        const item = await this.findItemSafe(relativePath, FileType.FILE, timeout);
         await item.safeClick();
-        return await this.getEditor(path.join(await getOpenFolderPath(), filePath), timeout);
+        return await this.getEditor(path.join(await getOpenFolderPath(), relativePath), timeout);
     }
 
     async existsFile(filePath: string, timeout?: number): Promise<boolean> {
-        return await this.exists(filePath, (file) => file.isFile(), timeout);
+        return await this.exists(await getRelativePath(filePath), FileType.FILE, timeout);
     }
 
     async existsFolder(folderPath: string, timeout?: number): Promise<boolean> {
-        return await this.exists(folderPath, (folder) => folder.isFolder(), timeout);
+        return await this.exists(await getRelativePath(folderPath), FileType.FOLDER, timeout);
     }
 
-    private async createFileObject(filePath: string, type: 'file' | 'folder', timeout: number = 5000): Promise<string> {
+    private mapFileToAction(type: FileType): string {
+        return type === FileType.FILE ? 'New File' : 'New Folder';
+    }
+
+    private async toggleFileContextMenu(element: IDefaultTreeItem, timeout: number): Promise<IMenu> {
+        return await element.openContextMenu();
+    }
+
+    private async toggleSectionContextMenu(): Promise<IMenu> {
+        const items = await this.getVisibleItems();
+
+        if (items.length > 0) {
+            const height = (await items[items.length - 1].getSize()).height;
+            await this.getDriver()
+                .actions()
+                .mouseMove(items[items.length - 1], { x: 0, y: height + 5 })
+                .click(Button.RIGHT)
+                .perform();
+            return new ContextMenu();
+        }
+        else {
+            const action = await this.getAction('More Actions...');
+            await action.safeClick();
+            return new ContextMenu();
+        }
+    }
+
+    private async handleDialog(text?: string): Promise<void> {
+        const dialog = new ModalDialog();
+        await dialog.isDisplayed();
+
+        if (text !== undefined) {
+            const input = new InputWidget({
+                parent: await dialog.getContent()
+            });
+            await input.setText(text);
+        }
+
+        await dialog.confirm();
+    }
+
+    private async createFileObject(filePath: string, type: FileType, timeout: number = 15000): Promise<IDefaultTreeItem> {
         if (timeout === 0) {
             throw new Error('Timeout must not be zero.');
         }
 
-        filePath = PathUtils.getRelativePath(filePath, await getOpenFolderPath());
+        if (path.isAbsolute(filePath)) {
+            throw new Error(`Path must not be absolute. Got: ${filePath}`);
+        }
+
         const segments = PathUtils.convertToTreePath(filePath);
         await this.getDriver().actions().mouseMove(this).perform();
-
-        let action: string;
-
-        if (type === 'file') {
-            action = 'New File';
-        }
-        else {
-            action = 'New Folder';
-        }
+        const action = this.mapFileToAction(type);
 
         let menu: IMenu;
+        let directories: IDefaultTreeItem[] = []
+
         if (segments.length > 1) {
-            try {
-                const parent = await this.findItemSafe(segments.slice(0, -1), timeout);
-                await parent.safeClick();
-                await parent.getDriver().wait(until.elementIsSelected(parent), timeout);
-                menu = await parent.openContextMenu();
-            }
-            catch {
-                throw new Error(`Could not find parent folder "${segments.slice(0, -1).join(path.sep)}" for "${segments[segments.length - 1]}".`);
-            }
+            const parent = await this.tree.findFile(segments.slice(0, -1), FileType.FOLDER, timeout);
+            menu = await this.toggleFileContextMenu(parent, timeout);
+            directories.push(parent);
         }
         else {
-            const items = await this.getVisibleItems();
-
-            if (items.length > 0) {
-                const height = (await items[items.length - 1].getSize()).height;
-                await this.getDriver()
-                    .actions()
-                    .mouseMove(items[items.length - 1], { x: 0, y: height + 5 })
-                    .click(Button.RIGHT)
-                    .perform();
-                menu = new ContextMenu();
-            }
-            else {
-                const action = await this.getAction('More Actions...');
-                await action.safeClick();
-                menu = new ContextMenu();
-            }
+            menu = await this.toggleSectionContextMenu();
         }
 
         await menu.select(action);
+        await this.handleDialog(segments[segments.length - 1]);
 
-        const dialog = new ModalDialog();
-        await dialog.isDisplayed();
+        const newFile = await this.tree.findFile(filePath, type, timeout);
 
-        const input = new InputWidget({
-            parent: await dialog.getContent()
-        });
+        if (type === FileType.FOLDER) {
+            directories.push(newFile);
+        }
 
-        await input.setText(segments[segments.length - 1]);
-        await input.confirm();
+        for (const folder of directories) {
+            await this.getDriver().wait(until.elementIsEnabled(folder), timeout);
+            await this.getDriver().wait(() => folder.isExpanded(), timeout);
+        }
 
-        return filePath;
+        return newFile;
     }
 
     private async getEditor(filePath: string, timeout?: number): Promise<IEditor> {
@@ -231,7 +253,11 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             throw new Error('Timeout must not be zero.');
         }
 
-        return await this.getDriver().wait(async () => {
+        if (!path.isAbsolute(filePath)) {
+            throw new Error(`Path must be absolute. Got: ${filePath}`);
+        }
+
+        return await repeat(async () => {
             const editor = await new EditorView().getActiveEditor();
 
             if (editor instanceof TextEditor) {
@@ -246,36 +272,41 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             }
 
             return undefined;
-        }, getTimeout(timeout), `Could not get open editor for "${filePath}".`) as IEditor;
+        }, {
+            timeout: getTimeout(timeout),
+            message: `Could not get open editor for "${filePath}".`
+        }) as IEditor;
     }
 
-    private async exists(filePath: string, fn: ((file: IDefaultTreeItem) => Promise<boolean>), timeout: number = 15000): Promise<boolean> {
-        filePath = PathUtils.getRelativePath(filePath, await getOpenFolderPath());
+    private async exists(filePath: string, type: FileType, timeout: number = 15000): Promise<boolean> {
+        if (path.isAbsolute(filePath)) {
+            throw new Error(`Path must not be absolute. Got: ${filePath}`);
+        }
+
         const segments = PathUtils.convertToTreePath(filePath);
 
         try {
-            await this.findItemSafe(segments, timeout);
+            console.log(`Calling this.tree.findFile with timeout ${timeout}.`)
+            await this.tree.findFile(segments, type, timeout);
             return true;
         }
         catch (e) {
-            console.log(e);
-            if (e instanceof TimeoutError || e instanceof StopRepeat) {
+            console.log(`Error: ${e}\nTimeout: ${timeout}.`);
+            if (e instanceof TreeItemNotFound || e.name === 'StaleElementReferenceError' || e instanceof TimeoutError) {
                 return false;
             }
             throw e;
         }
     }
 
-    private async findItemSafe(filePath: string | string[], timeout?: number, strict: boolean = true): Promise<IDefaultTreeItem> {
+    private async findItemSafe(filePath: string | string[], type: FileType, timeout?: number, strict: boolean = true): Promise<IDefaultTreeItem> {
         timeout = getTimeout(timeout);
-        await this.waitTreeLoaded(timeout || 6000);
-
         const segments = typeof filePath === 'object' ? filePath : PathUtils.convertToTreePath(filePath);
 
         const item = await repeat(async () => {
             try {
                 if (strict) {
-                    return await this.findItemByPathStrict(segments, timeout);
+                    return await this.tree.findFile(segments, type, timeout);
                 }
                 else {
                     return await this.findItemByPath(...segments);
@@ -285,14 +316,12 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
                 if (e instanceof TreeItemNotFound || e.name === 'StaleElementReferenceError') {
                     return undefined;
                 }
-                throw new StopRepeat(e);
+                throw e;
             }
-        },
-            {
-                timeout,
-                message: `Could not find item with path "${filePath}".`
-            }
-        );
+        }, {
+            timeout,
+            message: `Could not find item with path "${filePath}".`
+        });
 
         return item as IDefaultTreeItem;
     }
@@ -306,3 +335,12 @@ async function getOpenFolderPath(): Promise<string> {
     return await new Workbench().getOpenFolderPath();
 }
 
+class DefaultTree extends FileTreeWidget<DefaultTreeItem> {
+    constructor(parent: DefaultTreeSection) {
+        super(undefined, parent);
+    }
+
+    protected async mapTreeNode(node: TheiaElement, parent: TheiaElement): Promise<DefaultTreeItem> {
+        return new DefaultTreeItem(node, parent);
+    }
+}

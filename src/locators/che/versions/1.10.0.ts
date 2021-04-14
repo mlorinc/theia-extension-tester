@@ -118,7 +118,8 @@ export const locators: TheiaLocators = {
                 properties: {
                     focused: has('class', 'theia-mod-focus'),
                     selected: has('class', 'theia-mod-selected'),
-                    expandable: has('class', 'theia-ExpandableTreeNode')
+                    expandable: has('class', 'theia-ExpandableTreeNode'),
+                    enabled: hasNot('class', 'theia-mod-busy')
                 }
             },
             nodeWrapper: {
