@@ -30,7 +30,7 @@ const MonacoScroll: MonacoScrollLocator = {
         class: ScrollableWidget
     },
     item: {
-        locator: By.className('monaco-tree-row'),
+        locator: By.css('[role="treeitem"]'),
         properties: {
             focused: has('class', 'focused'),
             selected: attributeEquals('aria-selected', 'true'),
@@ -246,6 +246,69 @@ export const locators: TheiaLocators = {
                     }
                 }
             },
+            notification: {
+                constructor: {
+                    locator: By.className('theia-notification-list-item'),
+                    properties: {
+                        title: getAttribute('innerText', By.className('theia-notification-message'))
+                    },
+                },
+                action: {
+                    locator: By.css('.theia-notification-buttons > .theia-button'),
+                    properties: {
+                        title: getAttribute('innerText')
+                    }
+                },
+                close: {
+                    locator: By.className('clear')
+                },
+                icon: {
+                    locator: By.className('theia-notification-icon')
+                },
+                progress: {
+                    locator: By.className('theia-notification-item-progressbar')
+                },
+                source: {
+                    locator: By.className('theia-notification-source')
+                },
+                center: {
+                    constructor: {
+                        locator: By.className('theia-notification-center')
+                    },
+                    clearAll: {
+                        locator: By.className('clear-all')
+                    },
+                    close: {
+                        locator: By.className('collapse')
+                    },
+                    scroll: {
+                        constructor: {
+                            locator: By.className('scrollbar-container')
+                        },
+                        vertical: {
+                            container: {
+                                locator: By.className('ps__rail-y')
+                            },
+                            constructor: {
+                                locator: By.className('ps__thumb-y')
+                            }
+                        },
+                        horizontal: {
+                            container: {
+                                locator: By.className('ps__rail-x')
+                            },
+                            constructor: {
+                                locator: By.className('ps__thumb-x')
+                            }
+                        }
+                    }
+                },
+                standalone: {
+                    constructor: {
+                        locator: By.className('theia-notification-toasts')
+                    }
+                }
+            }
         },
         menu: {
             titleBar: {
@@ -310,7 +373,7 @@ export const locators: TheiaLocators = {
             },
             contentAssist: {
                 constructor: {
-                    locator: By.className('suggest-widget'),
+                    locator: By.className('suggest-widget')
                 },
                 scroll: MonacoScroll,
                 itemLabel: {
@@ -438,6 +501,9 @@ export const locators: TheiaLocators = {
         statusBar: {
             constructor: {
                 locator: By.id('theia-statusBar')
+            },
+            openNotificationCenter: {
+                locator: By.xpath(`.//*[${hasClass('hasCommand')} and contains(@title, 'Notification')]`)
             }
         }
     }

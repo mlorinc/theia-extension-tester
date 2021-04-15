@@ -171,6 +171,33 @@ export interface TheiaLocators {
                     description: TheiaLocator,
                     label: TheiaLocator
                 }
+            },
+            notification: {
+                constructor: TheiaLocator
+                icon: TheiaLocator,
+                source: TheiaLocator,
+                progress: TheiaLocator,
+                close: TheiaLocator,
+                action: TheiaLocator,
+                center: {
+                    constructor: TheiaLocator,
+                    close: TheiaLocator,
+                    clearAll: TheiaLocator,
+                    scroll: {
+                        constructor: TheiaLocator,
+                        vertical: {
+                            constructor: TheiaLocator,
+                            container: TheiaLocator
+                        }
+                        horizontal: {
+                            constructor: TheiaLocator,
+                            container: TheiaLocator
+                        }
+                    }
+                }
+                standalone: {
+                    constructor: TheiaLocator,
+                }
             }
         }
         menu: {
@@ -242,7 +269,8 @@ export interface TheiaLocators {
             }
         },
         statusBar: {
-            constructor: TheiaLocator
+            constructor: TheiaLocator,
+            openNotificationCenter: TheiaLocator
         }
     }
 }

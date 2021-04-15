@@ -41,8 +41,6 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
     async findItem(indexOrText: string | number, timeout?: number): Promise<QuickPickItem> {
         async function comparator(item: QuickPickItem): Promise<number> {
             const value = typeof indexOrText === 'string' ? await item.getLabel() : await item.getIndex();
-            console.log(`Comparing "${value}" with "${indexOrText}".`);
-
             if (typeof indexOrText === 'string') {
                 return indexOrText.localeCompare(value as string);
             }

@@ -82,6 +82,10 @@ export * from './page-objects/components/workbench/Workbench';
 export * from './page-objects/components/workbench/input/Input';
 export * from './page-objects/components/workbench/input/QuickPickItem';
 export * from './page-objects/components/workbench/input/QuickPickScroller';
+export * from './page-objects/components/workbench/NotificationButton';
+export * from './page-objects/components/workbench/Notification';
+export * from './page-objects/components/workbench/NotificationCenterScroll';
+export * from './page-objects/components/workbench/NotificationCenter';
 
 export * from './authenticator/Authenticator';
 export * from './authenticator/OpenShiftAuthenticator';

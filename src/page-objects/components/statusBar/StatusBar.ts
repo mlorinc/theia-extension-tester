@@ -1,15 +1,33 @@
+import { getTimeout } from 'extension-tester-page-objects';
+import { until } from 'selenium-webdriver';
 import { INotificationsCenter, IStatusBar, TheiaElement } from '../../../module';
+import { NotificationCenter } from '../workbench/NotificationCenter';
 
 export class StatusBar extends TheiaElement implements IStatusBar {
     constructor() {
         super(StatusBar.locators.components.statusBar.constructor);
     }
 
-    openNotificationsCenter(): Promise<INotificationsCenter> {
-        throw new Error("Method not implemented.");
+    async openNotificationsCenter(): Promise<INotificationsCenter> {
+        let center = new NotificationCenter();
+
+        if (await NotificationCenter.isOpen() === false) {
+            const button = await this.findElement(StatusBar.locators.components.statusBar.openNotificationCenter) as TheiaElement;
+            await button.safeClick();
+            await this.getDriver().wait(until.elementIsVisible(center), getTimeout());
+        }
+
+        return center;
     }
-    closeNotificationsCenter(): Promise<void> {
-        throw new Error("Method not implemented.");
+
+    async closeNotificationsCenter(): Promise<void> {
+        if (await NotificationCenter.isOpen() === false) {
+            return;        
+        }
+        const center = new NotificationCenter();
+        const button = await this.findElement(StatusBar.locators.components.statusBar.openNotificationCenter) as TheiaElement;
+        await button.safeClick();
+        await this.getDriver().wait(until.elementIsNotVisible(center), getTimeout());
     }
     openLanguageSelection(): Promise<void> {
         throw new Error("Method not implemented.");

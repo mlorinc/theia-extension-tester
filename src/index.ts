@@ -44,6 +44,8 @@ export {
     DialogTree,
     StatusBar,
     Workbench,
+    Notification,
+    NotificationCenter,
     Input,
     InputBox,
     QuickPickItem,

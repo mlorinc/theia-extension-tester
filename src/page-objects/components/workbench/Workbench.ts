@@ -20,6 +20,7 @@ import {
     ITitleBar,
     IViewControl,
     IWorkbench,
+    Notification,
     PathUtils,
     SeleniumBrowser,
     SideBarView,
@@ -100,12 +101,23 @@ export class Workbench extends TheiaElement implements IWorkbench {
     getEditorView(): IEditorView {
         return new EditorView();
     }
-    getNotifications(): Promise<INotification[]> {
-        throw new Error("Method not implemented.");
+
+    async getNotifications(): Promise<INotification[]> {
+        const container = await this.findElements(Workbench.locators.components.workbench.notification.standalone.constructor) as TheiaElement[];
+
+        if (container.length === 0 || await container[0].isDisplayed() === false) {
+            return [];
+        }
+
+        const notifications = await container[0].findElements(Workbench.locators.components.workbench.notification.constructor) as TheiaElement[];
+        return await Promise.all(notifications.map((element) => new Notification(element, container[0])));
     }
-    openNotificationsCenter(): Promise<INotificationsCenter> {
-        throw new Error("Method not implemented.");
+
+    async openNotificationsCenter(): Promise<INotificationsCenter> {
+        const statusBar = this.getStatusBar();
+        return await statusBar.openNotificationsCenter();
     }
+
     openSettings(): Promise<ISettingsEditor> {
         throw new Error("Method not implemented.");
     }
