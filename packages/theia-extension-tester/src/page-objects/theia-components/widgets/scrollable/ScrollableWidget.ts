@@ -167,7 +167,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
     async iterateItems(callback: (item: T) => PromiseLike<boolean> | boolean, timeout?: number, errorMessage?: string): Promise<void> {
         let items = await this.getVisibleItems();
 
-        await this.getDriver().wait(async () => {
+        await repeat(async () => {
             for (const item of items) {
                 const value = await callback(item);
 
@@ -183,7 +183,10 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             else {
                 return true;
             }
-        }, timeout, errorMessage);
+        }, {
+            timeout, 
+            message: errorMessage
+        });
     }
 
     async findItemSequentially(predicate: ScrollPredicate<T>, timeout?: number, message?: string): Promise<T> {
