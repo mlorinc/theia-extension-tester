@@ -59,8 +59,8 @@ export class InputWidget extends TheiaElement {
     }
 
     async cancel(timeout?: number): Promise<void> {
-        await this.safeClick(undefined, timeout);
-        await this.getDriver().actions().sendKeys(Key.ESCAPE).perform();
+        await this.safeClick(Button.LEFT, timeout);
+        await this.safeSendKeys(undefined, Key.ESCAPE);
     }
 
     async getPlaceHolder(): Promise<string> {
