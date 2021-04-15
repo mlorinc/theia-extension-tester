@@ -6,19 +6,37 @@ import {
     IMenuItem,
     Key,
     MonacoScrollWidget,
+    repeat,
     TextEditor,
     TheiaElement,
     until
 } from '../../../module';
+import { ScrollItemNotFound } from '../../theia-components/widgets/scrollable/ScrollableWidget';
 
 export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> implements IContentAssist {
+    private editor: TheiaElement;
+
     constructor(parent: TheiaElement = new TextEditor()) {
         const container = parent.findElement(TheiaElement.locators.components.editor.contentAssist.constructor);
         super(undefined, container);
+        this.editor = parent;
     }
 
-    getItem(name: string): Promise<IMenuItem> {
-        return this.findItem(name);
+    async getItem(name: string): Promise<IMenuItem> {
+        return await repeat(async () => {
+            try {
+                return await this.findItem(name);
+            }
+            catch (e) {
+                if (e instanceof ScrollItemNotFound) {
+                    return false;
+                }
+                throw e;
+            }
+        }, {
+            timeout: getTimeout(),
+            message: `Could not find content assist item with name "${name}".`
+        }) as IMenuItem;
     }
 
     async hasItem(name: string): Promise<boolean> {
@@ -26,38 +44,42 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
             await this.findItem(name, 0);
             return true;
         }
-        catch {
-            return false;
+        catch (e) {
+            if (e instanceof ScrollItemNotFound) {
+                return false;
+            }
+            throw e;
         }
     }
 
     async select(...path: string[]): Promise<IMenu | undefined> {
-        let currentMenu: IMenu = this;
-        for (const item of path) {
-            const menuItem = await currentMenu.getItem(item);
-
-            if (menuItem === undefined) {
-                throw new Error('Unexpected undefined menu item.');
-            }
-
-            const subMenu = await menuItem.select();
-            if (subMenu === undefined) {
-                return undefined;
-            }
-            currentMenu = subMenu;
-        }
-
-        return currentMenu;
+        const menuItem = await this.getItem(path[0]);
+        await menuItem.select()
+        return undefined;
     }
 
     async close(): Promise<void> {
-        await this.sendKeys(Key.ESCAPE);
-        try {
-            await this.getDriver().wait(until.elementIsNotVisible(this), getTimeout());
-        }
-        catch {
-            await this.getDriver().wait(until.stalenessOf(this), getTimeout());
-        }
+        await repeat(async () => {
+            if (await ContentAssist.isOpen(this.editor) === false) {
+                return true;
+            }
+
+            try {
+                // safe send keys does not work well in this scenario
+                await this.editor.sendKeys(Key.ESCAPE);
+            }
+            catch (e) {
+                if (e.message.includes('element not interactable')) {
+                    return false;
+                }
+                throw e;
+            }
+
+            return false;
+        }, {
+            timeout: getTimeout(),
+            message: 'Could not close content assist menu.'
+        });
     }
 
     protected async mapItem(element: TheiaElement): Promise<ContentAssistItem> {
@@ -80,6 +102,11 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
 
     async isEnabled(): Promise<boolean> {
         return await this.isLoaded();
+    }
+
+    async isDisplayed(): Promise<boolean> {
+        await this.getDriver().wait(() => this.enclosingItem, getTimeout());
+        return await this.enclosingItem.isDisplayed();
     }
 
     static async isOpen(parent: TheiaElement = new TextEditor()): Promise<boolean> {
