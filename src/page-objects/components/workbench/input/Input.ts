@@ -4,14 +4,22 @@ import {
     IInputBox,
     InputWidget,
     IQuickPickItem,
+    Key,
     QuickPickScroller,
+    repeat,
     SeleniumBrowser,
     TheiaElement
 } from '../../../../module';
 
+export class InputContainer extends TheiaElement {
+    constructor() {
+        super(TheiaElement.locators.components.workbench.input.constructor);
+    }
+}
+
 export class Input extends InputWidget implements IInputBox {
     constructor() {
-        super({ parent: new TheiaElement(TheiaElement.locators.components.workbench.input.constructor) });
+        super({ parent: new InputContainer() });
     }
 
     static async create(timeout?: number): Promise<IInputBox> {
@@ -82,6 +90,34 @@ export class Input extends InputWidget implements IInputBox {
 
     async isPassword(): Promise<boolean> {
         return await this.getAttribute('type') === 'password';
+    }
+
+    async cancel(): Promise<void> {
+        await repeat(async () => {
+            if (await Input.isOpen() === false) {
+                return true;
+            }
+
+            if (this.enclosingItem === undefined) {
+                return false;
+            }
+
+            try {
+                // safe send keys does not work well in this scenario
+                await this.sendKeys(Key.ESCAPE);
+            }
+            catch (e) {
+                if (e.message.includes('element not interactable')) {
+                    return false;
+                }
+                throw e;
+            }
+
+            return false;
+        }, {
+            timeout: getTimeout(),
+            message: 'Could not cancel input component.'
+        });
     }
 
     static async isOpen(): Promise<boolean> {

@@ -45,6 +45,7 @@ export {
     StatusBar,
     Workbench,
     Input,
+    InputBox,
     QuickPickItem,
     Authenticator,
     OpenShiftAuthenticator,
