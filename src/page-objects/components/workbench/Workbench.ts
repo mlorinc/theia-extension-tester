@@ -5,6 +5,7 @@ import {
     DefaultTreeSection,
     DialogHandler,
     EditorView,
+    FileType,
     getTimeout,
     IActivityBar,
     IBottomBarPanel,
@@ -154,7 +155,7 @@ export class Workbench extends TheiaElement implements IWorkbench {
         const browser = SeleniumBrowser.instance;
         const oldHandleCount = (await browser.driver.getAllWindowHandles()).length;
 
-        const dialog = await this.getOpenDialog();
+        const dialog = await this.getOpenDialog(FileType.FOLDER);
         await dialog.selectPath(folderPath);
         await dialog.confirm();
 
@@ -191,7 +192,7 @@ export class Workbench extends TheiaElement implements IWorkbench {
         await SeleniumBrowser.instance.waitForWorkbench();
     }
 
-    async getOpenDialog(): Promise<IOpenDialog> {
-        return DialogHandler.getOpenDialog();
+    async getOpenDialog(fileType: FileType): Promise<IOpenDialog> {
+        return DialogHandler.getOpenDialog(fileType);
     }
 }

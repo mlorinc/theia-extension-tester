@@ -1,4 +1,4 @@
-import { OpenDialog } from "../../../module";
+import { FileType, OpenDialog } from "../../../module";
 
 /**
  * Handles native dialogs for different platforms
@@ -11,7 +11,7 @@ import { OpenDialog } from "../../../module";
      * 
      * @param delay time to wait for the dialog to open in milliseconds
      */
-    static async getOpenDialog(delay?: number): Promise<OpenDialog> {
-        return new OpenDialog();
+    static async getOpenDialog(type: FileType): Promise<OpenDialog> {
+        return new OpenDialog(type);
     }
 }
