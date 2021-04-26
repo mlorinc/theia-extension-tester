@@ -107,6 +107,7 @@ export class TextEditor extends Editor implements ITextEditor {
         }
         finally {
             clipboardy.writeSync(oldClipboard);
+            await this.sendKeys(Key.ARROW_RIGHT);
         }
     }
     async setText(text: string, formatText?: boolean): Promise<void> {
@@ -125,9 +126,14 @@ export class TextEditor extends Editor implements ITextEditor {
     }
 
     async getTextAtLine(line: number): Promise<string> {
-        await this.moveCursor(line, 1);
-        await this.sendKeys(Key.SHIFT, Key.END, Key.SHIFT, AbstractElement.ctlKey, 'c', AbstractElement.ctlKey);
-        return clipboardy.read();
+        try {
+            await this.moveCursor(line, 1);
+            await this.sendKeys(Key.SHIFT, Key.END, Key.SHIFT, AbstractElement.ctlKey, 'c', AbstractElement.ctlKey);
+            return clipboardy.read();
+        }
+        finally {
+            await this.sendKeys(Key.ARROW_RIGHT);
+        }
     }
     async setTextAtLine(line: number, text: string): Promise<void> {
         await this.moveCursor(line, 1);
@@ -138,7 +144,6 @@ export class TextEditor extends Editor implements ITextEditor {
         await this.sendKeys(text);
     }
     async moveCursor(line: number, column: number): Promise<void> {
-        // Todo: optimize
         await this.focus();
         await this.sendKeys(AbstractElement.ctlKey, Key.HOME, AbstractElement.ctlKey, ...Array<string>(line - 1).fill(Key.ARROW_DOWN), ...Array<string>(column - 1).fill(Key.ARROW_RIGHT));
     }
