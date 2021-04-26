@@ -1,3 +1,4 @@
+import { repeat, SeleniumBrowser } from 'extension-tester-page-objects';
 import { getTimeout, TheiaElement, WebElement } from '../../../../module';
 
 export interface Scroll extends TheiaElement {
@@ -23,10 +24,13 @@ export abstract class ScrollWidget extends TheiaElement implements Scroll {
 
     protected async waitForPositionChange(expectedPosition: number, timeout?: number): Promise<void> {
         const size = await this.getScrollSize() / 4;
-        await this.getDriver().wait(async () => {
+        await repeat(async () => {
             const currentPosition = await this.getScrollPosition();
             return Math.abs(currentPosition - expectedPosition) <= size;
-        }, getTimeout(timeout), `Scroll has not changed position.\nExpected: ${expectedPosition}.\nActual: ${await this.getScrollPosition()}.`);
+        }, {
+            timeout: getTimeout(timeout) || SeleniumBrowser.instance.findElementTimeout,
+            message: `Scroll has not changed position.\nExpected: ${expectedPosition}.\nActual: ${await this.getScrollPosition()}.`
+        });
     }
 
     protected async getScrollDelta(value: number): Promise<number> {

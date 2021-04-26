@@ -1,5 +1,7 @@
+import { SeleniumBrowser } from 'extension-tester-page-objects';
 import {
     getTimeout,
+    repeat,
     ScrollableWidget,
     ScrollDirection,
     ScrollWidget,
@@ -61,7 +63,7 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
         let minDepth = 0;
         const root = options.startNode;
         const label = options.label;
-        const timeout = getTimeout(options.timeout);
+        const timeout = getTimeout(options.timeout) || SeleniumBrowser.instance.findElementTimeout;
         const direction = options.direction;
         const earlyStopping = options.earlyStopping;
 
@@ -109,7 +111,7 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
             lastActiveItem = root;
         }
 
-        return await this.getDriver().wait(async () => {
+        return await repeat(async () => {
             for (const item of items) {
                 const depth = await item.getTreeDepth();
                 const itemLabel = await item.getLabel();
@@ -143,7 +145,10 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
             else {
                 throw new TreeItemNotFound([label], `Could not find node with label "${label}". No more pages available.`);
             }
-        }, undefined, `Could not find node with label "${label}".`) as T;
+        }, {
+            timeout,
+            message: `Could not find node with label "${label}".`
+        }) as T;
     }
 
     async findNodeByPath(options: FindNodeByPathOptions): Promise<T> {
