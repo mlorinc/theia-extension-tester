@@ -20,7 +20,6 @@ export * from './page-objects/theia-components/widgets/tabs/TabsWidget';
 export * from './page-objects/theia-components/widgets/tabs/TabWidget';
 export * from './page-objects/theia-components/widgets/tabs/TabContentWidget';
 
-export * from './page-objects/theia-components/widgets/tree/FileType';
 export * from './page-objects/theia-components/widgets/tree/TreeWidget';
 export * from './page-objects/theia-components/widgets/tree/TreeNode';
 export * from './page-objects/theia-components/widgets/tree/FileTreeWidget';
