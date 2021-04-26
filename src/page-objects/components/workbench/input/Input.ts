@@ -76,11 +76,9 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async getMessage(): Promise<string> {
-        return await (await this.getMessageElement()).getText();
-    }
+        const message = await this.enclosingItem.findElements(Input.locators.components.workbench.input.message) as TheiaElement[];
 
-    private async getMessageElement(): Promise<TheiaElement> {
-        return await this.enclosingItem.findElement(Input.locators.components.workbench.input.message) as TheiaElement;
+        return message.length > 0 ? await message[0].getText() : '';
     }
 
     async hasError(): Promise<boolean> {
@@ -104,6 +102,7 @@ export class Input extends InputWidget implements IInputBox {
 
             try {
                 // safe send keys does not work well in this scenario
+                await this.focus();
                 await this.sendKeys(Key.ESCAPE);
             }
             catch (e) {
@@ -118,6 +117,10 @@ export class Input extends InputWidget implements IInputBox {
             timeout: getTimeout(),
             message: 'Could not cancel input component.'
         });
+    }
+    
+    async isFocused(): Promise<boolean> {
+        return await (this.enclosingItem as TheiaElement).isFocused();
     }
 
     static async isOpen(): Promise<boolean> {
