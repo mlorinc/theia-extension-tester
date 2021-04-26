@@ -1,7 +1,16 @@
-import { INotificationButton, IMenu, getTimeout, ICenterNotification, IStandaloneNotification, repeat, NotificationType } from "extension-tester-page-objects";
-import { until } from "selenium-webdriver";
-import { INotification, TheiaElement } from "../../../module";
-import { NotificationButton } from "./NotificationButton";
+import {
+    getTimeout,
+    ICenterNotification,
+    IMenu,
+    INotification,
+    INotificationButton,
+    IStandaloneNotification,
+    NotificationButton,
+    NotificationType,
+    repeat,
+    TheiaElement,
+    until
+} from '../../../module';
 
 export class Notification extends TheiaElement implements INotification, ICenterNotification, IStandaloneNotification {
     constructor(element: TheiaElement, parent: TheiaElement) {
