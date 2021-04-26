@@ -2,19 +2,20 @@ import { repeat } from 'extension-tester-page-objects';
 import * as path from 'path';
 import {
     FileTreeNode,
+    FileType,
     PathUtils,
     ScrollItemNotFound,
     TheiaElement,
     TreeItemNotFound,
     TreeWidget,
     WebElement,
-    Workbench
 } from '../../../../module';
-import { FileType } from './FileType';
 
 export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<T> {
-    constructor(element: WebElement | undefined, parent?: WebElement) {
+    private root: PromiseLike<string> | string;
+    constructor(element: WebElement | undefined, parent: WebElement, root: PromiseLike<string> | string) {
         super(element, parent);
+        this.root = root;
     }
 
     protected abstract mapTreeNode(node: TheiaElement, parent: TheiaElement): Promise<T>;
@@ -53,26 +54,41 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
         const items = await super.getVisibleItems();
 
         while (items.length > 0) {
-            const height = await items[0].getComputedStyleNumber('height');
-            const visibleHeight = (await items[0].getSize()).height;
+            try {
+                const height = await items[0].getComputedStyleNumber('height');
+                const visibleHeight = (await items[0].getSize()).height;
 
-            // if at least 55% percent of element is visible
-            if (height * 0.55 < visibleHeight) {
-                break;
+                // if at least 55% percent of element is visible
+                if (height * 0.55 < visibleHeight) {
+                    break;
+                }
+            }
+            catch (e) {
+                // ignore removed files
+                if (e.name !== 'StaleElementReferenceError') {
+                    throw e;
+                }
             }
 
             items.shift();
         }
 
         while (items.length > 0) {
-            const height = await items[items.length - 1].getComputedStyleNumber('height');
-            const visibleHeight = (await items[items.length - 1].getSize()).height;
+            try {
+                const height = await items[items.length - 1].getComputedStyleNumber('height');
+                const visibleHeight = (await items[items.length - 1].getSize()).height;
 
-            // if at least 55% percent of element is visible
-            if (height * 0.55 < visibleHeight) {
-                break;
+                // if at least 55% percent of element is visible
+                if (height * 0.55 < visibleHeight) {
+                    break;
+                }
             }
-
+            catch (e) {
+                // ignore removed files
+                if (e.name !== 'StaleElementReferenceError') {
+                    throw e;
+                }
+            }
             items.pop();
         }
 
@@ -81,7 +97,12 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
 
     private fileComparator(root: string, segments: string[], currentPath: string[], index: number, type: FileType) {
         return async (item: T) => {
-            const itemPath = PathUtils.getRelativePath(await item.getPath(), root);
+            let itemPath: string = await item.getPath();
+
+            if (root !== '/') {
+                itemPath = PathUtils.getRelativePath(itemPath, root);
+            }
+
             const isFile = await item.isFile();
             const currentFileType = index === segments.length ? type : FileType.FOLDER;
 
@@ -98,8 +119,9 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
     }
 
     async findFile(filePath: string | string[], type: FileType, timeout: number = 0): Promise<T> {
-        if (typeof filePath === 'string' && path.isAbsolute(filePath)) {
-            throw new Error('Absolute paths are not supported.');
+        if (typeof filePath === 'string' && path.isAbsolute(filePath) && this.root !== '/') {
+            // try to get relative path
+            PathUtils.getRelativePath(filePath, await this.root);
         }
 
         let segments: string[] = [];
@@ -112,12 +134,11 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
         }
 
         async function loop(this: FileTreeWidget<T>): Promise<T> {
-            const root = await new Workbench().getOpenFolderPath();
             for (let index = 1; index <= segments.length; index++) {
                 const currentPath = segments.slice(0, index);
                 try {
                     const item = await this.findItemWithComparator(
-                        this.fileComparator(root, segments, currentPath, index, type),
+                        this.fileComparator(await this.root, segments, currentPath, index, type),
                         timeout
                     );
 

@@ -22,6 +22,7 @@ export {
     EditorGroup,
     EditorTab,
     EditorView,
+    FileType,
     TextEditor,
     ContextMenu,
     ContextMenuItem,

@@ -31,9 +31,9 @@ import {
 export class DefaultTreeSection extends ViewSection implements IDefaultTreeSection, IElementWithContextMenu {
     private tree: DefaultTree;
 
-    constructor(element: WebElement, parent?: ViewContent) {
+    constructor(element: WebElement, parent: ViewContent) {
         super(element, parent);
-        this.tree = new DefaultTree(this);
+        this.tree = new DefaultTree(this, this.getTitle());
     }
 
     async openContextMenu(): Promise<IMenu> {
@@ -176,16 +176,25 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
     private async toggleSectionContextMenu(): Promise<IMenu> {
         const items = await this.getVisibleItems();
 
-        if (items.length > 0) {
-            const height = (await items[items.length - 1].getSize()).height;
-            await this.getDriver()
-                .actions()
-                .mouseMove(items[items.length - 1], { x: 0, y: height + 5 })
-                .click(Button.RIGHT)
-                .perform();
-            return new ContextMenu();
+        try {
+            if (items.length > 0) {
+                const height = (await items[items.length - 1].getSize()).height;
+                await this.getDriver()
+                    .actions()
+                    .mouseMove(items[items.length - 1], { x: 0, y: height + 5 })
+                    .click(Button.RIGHT)
+                    .perform();
+                return new ContextMenu();
+            }
+            else {
+                throw new Error('No more items');
+            }
         }
-        else {
+        catch (e) {
+            if (e.name !== 'StaleElementReferenceError' && e.message !== 'No more items') {
+                throw e;
+            }
+            // tree is either empty or last item was deleted.
             const action = await this.getAction('More Actions...');
             await action.safeClick();
             return new ContextMenu();
@@ -336,8 +345,8 @@ async function getOpenFolderPath(): Promise<string> {
 }
 
 class DefaultTree extends FileTreeWidget<DefaultTreeItem> {
-    constructor(parent: DefaultTreeSection) {
-        super(undefined, parent);
+    constructor(parent: DefaultTreeSection, root: Promise<string>) {
+        super(undefined, parent, root);
     }
 
     protected async mapTreeNode(node: TheiaElement, parent: TheiaElement): Promise<DefaultTreeItem> {
