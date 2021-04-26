@@ -9,9 +9,8 @@
     "out/**/*.d.ts"
   ],
   "scripts": {
-    "prepack": "rm -r out && npm run build",
+    "prepack": "rm -rf out && npm run build",
     "build": "tsc",
-    "test": "node out/main.js out/simple.js",
     "page-objects:refresh": "npm rm extension-tester-page-objects && npm install file:../extension-tester-page-objects/extension-tester-page-objects-1.0.0.tgz"
   },
   "author": "",
