@@ -218,7 +218,8 @@ export const locators: TheiaLocators = {
                     locator: By.className('monaco-quick-open-widget'),
                     class: Input,
                     properties: {
-                        title: async (element: TheiaElement) => (await element.getEnclosingElement().findElement(By.className('theia-quick-title-header'))).getText()
+                        title: async (element: TheiaElement) => (await element.getEnclosingElement().findElement(By.className('theia-quick-title-header'))).getText(),
+                        focused: has('class', 'synthetic-focus', By.className('monaco-inputbox'))
                     }
                 },
                 back: {
