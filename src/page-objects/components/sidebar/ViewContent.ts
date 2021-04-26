@@ -1,3 +1,4 @@
+import { repeat } from 'extension-tester-page-objects';
 import {
     CustomTreeSection,
     DefaultTreeSection,
@@ -26,16 +27,19 @@ export class ViewContent extends TheiaElement implements IViewContent {
     }
 
     async getSection(title: string): Promise<IViewSection> {
-        return await this.getDriver().wait(async () => {
+        return await repeat(async () => {
             const sections = await this.getSections();
 
             for (const section of sections) {
-                if (await section.getTitle() === title) {
+                if ((await section.getTitle()).startsWith(title)) {
                     return section;
                 }
             }
             return undefined;
-        }, getTimeout(), `Could not find section with title "${title}".`) as IViewSection;
+        }, {
+            timeout: getTimeout(),
+            message: `Could not find section with title "${title}".`
+        }) as IViewSection;
     }
 
     async getSections(): Promise<IViewSection[]> {
