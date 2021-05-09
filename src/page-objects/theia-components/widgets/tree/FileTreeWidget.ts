@@ -69,7 +69,7 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
                     throw e;
                 }
             }
-
+    
             items.shift();
         }
 
@@ -113,15 +113,16 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
                 currentFileType === FileType.FILE,
                 isFile
             );
-
+            
             return result;
         }
     }
 
     async findFile(filePath: string | string[], type: FileType, timeout: number = 0): Promise<T> {
-        if (typeof filePath === 'string' && path.isAbsolute(filePath) && this.root !== '/') {
-            // try to get relative path
-            PathUtils.getRelativePath(filePath, await this.root);
+        const root = await this.root;
+        if (typeof filePath === 'string' && path.isAbsolute(filePath) && root !== '/') {
+            // check if absolute path is relative to root
+            PathUtils.getRelativePath(filePath, root);
         }
 
         let segments: string[] = [];
@@ -138,7 +139,7 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
                 const currentPath = segments.slice(0, index);
                 try {
                     const item = await this.findItemWithComparator(
-                        this.fileComparator(await this.root, segments, currentPath, index, type),
+                        this.fileComparator(root, segments, currentPath, index, type),
                         timeout
                     );
 
