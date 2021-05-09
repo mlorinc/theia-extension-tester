@@ -106,7 +106,7 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
 
     async isDisplayed(): Promise<boolean> {
         await this.getDriver().wait(() => this.enclosingItem, getTimeout());
-        return await this.enclosingItem.isDisplayed();
+        return await this.enclosingItem.isDisplayed() && await super.isDisplayed();
     }
 
     static async isOpen(parent: TheiaElement = new TextEditor()): Promise<boolean> {

@@ -90,10 +90,7 @@ export class TextEditor extends Editor implements ITextEditor {
             return assist;
         }
         else {
-            if (await ContentAssist.isOpen(this) === true) {
-                await this.sendKeys(Key.ESCAPE);
-                await this.getDriver().wait(async () => await ContentAssist.isOpen(this) === false, getTimeout(), 'waiting for content assist to close.');
-            }
+            await new ContentAssist(this).close();
         }
     }
     async getText(): Promise<string> {

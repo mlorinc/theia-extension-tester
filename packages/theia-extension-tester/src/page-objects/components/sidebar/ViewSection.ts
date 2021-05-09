@@ -1,3 +1,4 @@
+import { repeat } from 'extension-tester-page-objects';
 import {
     getTimeout,
     IViewItem,
@@ -37,6 +38,18 @@ export abstract class ViewSection extends TheiaElement implements IViewSection {
         const header = await this.findElement(ViewSection.locators.components.sideBar.sections.section.header.constructor);
         const toggle = await header.findElement(ViewSection.locators.components.sideBar.sections.section.header.toggle) as TheiaElement;
         await toggle.safeClick();
+
+        let lastHeight = (await this.getSize()).height;
+        await repeat(async () => {
+            const height = (await this.getSize()).height;
+            const result = Math.abs(lastHeight - height) < Number.EPSILON; 
+            lastHeight = height;
+            return result;
+        }, {
+            timeout: getTimeout(),
+            threshold: 400,
+            message: `Could not ${state ? 'expand' : 'collapse'} section.`
+        });
     }
 
     async expand(): Promise<void> {
