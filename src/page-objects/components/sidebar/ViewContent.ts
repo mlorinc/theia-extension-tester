@@ -1,6 +1,5 @@
 import { repeat } from 'extension-tester-page-objects';
 import {
-    CustomTreeSection,
     DefaultTreeSection,
     getTimeout,
     IViewContent,
@@ -9,6 +8,7 @@ import {
     TheiaElement,
     WebElement
 } from '../../../module';
+import { DefaultViewSection } from './DefaultViewSection';
 
 export class ViewContent extends TheiaElement implements IViewContent {
     constructor(sideBar: SideBarView = new SideBarView()) {
@@ -56,7 +56,7 @@ export class ViewContent extends TheiaElement implements IViewContent {
                 sections.push(new DefaultTreeSection(section, this));
             }
             else {
-                sections.push(new CustomTreeSection(section, this));
+                sections.push(new DefaultViewSection(section, this));
             }
         }
         return sections;
