@@ -7,6 +7,7 @@ import {
     IMenu,
     ITreeItem,
     IViewItemAction,
+    repeat,
     TheiaElement,
     WebElement
 } from '../../../../../module';
@@ -62,5 +63,22 @@ export class DefaultTreeItem extends FileTreeNode implements IDefaultTreeItem {
     async openContextMenu(): Promise<IMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
+    }
+
+    async expand(): Promise<void> {
+        const depth = await this.getTreeDepth();
+        // open singleton folders Che-Theia feature workaround
+        if (depth > 0) {
+            try {
+                await repeat(() => this.isExpanded(), {
+                    timeout: 750
+                });
+                return;
+            }
+            catch {
+                // ignore and continue
+            }
+        }
+        await super.expand();
     }
 }

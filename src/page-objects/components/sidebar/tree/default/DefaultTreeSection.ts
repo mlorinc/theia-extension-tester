@@ -4,6 +4,7 @@ import {
     ContextMenu,
     DefaultTreeItem,
     EditorView,
+    ExtestUntil,
     FileTreeWidget,
     FileType,
     getTimeout,
@@ -11,6 +12,7 @@ import {
     IDefaultTreeSection,
     IEditor,
     IElementWithContextMenu,
+    ILocation,
     IMenu,
     InputWidget,
     ModalDialog,
@@ -33,7 +35,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
     constructor(element: WebElement, parent: ViewContent) {
         super(element, parent);
-        this.tree = new DefaultTree(this, this.getTitle());
+        this.tree = new DefaultTree(this, new Workbench().getOpenFolderPath());
     }
 
     async openContextMenu(): Promise<IMenu> {
@@ -64,6 +66,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             return;
         }
 
+        await this.getDriver().wait(ExtestUntil.elementInteractive(this), timeout, 'Tree is not interactable.');
         await this.getDriver().wait(
             async () => await this.hasProgress() === false, timeout, 'Tree is not ready. Progress bar is visible.'
         );
@@ -176,29 +179,29 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
     private async toggleSectionContextMenu(): Promise<IMenu> {
         const items = await this.getVisibleItems();
 
-        try {
-            if (items.length > 0) {
-                const height = (await items[items.length - 1].getSize()).height;
-                await this.getDriver()
-                    .actions()
-                    .mouseMove(items[items.length - 1], { x: 0, y: height + 5 })
-                    .click(Button.RIGHT)
-                    .perform();
-                return new ContextMenu();
-            }
-            else {
-                throw new Error('No more items');
-            }
+        let location: ILocation | undefined;
+        let element: WebElement;
+
+        if (items.length > 0) {
+            const size = await items[items.length - 1].getSize();
+            location = {
+                x: Math.floor(size.width / 2),
+                y: size.height + 5
+            };
+            element = items[items.length - 1];
         }
-        catch (e) {
-            if (e.name !== 'StaleElementReferenceError' && e.message !== 'No more items') {
-                throw e;
-            }
-            // tree is either empty or last item was deleted.
-            const action = await this.getAction('More Actions...');
-            await action.safeClick();
-            return new ContextMenu();
+        else {
+            location = undefined;
+            element = this;
         }
+
+        await this.getDriver()
+            .actions()
+            .mouseMove(element, location)
+            .click(Button.RIGHT)
+            .perform();
+
+        return new ContextMenu();
     }
 
     private async handleDialog(text?: string): Promise<void> {
@@ -225,6 +228,8 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
         }
 
         const segments = PathUtils.convertToTreePath(filePath);
+
+        await this.waitTreeLoaded(timeout);
         await this.getDriver().actions().mouseMove(this).perform();
         const action = this.mapFileToAction(type);
 
@@ -310,6 +315,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
     private async findItemSafe(filePath: string | string[], type: FileType, timeout?: number, strict: boolean = true): Promise<IDefaultTreeItem> {
         timeout = getTimeout(timeout);
+        await this.waitTreeLoaded(timeout);
         const segments = typeof filePath === 'object' ? filePath : PathUtils.convertToTreePath(filePath);
 
         const item = await repeat(async () => {
