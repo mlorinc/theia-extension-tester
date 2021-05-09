@@ -209,7 +209,10 @@ export const locators: TheiaLocators = {
                 }
             },
             navigationUp: {
-                locator: By.className('theia-NavigationUp')
+                locator: By.className('theia-NavigationUp'),
+                properties: {
+                    enabled: hasNot('class', 'theia-mod-disabled')
+                }
             }
         },
         workbench: {
