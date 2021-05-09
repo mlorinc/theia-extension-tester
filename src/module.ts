@@ -1,6 +1,9 @@
 export * from 'extension-tester-page-objects';
 export * from 'selenium-webdriver';
-export { Options as ChromeOptions } from 'selenium-webdriver/chrome'
+export { Options as ChromeOptions } from 'selenium-webdriver/chrome';
+export { Options as FirefoxOptions } from 'selenium-webdriver/firefox';
+export { Options as OperaOptions } from 'selenium-webdriver/opera';
+export { Options as SafariOptions } from 'selenium-webdriver/safari';
 
 /** Theia widgets */
 
@@ -27,8 +30,12 @@ export * from './page-objects/theia-components/widgets/tree/FileTreeNode';
 
 /** End of Theia widgets */
 
-export * from './browser';
-export * from './runners/DashboardTestRunner';
+export * from './browsers/BaseBrowser';
+export * from './browsers/TheiaBrowser';
+export * from './browsers/CheTheiaBrowser';
+export * from './browsers/TheiaElectronBrowser';
+export * from './runners/MochaRunner';
+export * from './runners/CheTheiaFactoryRunner';
 export * from './runners/WorkspaceTestRunner';
 
 export * from './page-objects/components/activityBar/ActionsControl';
@@ -67,6 +74,7 @@ export * from './page-objects/components/sidebar/ViewContent';
 export * from './page-objects/components/sidebar/ViewItem';
 export * from './page-objects/components/sidebar/ViewPanelAction';
 export * from './page-objects/components/sidebar/ViewSection';
+export * from './page-objects/components/sidebar/DefaultViewSection';
 export * from './page-objects/components/sidebar/ViewTitlePart';
 
 export * from './page-objects/components/sidebar/tree/custom/CustomTreeItem';

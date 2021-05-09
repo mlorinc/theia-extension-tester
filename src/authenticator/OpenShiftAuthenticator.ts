@@ -1,8 +1,14 @@
-import { getTimeout, SeleniumBrowser } from "extension-tester-page-objects";
-import { Button, By, Key, until } from "selenium-webdriver";
-import { CheBrowser } from "../browser";
-import { TheiaElement } from "../page-objects/theia-components/TheiaElement";
-import { Authenticator } from "./Authenticator";
+import {
+    Authenticator,
+    BaseBrowser,
+    Button,
+    By,
+    getTimeout,
+    Key,
+    SeleniumBrowser,
+    TheiaElement,
+    until
+} from '../module';
 
 export module OpenShiftAuthenticatorMethod {
     export const HTPASSWD_PROVIDER = 'htpasswd_provider';
@@ -27,11 +33,11 @@ export class OpenShiftAuthenticator implements Authenticator {
 
     async authenticate(): Promise<void> {
         const timeout = getTimeout(this.options.timeout);
-        const browser = SeleniumBrowser.instance as CheBrowser;
+        const browser = SeleniumBrowser.instance as BaseBrowser;
 
         const form = new TheiaElement(By.css('form'));
         console.log('Found form.');
-        
+
         let counter = 0;
         for (const pair of this.options.inputData) {
             const input = await form.findElement(By.name(pair.name)) as TheiaElement;
