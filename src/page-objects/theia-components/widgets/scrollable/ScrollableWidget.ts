@@ -184,7 +184,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
                 return true;
             }
         }, {
-            timeout, 
+            timeout,
             message: errorMessage
         });
     }
@@ -208,7 +208,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
         return foundItem;
     }
 
-    async findItemWithComparator(comparator: ScrollComparator<T>, timeout?: number, message?: string): Promise<T> {
+    async findItemWithComparatorDetailed(comparator: ScrollComparator<T>, timeout?: number, message?: string): Promise<{ index: number, items: T[] }> {
         let items = await this.getVisibleItems();
 
         return await repeat(async () => {
@@ -218,7 +218,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
 
             if (items.length === 1) {
                 if (await comparator(items[0]) === 0) {
-                    return items[0];
+                    return { index: 0, items };
                 }
                 else {
                     throw new ScrollItemNotFound('Item was not found.');
@@ -233,14 +233,14 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             }
 
             if (firstItemCompareResult === 0) {
-                return items[0];
+                return { index: 0, items };
             }
 
             if (lastItemCompareResult === 0) {
-                return items[items.length - 1];
+                return { index: items.length - 1, items };
             }
 
-            // searching element - currentElement
+            // comparator value = searching element - currentElement
             if (firstItemCompareResult < 0 && lastItemCompareResult < 0) {
                 if (await this.hasPreviousPage()) {
                     items = await this.previousPage(items[0], timeout);
@@ -261,28 +261,32 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             }
         }, {
             timeout, message: message ?? 'Could not find scroll item on time.'
-        }) as T;
+        }) as { index: number, items: T[] };
+    }
+
+    async findItemWithComparator(comparator: ScrollComparator<T>, timeout?: number, message?: string): Promise<T> {
+        const result = await this.findItemWithComparatorDetailed(comparator, timeout, message);
+        return result.items[result.index];
     }
 }
 
-async function comparatorBinarySearch<T extends TheiaElement>(comparator: ScrollComparator<T>, items: T[]): Promise<T> {
-    // first and last item was already checked
+async function comparatorBinarySearch<T extends TheiaElement>(comparator: ScrollComparator<T>, items: T[]): Promise<{ index: number, items: T[] }> {
+    // first and last item were already checked
     let left: number = 1;
     let right: number = items.length - 2;
 
-    while (left !== right) {
-        const median = Math.ceil((left + right) / 2);
+    while (left <= right) {
+        const median = Math.floor((left + right) / 2);
         const comparatorValue = await comparator(items[median]);
 
-        if (comparatorValue === 0) {
-            return items[median];
-        }
-
         if (comparatorValue > 0) {
-            left = median;
+            left = median + 1;
+        }
+        else if (comparatorValue < 0) {
+            right = median - 1;
         }
         else {
-            right = median - 1;
+            return { index: median, items };
         }
     }
 
