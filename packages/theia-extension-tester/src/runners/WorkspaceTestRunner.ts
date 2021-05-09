@@ -1,7 +1,5 @@
 import {
     By,
-    CheBrowser,
-    DashboardTestRunner,
     getTimeout,
     SeleniumBrowser,
     TabsWidget,
@@ -10,6 +8,8 @@ import {
     until
 } from '../module';
 import Mocha = require('mocha');
+import { MochaRunner } from './MochaRunner';
+import { BaseBrowser } from '../browsers/BaseBrowser';
 
 export interface WorkspaceTestRunnerOptions {
     mochaOptions?: Mocha.MochaOptions,
@@ -19,12 +19,12 @@ export interface WorkspaceTestRunnerOptions {
     useExistingWorkspace?: boolean;
 }
 
-export class WorkspaceTestRunner extends DashboardTestRunner {
-    constructor(browser: CheBrowser, protected options: WorkspaceTestRunnerOptions) {
+export class WorkspaceTestRunner extends MochaRunner {
+    constructor(browser: BaseBrowser, protected options: WorkspaceTestRunnerOptions) {
         super(browser, options.mochaOptions);
     }
 
-    protected async setup(): Promise<void> {
+    protected async beforeAll(): Promise<void> {
         const timeout = getTimeout(this.browser.pageLoadTimeout) || 30000;
         const rawNavbar = await this.browser.driver.wait(
             until.elementLocated(TheiaElement.locators.dashboard.menu.locator), timeout

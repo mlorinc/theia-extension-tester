@@ -2,9 +2,10 @@ export * from 'extension-tester-page-objects';
 export * from 'selenium-webdriver';
 
 export {
-    CheBrowser,
-    DashboardTestRunner,
-    WorkspaceTestRunner,
+    BaseBrowser,
+    BrowserDistribution,
+    createBrowser,
+    CheTheiaFactoryRunner,
     ActionsControl,
     ActivityBar,
     ViewControl,
@@ -52,6 +53,5 @@ export {
     QuickPickItem,
     Authenticator,
     OpenShiftAuthenticator,
-    OpenShiftAuthenticatorMethod,
-    CheDistribution
+    OpenShiftAuthenticatorMethod
 } from './module';
