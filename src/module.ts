@@ -35,6 +35,7 @@ export * from './browsers/TheiaBrowser';
 export * from './browsers/CheTheiaBrowser';
 export * from './browsers/TheiaElectronBrowser';
 export * from './runners/MochaRunner';
+export * from './runners/TheiaBrowserRunner';
 export * from './runners/CheTheiaFactoryRunner';
 export * from './runners/WorkspaceTestRunner';
 
@@ -67,6 +68,10 @@ export * from './page-objects/components/editor/EditorGroup';
 export * from './page-objects/components/editor/EditorTab';
 export * from './page-objects/components/editor/EditorView';
 export * from './page-objects/components/editor/TextEditor';
+export * from './page-objects/components/editor/SettingsEditor';
+export * from './page-objects/components/editor/MiniBrowserEditor';
+export * from './page-objects/components/editor/TheiaEditorPreview';
+export * from './page-objects/components/editor/WebviewEditor';
 
 export * from './page-objects/components/sidebar/SideBarView';
 export * from './page-objects/components/sidebar/TitleActionButton';

@@ -52,14 +52,7 @@ export class EditorTab extends TheiaElement implements IEditorTab {
         }, getTimeout(), `Could not close editor tab with title "${label}".`);
     }
 
-    /**
-     * Parse tab id which contains useful info for editor - tab linking.
-     * @returns new array with following values: editor type, editor file URI or webview id
-     */
-    async parseTabType(): Promise<[string, string]> {
-        const id = await this.getAttribute('id');
-        const colon = id.indexOf(':');
-        // return editor type + (uri|id)
-        return [id.slice(0, colon), id.slice(colon + 1)];
+    async getIdentification(): Promise<string> {
+        return (await this.getAttribute('id')).replace('shell-tab-', '');
     }
 }
