@@ -1,3 +1,4 @@
+import { repeat, TimeoutError } from 'extension-tester-page-objects';
 import {
     Input,
     MonacoScrollWidget,
@@ -52,7 +53,28 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
         await this.resetScroll();
 
         // handle recently used quick pick
-        const items = await this.getVisibleItems();
+        let items: QuickPickItem[];
+        try {
+            items = await repeat(async () => {
+                const items = await this.getVisibleItems();
+                if (items.length > 0) {
+                    return items;
+                }
+                else {
+                    return undefined;
+                }
+            }, {
+                timeout
+            }) as QuickPickItem[];
+        }
+        catch (e) {
+            if (e instanceof TimeoutError) {
+                items = [];
+            }
+            else {
+                throw e;
+            }
+        }
 
         if (items.length === 0) {
             throw new ScrollItemNotFound('Quick pick list is empty.');

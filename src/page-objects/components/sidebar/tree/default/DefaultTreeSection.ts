@@ -156,7 +156,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
         const relativePath = await getRelativePath(filePath);
         const item = await this.findItemSafe(relativePath, FileType.FILE, timeout);
-        await item.safeClick();
+        await item.safeDoubleClick();
         return await this.getEditor(path.join(await getOpenFolderPath(), relativePath), timeout);
     }
 
@@ -276,7 +276,6 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
             if (editor instanceof TextEditor) {
                 const editorPath = await editor.getFilePath();
-
                 if (PathUtils.normalizePath(editorPath) === filePath) {
                     return editor;
                 }

@@ -18,8 +18,12 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
 
     constructor(parent: TheiaElement = new TextEditor()) {
         const container = parent.findElement(TheiaElement.locators.components.editor.contentAssist.constructor);
-        super(undefined, container);
+        super(undefined, container, true);
         this.editor = parent;
+    }
+
+    async getControllerElement(): Promise<TheiaElement> {
+        return this.editor;
     }
 
     async getItem(name: string): Promise<IMenuItem> {

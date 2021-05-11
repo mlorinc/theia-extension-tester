@@ -11,8 +11,8 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
     private verticalScroll?: ScrollWidget;
     private horizontalScroll?: ScrollWidget;
 
-    constructor(element: WebElement | undefined, parent: WebElement) {
-        super(element ?? MonacoScrollWidget.locators.widgets.monacoScroll.constructor, parent);
+    constructor(element: WebElement | undefined, parent: WebElement, usePageKeys: boolean = false) {
+        super(element ?? MonacoScrollWidget.locators.widgets.monacoScroll.constructor, parent, usePageKeys);
         this.mapItem = this.mapItem.bind(this);
     }
 
