@@ -3,9 +3,13 @@ export * from 'selenium-webdriver';
 
 export {
     BaseBrowser,
+    CheTheiaBrowser,
+    TheiaBrowser,
+    TheiaElectronBrowser,
     BrowserDistribution,
     createBrowser,
     CheTheiaFactoryRunner,
+    TheiaBrowserRunner,
     ActionsControl,
     ActivityBar,
     ViewControl,
