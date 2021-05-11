@@ -17,21 +17,21 @@ export class ViewControl extends TheiaElement implements IViewControl {
         super(element, parent);
     }
     async openView(): Promise<ISideBarView> {
-        if (await this.isOpen() === false) {
+        const sideBar = new SideBarView();
+
+        if (await this.isOpen() === true) {
+            return sideBar;
+        }
+        else {
             await this.safeClick();
             await this.getDriver().wait(until.elementIsVisible(new SideBarView()), getTimeout());
         }
 
-        const sideBar = new SideBarView();
-        const title = await this.getTitle();
-
-        await sideBar.getDriver().wait(async () => {
-            const titlePart = sideBar.getTitlePart();
-            const contentTitle = await titlePart.getTitle();
-
-            console.log(`"${contentTitle}".startsWith("${title}")`);
-            return contentTitle.startsWith(title);
-        }, getTimeout(), `Could not open view with title "${title}".`);
+        await sideBar.getDriver().wait(
+            () => this.isOpen(),
+            getTimeout(),
+            `Could not open view with title "${await this.getTitle()}".`
+        );
 
         return sideBar;
     }

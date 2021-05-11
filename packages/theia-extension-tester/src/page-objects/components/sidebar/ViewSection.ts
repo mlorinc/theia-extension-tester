@@ -82,6 +82,7 @@ export abstract class ViewSection extends TheiaElement implements IViewSection {
             return [];
         }
 
+        await this.getDriver().actions().mouseMove(toolbar[0]).perform();
         const items = await toolbar[0].findElements(locator.toolbar.action);
         return await Promise.all(items.map((item) => new ViewPanelAction(item, this)));
     }
