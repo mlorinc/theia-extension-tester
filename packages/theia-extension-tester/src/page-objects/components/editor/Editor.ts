@@ -26,6 +26,7 @@ export class Editor extends TheiaElement implements IEditor {
         if (this.editorTab) {
             return this.editorTab;
         }
+
         this.editorTab = await this.editorView.getActiveTab();
         return this.editorTab;
     }
@@ -54,12 +55,6 @@ export class Editor extends TheiaElement implements IEditor {
         return new ContextMenu();
     }
 
-    async getIdentification(): Promise<string> {
-        const id = await this.getAttribute('id');
-        const index = id.indexOf(':');
-        return id.slice(index + 1);
-    }
-
     async getZIndex(): Promise<number> {
         const zIndex = await this.getDriver().executeScript('getComputedStyle(arguments[0]).zIndex', this);
 
@@ -69,5 +64,9 @@ export class Editor extends TheiaElement implements IEditor {
         else {
             return 0;
         }
+    }
+
+    async getIdentification(): Promise<string> {
+        return this.getAttribute('id');
     }
 }

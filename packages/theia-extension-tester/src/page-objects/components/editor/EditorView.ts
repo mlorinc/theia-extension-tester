@@ -7,8 +7,12 @@ import {
     IEditorGroup,
     IEditorTab,
     IEditorView,
+    MiniBrowserEditor,
+    SettingsEditor,
     TextEditor,
-    TheiaElement
+    TheiaEditorPreview,
+    TheiaElement,
+    WebView
 } from '../../../module';
 
 export class EditorView extends TheiaElement implements IEditorView {
@@ -18,10 +22,7 @@ export class EditorView extends TheiaElement implements IEditorView {
 
     async getActiveEditor(): Promise<Editor> {
         return await this.getDriver().wait(async () => {
-            const editorElements = await this.findElements(EditorView.locators.components.editor.constructor) as TheiaElement[];
-            const editors = await Promise.all(editorElements.map(async (element) => {
-                return new Editor(element, this);
-            }))
+            const editors = await this.getEditors();
 
             let max: { editor: Editor | undefined, zIndex: number } = {
                 editor: undefined,
@@ -50,13 +51,16 @@ export class EditorView extends TheiaElement implements IEditorView {
                 return undefined;
             }
 
-            for (const tab of await this.getOpenTabs()) {
-                const [type, identification] = await tab.parseTabType();
-                if (identification === await editor.getIdentification()) {
-                    return await EditorView.create(type, editor, tab);
-                }
-            }
+            return editor;
         }, getTimeout()) as Editor;
+    }
+
+    async getEditors(): Promise<Editor[]> {
+        const editorElements = await this.findElements(EditorView.locators.components.editor.constructor) as TheiaElement[];
+        return await Promise.all(editorElements.map(async (element) => {
+            const rawEditor = new Editor(element, this);
+            return await this.create(rawEditor);
+        }));
     }
 
     async openEditor(title: string, groupIndex: number = 0): Promise<IEditor> {
@@ -105,13 +109,13 @@ export class EditorView extends TheiaElement implements IEditorView {
         return titles;
     }
 
-    async getTabByTitle(title: string, groupIndex: number = 0): Promise<EditorTab> {
+    protected async getTab(predicate: ((item: EditorTab) => Promise<boolean>), groupIndex: number, message: string): Promise<EditorTab> {
         return await this.getDriver().wait(async () => {
             const tabs = await this.getOpenTabs(groupIndex);
 
             for (const tab of tabs) {
                 try {
-                    if (await tab.getTitle() === title) {
+                    if (await predicate(tab)) {
                         return tab;
                     }
                 }
@@ -123,7 +127,24 @@ export class EditorView extends TheiaElement implements IEditorView {
                 }
             }
             return undefined;
-        }, getTimeout(), `Could not find tab with title ${title}, group index: ${groupIndex}.`) as EditorTab;
+        }, getTimeout(), message) as EditorTab;
+    }
+
+    async getTabByTitle(title: string, groupIndex: number = 0): Promise<EditorTab> {
+        return await this.getTab(
+            async (tab) => {
+                console.log(`${await tab.getTitle()} === ${title}`);
+                return await tab.getTitle() === title
+            },
+            groupIndex,
+            `Could not find tab with title ${title}, group index: ${groupIndex}.`);
+    }
+
+    async getTabByIdentification(identification: string, groupIndex: number = 0): Promise<EditorTab> {
+        return await this.getTab(
+            async (tab) => await tab.getIdentification() === identification,
+            groupIndex,
+            `Could not find tab with id ${identification}, group index: ${groupIndex}.`);
     }
 
     async getOpenTabs(groupIndex: number = 0): Promise<EditorTab[]> {
@@ -179,20 +200,32 @@ export class EditorView extends TheiaElement implements IEditorView {
         }, getTimeout(), `Could not get group with index ${index}.`) as IEditorGroup;
     }
 
-    static async create(editorType: string, editor: Editor, tab: IEditorTab): Promise<IEditor> {
-        if (editorType.startsWith('shell-tab-')) {
-            editorType = editorType.slice('shell-tab-'.length);
+    async create(editorElement: Editor): Promise<Editor> {
+        const classes = await editorElement.getAttribute('class');
+        const tab = await this.getTabByIdentification(await editorElement.getIdentification());
+
+        if (classes.includes('theia-settings-container')) {
+            return new SettingsEditor(editorElement, this, tab);
         }
 
-        switch (editorType) {
-            case 'code-editor-opener':
-                return new TextEditor(editor, new EditorView(), tab);
-            case 'plugin-webview':
-                return new Editor(editor, new EditorView(), tab);
-            case 'mini-browser':
-                return new Editor(editor, new EditorView(), tab);
-            default:
-                throw new Error(`Unknown editor type ${editorType}.`);
+        if (classes.includes('theia-editor-preview')) {
+            return new TheiaEditorPreview(editorElement, this, tab);
         }
+
+        if (classes.includes('theia-editor')) {
+            return new TextEditor(editorElement, this, tab);
+        }
+
+        const id = await editorElement.getAttribute('id');
+
+        if (id.startsWith('mini-browser')) {
+            return new MiniBrowserEditor(editorElement, this, tab);
+        }
+
+        if (classes.includes('theia-webview')) {
+            return new WebView(editorElement, this, tab);
+        }
+
+        throw new Error(`Unknown editor type: <${await editorElement.getTagName()} id="${id}" class="${classes}">`);
     }
 }
