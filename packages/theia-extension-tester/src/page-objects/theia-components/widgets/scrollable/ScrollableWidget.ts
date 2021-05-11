@@ -1,4 +1,5 @@
-import { repeat } from 'extension-tester-page-objects';
+import { getTimeout, repeat } from 'extension-tester-page-objects';
+import { Key } from 'selenium-webdriver';
 import {
     Locator,
     ScrollWidget,
@@ -23,7 +24,7 @@ export type ScrollPredicate<T extends TheiaElement> = (scrollItem: T) => Promise
 export type ScrollFilter<T extends TheiaElement> = (scrollItem: T) => PromiseLike<boolean> | boolean;
 
 export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElement {
-    constructor(element: WebElement | Locator | TheiaLocator, parent?: WebElement) {
+    constructor(element: WebElement | Locator | TheiaLocator, parent?: WebElement, private usePageKeys: boolean = false) {
         super(element, parent);
     }
 
@@ -42,7 +43,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
     }
 
     protected async getControllerElement(): Promise<TheiaElement> {
-        return this.getActiveItem();
+        return this;
     }
 
     protected async findOffset(node: T, elements?: T[]): Promise<{ index: number, items: T[] }> {
@@ -114,10 +115,22 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
         const scroll = await this.getVerticalScroll();
 
         if (direction === ScrollDirection.NEXT) {
-            await scroll.scrollAfter(lastActiveItem, this, timeout);
+            if (this.usePageKeys === false) {
+                await scroll.scrollAfter(lastActiveItem, this, timeout);
+            }
+            else {
+                const element = await this.getControllerElement();
+                await element.safeSendKeys(timeout, Key.PAGE_DOWN);
+            }
         }
         else if (direction === ScrollDirection.PREVIOUS) {
-            await scroll.scroll(- await scroll.getScrollSize(), timeout);
+            if (this.usePageKeys === false) {
+                await scroll.scroll(- await scroll.getScrollSize(), timeout);
+            }
+            else {
+                const element = await this.getControllerElement();
+                await element.safeSendKeys(timeout, Key.PAGE_UP);
+            }
         }
 
         return await this.getVisibleItems();
@@ -128,7 +141,6 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             throw new Error('Could not get next page.');
         }
 
-        console.log(`Last label: ${await this.getElementId(lastItem)}`);
         return await this.movePage(ScrollDirection.NEXT, lastItem, timeout);
     }
 
@@ -136,8 +148,6 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
         if (await this.hasPreviousPage() === false) {
             throw new Error('Could not get previous page.');
         }
-
-        console.log(`First label: ${await this.getElementId(firstItem)}`);
         return await this.movePage(ScrollDirection.PREVIOUS, firstItem, timeout);
     }
 
@@ -184,7 +194,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
                 return true;
             }
         }, {
-            timeout,
+            timeout: timeout || getTimeout(),
             message: errorMessage
         });
     }
