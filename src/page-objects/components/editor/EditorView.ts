@@ -133,7 +133,6 @@ export class EditorView extends TheiaElement implements IEditorView {
     async getTabByTitle(title: string, groupIndex: number = 0): Promise<EditorTab> {
         return await this.getTab(
             async (tab) => {
-                console.log(`${await tab.getTitle()} === ${title}`);
                 return await tab.getTitle() === title
             },
             groupIndex,

@@ -22,12 +22,24 @@ export interface OpenShiftInputPair {
 }
 
 export interface OpenShiftAuthenticatorOptions {
+    /**
+     * Input data to fill in. In multi step forms, order of data is important.
+     */
     inputData: Array<OpenShiftInputPair>;
+    /**
+     * Login method to use. See OpenShiftAuthenticatorMethod.
+     */
     loginMethod?: string;
+    /**
+     * Flag indicating if multi form algorithm should be used.
+     */
     multiStepForm?: boolean;
     timeout?: number;
 }
 
+/**
+ * OpenShift authenticator which logs in user.
+ */
 export class OpenShiftAuthenticator implements Authenticator {
     constructor(private options: OpenShiftAuthenticatorOptions) { }
 

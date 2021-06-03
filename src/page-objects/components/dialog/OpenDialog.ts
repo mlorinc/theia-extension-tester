@@ -31,17 +31,7 @@ export class OpenDialog extends ModalDialog implements IOpenDialog {
                 await upButton.click();
             }
         }
-
-        console.log(`Looking for tree`);
         const tree = new DialogTree(content);
-        console.log(`Opening: ${path}`);
-
-        const items = await tree.getVisibleItems();
-
-        for (const item of items) {
-            console.log(`Item: "${await item.getLabel()}".`);
-        }
-
         const node = await tree.findFile(PathUtils.convertToTreePath(path), this.type, getTimeout());
         await node.safeClick();
     }
