@@ -35,6 +35,7 @@ export class ViewControl extends TheiaElement implements IViewControl {
 
         return sideBar;
     }
+    
     async closeView(): Promise<void> {
         if (await this.isOpen() === true) {
             await this.safeClick();

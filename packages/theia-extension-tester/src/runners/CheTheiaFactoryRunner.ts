@@ -5,11 +5,23 @@ import { MochaRunner } from './MochaRunner';
 
 export interface CheTheiaFactoryRunnerOptions {
     mochaOptions?: Mocha.MochaOptions,
+    /**
+     * URL to devfile.yml.
+     */
     factoryUrl: string;
+    /**
+     * devfile.yml attribute override.
+     */
     factoryAttributes?: { [key: string]: string };
+    /**
+     * URL to Eclipse Che instance. 
+     */
     cheUrl: string;
 }
 
+/**
+ * Runner which will create Eclipse Che workspace. Workspace must be delete manually after each run.
+ */
 export class CheTheiaFactoryRunner extends MochaRunner {
     constructor(browser: BaseBrowser, protected options: CheTheiaFactoryRunnerOptions, private authenticator?: Authenticator) {
         super(browser, options.mochaOptions);
