@@ -44,8 +44,13 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
         throw new Error("Method not implemented.");
     }
     protected async hasVerticalScroll(): Promise<boolean> {
-        await this.getDriver().actions().mouseMove(this.verticalScroll).perform();
-        return this.verticalScroll.isDisplayed();
+        try {
+            await this.getDriver().actions().mouseMove(this.verticalScroll).perform();
+            return this.verticalScroll.isDisplayed();
+        }
+        catch {
+            return false;
+        }
     }
     protected async hasHorizontalScroll(): Promise<boolean> {
         return false;
