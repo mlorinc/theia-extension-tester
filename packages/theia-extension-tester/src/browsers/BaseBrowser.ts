@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as os from "os";
 import {
     Builder,
     Capabilities,
@@ -31,11 +32,26 @@ export enum BrowserDistribution {
 }
 
 export interface BrowserOptions {
+    /**
+     * Browser binary location.
+     */
     browserLocation?: string;
+    /**
+     * Start browser with clean session.
+     */
     cleanSession?: boolean;
+    /**
+     * Theia distribution.
+     */
     distribution?: BrowserDistribution;
+    /**
+     * Path to driver locations. Path must be absolute.
+     */
     driverLocation?: string;
     logLevel?: logging.Level;
+    /**
+     * Tester timeouts.
+     */
     timeouts?: ITimeouts;
 }
 
@@ -122,8 +138,10 @@ export abstract class BaseBrowser extends SeleniumBrowser {
         const operaOptions = new OperaOptions();
         const safariOptions = new SafariOptions();
 
+        const profileRoot = process.env['SELENIUM_REMOTE_URL'] ? os.tmpdir() : process.cwd();
+
         // clear session if allowed
-        const browserProfilePath = path.resolve('.', 'test-resources', `${browserName}-profile`);
+        const browserProfilePath = path.join(profileRoot, 'test-resources', `${browserName}-profile`);
         if (this.options.cleanSession) {
             safariOptions.setCleanSession(true);
             fs.removeSync(browserProfilePath);
@@ -152,9 +170,14 @@ export abstract class BaseBrowser extends SeleniumBrowser {
         const driverLocation = this.options.driverLocation;
         const pathBackup = process.env.PATH;
 
-        // temporary change PATH variable, so it is possible to use custom WebDriver
+        // change PATH variable, so it is possible to use custom WebDriver
         if (driverLocation) {
-            process.env.PATH = driverLocation;
+            if (fs.statSync(driverLocation).isDirectory()) {
+                process.env.PATH = [driverLocation, process.env.PATH].join(path.delimiter);
+            }
+            else {
+                process.env.PATH = [path.dirname(driverLocation), process.env.PATH].join(path.delimiter);
+            }
         }
 
         this._driver = await new Builder()
@@ -216,6 +239,12 @@ export abstract class BaseBrowser extends SeleniumBrowser {
     }
 }
 
+/**
+ * Create new browser object depending on browser name.
+ * @param browserName supported browser name: firefox, chrome and opera
+ * @param options browser options
+ * @returns new browser object
+ */
 export function createBrowser(browserName: string, options: BrowserOptions): BaseBrowser {
     if (options.distribution === BrowserDistribution.CHE || options.distribution === BrowserDistribution.CODEREADY_WORKSPACES) {
         return new CheTheiaBrowser(browserName, options);
