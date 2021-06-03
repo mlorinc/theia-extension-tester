@@ -2,16 +2,22 @@ import Mocha = require('mocha');
 import sanitize = require('sanitize-filename');
 import { getTimeout, TestRunner, BaseBrowser } from '../module';
 
+/**
+ * Run tests with Mocha library.
+ */
 export class MochaRunner implements TestRunner {
     private testCounter: number = 1;
+    private exitListener?: (...args: any[]) => void;
 
     constructor(protected browser: BaseBrowser, protected mochaOptions?: Mocha.MochaOptions) {
-
     }
 
     protected async beforeAll(mochaContext: Mocha.Context): Promise<void> {
         mochaContext.timeout(getTimeout(this.browser.pageLoadTimeout));
         await this.browser.start();
+        this.exitListener = this.afterAll.bind(this, mochaContext);
+        process.on('exit', this.exitListener);
+        process.on('SIGINT', this.exitListener);
     }
 
     protected async afterAll(mochaContext: Mocha.Context): Promise<void> {
