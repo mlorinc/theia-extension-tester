@@ -177,23 +177,12 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
     }
 
     private async toggleSectionContextMenu(): Promise<IMenu> {
-        const items = await this.getVisibleItems();
-
-        let location: ILocation | undefined;
-        let element: WebElement;
-
-        if (items.length > 0) {
-            const size = await items[items.length - 1].getSize();
-            location = {
-                x: Math.floor(size.width / 2),
-                y: size.height + 5
-            };
-            element = items[items.length - 1];
-        }
-        else {
-            location = undefined;
-            element = this;
-        }
+        await this.wait(getTimeout());
+        const element = this;
+        const location: ILocation = {
+            x: 5,
+            y: (await this.getSize()).height - 10
+        };
 
         await this.getDriver()
             .actions()
@@ -299,13 +288,11 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
         const segments = PathUtils.convertToTreePath(filePath);
 
         try {
-            console.log(`Calling this.tree.findFile with timeout ${timeout}.`)
             await this.tree.findFile(segments, type, timeout);
             return true;
         }
         catch (e) {
-            console.log(`Error: ${e}\nTimeout: ${timeout}.`);
-            if (e instanceof TreeItemNotFound || e.name === 'StaleElementReferenceError' || e instanceof TimeoutError) {
+            if (e instanceof TreeItemNotFound || e instanceof TimeoutError) {
                 return false;
             }
             throw e;
