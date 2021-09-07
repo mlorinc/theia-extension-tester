@@ -1,4 +1,5 @@
-import { createBrowser, BrowserDistribution, TheiaBrowserRunner, createWebDriverManager } from "theia-extension-tester";
+import { TheiaBrowser } from "@theia-extension-tester/theia-browser";
+import { TheiaBrowserRunner } from "@theia-extension-tester/browser-runner";
 import * as fs from "fs-extra";
 import * as path from "path";
 
@@ -23,13 +24,10 @@ function prepareWorkspace() {
 async function main() {
 	const electronPath = process.env['ELECTRON_PATH'];
 
-	const driver = createWebDriverManager('chrome', path.join('test-resources', 'drivers'), '88.0.4324.96');
-	await driver.downloadDriver();
-
-	const browser = createBrowser('chrome', {
-		distribution: electronPath ? BrowserDistribution.THEIA_ELECTRON : BrowserDistribution.THEIA_BROWSER,
+	const browser = new TheiaBrowser('chrome', {
+		// todo: fix electron detection
+		distribution: electronPath ? 'theia' : 'codeready',
 		browserLocation: electronPath,
-		driverLocation: await driver.getBinaryPath(),
 		timeouts: {
 			implicit: 30000,
 			pageLoad: 250000

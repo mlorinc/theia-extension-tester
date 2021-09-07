@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ISideBarView, IViewContent, IViewControl, IWorkbench, Workbench } from "theia-extension-tester";
+import { ISideBarView, IViewContent, IViewControl, IWorkbench, Workbench } from "@theia-extension-tester/page-objects";
 
 describe('ViewContent', function () {
     this.timeout(40000);

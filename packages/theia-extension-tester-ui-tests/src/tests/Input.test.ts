@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { IInputBox, Input, TitleBar, until, Workbench } from "theia-extension-tester";
+import { IInputBox, Input, TitleBar, until, Workbench } from "@theia-extension-tester/page-objects";
 
 describe('Input', function() {
     this.timeout(40000);

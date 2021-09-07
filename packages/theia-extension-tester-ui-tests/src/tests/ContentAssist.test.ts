@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { EditorView, IContentAssist, IContentAssistItem, IDefaultTreeSection, TextEditor } from "theia-extension-tester";
+import { EditorView, IContentAssist, IContentAssistItem, IDefaultTreeSection, TextEditor } from "@theia-extension-tester/page-objects";
 import { getExplorerSection, deleteFiles } from "./utils/File";
 
 describe('ContentAssist', function () {

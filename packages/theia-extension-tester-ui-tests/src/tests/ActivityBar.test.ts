@@ -1,5 +1,6 @@
 import { expect } from "chai";
-import { ActivityBar, IMenu, IViewControl, SeleniumBrowser, SideBarView, CheTheiaBrowser } from "theia-extension-tester";
+import { ActivityBar, IMenu, IViewControl, SeleniumBrowser, SideBarView } from "@theia-extension-tester/page-objects";
+import { CheTheiaBrowser } from "@theia-extension-tester/che-browser";
 
 describe('ActivityBar', function () {
     this.timeout(40000);

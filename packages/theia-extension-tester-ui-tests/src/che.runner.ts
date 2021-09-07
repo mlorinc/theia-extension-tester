@@ -1,12 +1,6 @@
-import * as path from 'path';
-import {
-	BrowserDistribution,
-	CheTheiaFactoryRunner,
-	createBrowser,
-	createWebDriverManager,
-	OpenShiftAuthenticator,
-	OpenShiftAuthenticatorMethod
-} from 'theia-extension-tester';
+import { OpenShiftAuthenticator, OpenShiftAuthenticatorMethod } from "@theia-extension-tester/openshift-authenticator";
+import { CheTheiaFactoryRunner } from "@theia-extension-tester/che-factory-runner";
+import { CheTheiaBrowser } from "@theia-extension-tester/che-browser";
 
 async function main() {
 	if (process.env.CHE_USERNAME === undefined) {
@@ -18,18 +12,6 @@ async function main() {
 		console.error('CHE_PASSWORD variable is missing in .env file.');
 		process.exit(1);
 	}
-
-	const driver = createWebDriverManager('chrome', path.join('test-resources', 'drivers'), '88.0.4324.96');
-	await driver.downloadDriver();
-
-	const browser = createBrowser('chrome', {
-		distribution: BrowserDistribution.CODEREADY_WORKSPACES,
-		driverLocation: await driver.getBinaryPath(),
-		timeouts: {
-			implicit: 30000,
-			pageLoad: 250000
-		}
-	});
 
 	const authenticator = new OpenShiftAuthenticator({
 		inputData: [
@@ -47,7 +29,12 @@ async function main() {
 	});
 
 	////https://workspaces.openshift.com/f?url=https://codeready-codeready-workspaces-operator.apps.sandbox.x8i5.p1.openshiftapps.com/devfile-registry/devfiles/03_java11-maven-quarkus/devfile.yaml&override.attributes.persistVolumes=false
-	const runner = new CheTheiaFactoryRunner(browser, {
+	const runner = new CheTheiaFactoryRunner(new CheTheiaBrowser('chrome', {
+		timeouts: {
+			implicit: 30000,
+			pageLoad: 250000
+		}
+	}), {
 		cheUrl: 'https://workspaces.openshift.com/',
 		factoryUrl: 'https://codeready-codeready-workspaces-operator.apps.sandbox.x8i5.p1.openshiftapps.com/devfile-registry/devfiles/03_java11-maven-quarkus/devfile.yaml',
 		mochaOptions: {

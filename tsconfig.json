@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "lib": [
+      "es6"
+    ],
+    "sourceMap": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "removeComments": true, 
+    "resolveJsonModule": true,
+    "declaration": true
+  },
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}

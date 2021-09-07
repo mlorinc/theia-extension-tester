@@ -1,4 +1,4 @@
-import { IDefaultTreeSection, Workbench } from "theia-extension-tester";
+import { IDefaultTreeSection, Workbench } from "@theia-extension-tester/page-objects";
 import * as path from "path";
 
 export async function getExplorerSection(): Promise<IDefaultTreeSection> {

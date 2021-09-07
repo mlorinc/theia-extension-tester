@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { DefaultTreeSection, EditorView, ISideBarView, IViewContent, IViewControl, IWorkbench, TextEditor, Workbench } from "theia-extension-tester";
+import { DefaultTreeSection, EditorView, ISideBarView, IViewContent, IViewControl, IWorkbench, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
 import * as path from "path";
 import { deleteFiles } from "./utils/File";
 

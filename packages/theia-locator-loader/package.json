@@ -1,0 +1,35 @@
+{
+  "name": "@theia-extension-tester/locator-loader",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "Marian Lorinc <mlorinc@redhat.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.com/"
+  },
+  "scripts": {
+    "prepublish": "yarn run clean && yarn run build",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "tsc",
+    "clean": "rimraf lib"
+  },
+  "dependencies": {
+    "@types/fs-extra": "^9.0.6",
+    "clone-deep": "^4.0.1",
+    "compare-versions": "^3.6.0",
+    "fs-extra": "^9.1.0",
+    "@theia-extension-tester/theia-element": "^1.0.0",
+    "ts-essentials": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/clone-deep": "^4.0.1"
+  }
+}

@@ -1,4 +1,4 @@
-import { Editor, EditorView, IDefaultTreeSection, Workbench } from "theia-extension-tester";
+import { Editor, EditorView, IDefaultTreeSection, Workbench } from "@theia-extension-tester/page-objects";
 import { deleteFiles, getExplorerSection } from "./utils/File";
 import * as path from "path";
 import { expect } from "chai";

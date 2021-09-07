@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ContentAssist, EditorView, IContentAssist, IDefaultTreeSection, IMenu, TextEditor, Workbench } from "theia-extension-tester";
+import { ContentAssist, EditorView, IContentAssist, IDefaultTreeSection, IMenu, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
 import { deleteFiles, getExplorerSection } from "./utils/File";
 import * as path from "path";
 

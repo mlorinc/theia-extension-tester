@@ -1,11 +1,20 @@
-import { expect } from "chai";
-import { EditorView, INotification, INotificationsCenter, InputBox, NotificationType, repeat, until, Workbench } from "theia-extension-tester";
+import {
+    EditorView,
+    INotification,
+    INotificationsCenter,
+    InputBox,
+    NotificationType,
+    until,
+    Workbench
+} from '@theia-extension-tester/page-objects';
+import { expect } from 'chai';
+import { repeat } from '@theia-extension-tester/repeat';
 
 // File has prefix 01, so it is not influenced by others tests (Copy Path command does not work if any file has been opened.).
 describe('Notifications', function () {
     this.timeout(40000);
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await new EditorView().closeAllEditors();
     });
 
@@ -45,7 +54,7 @@ describe('Notifications', function () {
                 icon: NotificationType;
                 source: string;
             }
-    
+
             const notificationDetails: { [message: string]: NotificationDetails } = {
                 'Open a file first to copy its path': {
                     icon: NotificationType.Info,
@@ -56,34 +65,34 @@ describe('Notifications', function () {
                     source: ''
                 }
             }
-    
+
             beforeEach(async function () {
                 const center = await new Workbench().openNotificationsCenter();
                 await center.clearAllNotifications();
                 await createNotifications(type);
             });
-    
+
             it('getMessage', async function () {
                 for (const message of Object.keys(notificationDetails)) {
                     await getNotification(message, type);
                 }
             });
-    
+
             it('getType', async function () {
                 for (const message of Object.keys(notificationDetails)) {
                     const notification = await getNotification(message, type);
                     expect(await notification.getType()).equals(notificationDetails[message].icon);
                 }
             });
-    
+
             it('getSource', async function () {
                 for (const message of Object.keys(notificationDetails)) {
                     const notification = await getNotification(message, type);
                     expect(await notification.getSource()).equals(notificationDetails[message].source);
                 }
             });
-    
-    
+
+
             it('dismiss', async function () {
                 for (const message of Object.keys(notificationDetails)) {
                     const notification = await getNotification(message, type);
@@ -97,19 +106,19 @@ describe('Notifications', function () {
                     }
                 }
             });
-    
+
             it.skip('hasProgress', async function () {
-    
+
             });
-    
+
             it.skip('getActions', async function () {
-    
+
             });
-    
+
             it.skip('takeAction', async function () {
-    
+
             });
-    
+
             it('openContextMenu', async function () {
                 try {
                     const notification = await getNotification(Object.keys(notificationDetails)[0], type);
@@ -132,7 +141,7 @@ async function createNotifications(useCenter: boolean) {
     center = await workbench.openNotificationsCenter();
     await center.clearAllNotifications();
     await center.close();
-    
+
     if (useCenter) {
         center = await workbench.openNotificationsCenter();
     }

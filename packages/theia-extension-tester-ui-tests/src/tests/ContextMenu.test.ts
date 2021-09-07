@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { EditorView, IDefaultTreeSection, IMenu, Key, TextEditor, TitleBar } from "theia-extension-tester";
+import { EditorView, IDefaultTreeSection, IMenu, Key, TextEditor, TitleBar } from "@theia-extension-tester/page-objects";
 import { deleteFiles, getExplorerSection } from "./utils/File";
 
 const FILE = 'Alternative.txt';

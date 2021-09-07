@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Workbench } from "theia-extension-tester";
+import { Workbench } from "@theia-extension-tester/page-objects";
 
 describe('Workbench', function () {
     this.timeout(40000);
