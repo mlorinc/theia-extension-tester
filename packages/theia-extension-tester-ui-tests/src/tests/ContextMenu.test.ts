@@ -1,12 +1,12 @@
 import { expect } from "chai";
-import { EditorView, IDefaultTreeSection, IMenu, Key, TextEditor, TitleBar } from "@theia-extension-tester/page-objects";
+import { ContextMenu, EditorView, IDefaultTreeSection, IMenu, Key, TextEditor, TitleBar } from "@theia-extension-tester/page-objects";
 import { deleteFiles, getExplorerSection } from "./utils/File";
 
 const FILE = 'Alternative.txt';
 
 describe('ContextMenu', function () {
     this.timeout(40000);
-    let menu: IMenu | undefined;
+    let menu: ContextMenu | undefined;
     let editor: TextEditor;
     let tree: IDefaultTreeSection;
 
@@ -16,8 +16,10 @@ describe('ContextMenu', function () {
         tree = await getExplorerSection();
         editor = await tree.createFile(FILE) as TextEditor;
         expect(await editor.getTitle()).equals(FILE);
-        await editor.setTextAtLine(1, 'Hello world' + Key.ENTER);
-        await editor.setTextAtLine(2, 'Hello world 2' + Key.ENTER);
+        await editor.setTextAtLine(1, 'Hello world');
+        await editor.sendKeys(Key.ENTER)
+        await editor.sendKeys('Hello world 2');
+        await editor.sendKeys(Key.ENTER);
     });
 
     afterEach(async function () {
@@ -29,20 +31,20 @@ describe('ContextMenu', function () {
     });
 
     it('getItem', async function () {
-        menu = await editor.openContextMenu();
+        menu = await editor.openContextMenu() as ContextMenu;
         expect(menu).not.to.be.undefined;
         await menu!.getItem('Peek');
     });
 
     it('getLabel', async function () {
-        menu = await editor.openContextMenu();
+        menu = await editor.openContextMenu() as ContextMenu;
         expect(menu).not.to.be.undefined;
         const peek = await menu!.getItem('Refactor...');
         expect(await peek!.getLabel()).equals('Refactor...');
     });
 
     it('getItems', async function () {
-        menu = await editor.openContextMenu();
+        menu = await editor.openContextMenu() as ContextMenu;
         expect(menu).not.to.be.undefined;
         await menu!.getItem('Peek');
         const items = await menu!.getItems();
@@ -53,7 +55,7 @@ describe('ContextMenu', function () {
     });
 
     it('hasItem', async function () {
-        menu = await editor.openContextMenu();
+        menu = await editor.openContextMenu() as ContextMenu;
         expect(menu).not.to.be.undefined;
         await menu!.getItem('Peek');
         expect(await menu!.hasItem('Peek')).to.be.true;
@@ -93,7 +95,7 @@ describe('ContextMenu', function () {
     });
 
     it('close', async function () {
-        menu = await editor.openContextMenu();
+        menu = await editor.openContextMenu() as ContextMenu;
         expect(menu).not.to.be.undefined;
         await menu.close();
         expect(await menu.isDisplayed().catch(() => false)).to.be.false;

@@ -6,6 +6,7 @@ import {
     Editor,
     EditorTab,
     EditorView,
+    ElementRepeatAction,
     IContentAssist,
     IEditorTab,
     IMenu,
@@ -16,12 +17,23 @@ import {
     WebElementPromise
 } from '../../../module';
 import { URL } from 'url';
+import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
 
 export class TextEditor extends Editor implements ITextEditor {
 
     constructor(editor?: TheiaElement, editorView?: EditorView, editorTab?: IEditorTab) {
         editorView = editorView || new EditorView();
         super(editor || new WebElementPromise(SeleniumBrowser.instance.driver, editorView.getActiveEditor()), editorView, editorTab);
+    }
+
+    protected async cancelHighlight(clipboardBackup?: string): Promise<void> {
+        let backup = clipboardBackup ?? await clipboardy.read();
+        try {
+            await this.sendKeys(Key.HOME, Key.END);
+        }
+        finally {
+            await clipboardy.write(backup);
+        }
     }
 
     async click(timeout?: number): Promise<void> {
@@ -68,13 +80,17 @@ export class TextEditor extends Editor implements ITextEditor {
 
     async toggleContentAssist(open: boolean): Promise<void | IContentAssist> {
         if (open) {
-            if (await ContentAssist.isOpen(this) === false) {
-                await this.sendKeys(Key.chord(TextEditor.ctlKey, Key.SPACE));
-            }
-
-            const assist = new ContentAssist(this);
-            await this.getDriver().wait(async () => await ContentAssist.isOpen(this) && await assist.isLoaded(), this.timeoutManager().findElementTimeout(), 'waiting for content assist to load.');
-            return assist;
+            const action = new ElementRepeatAction(this, 500);
+            return await repeat(async () => {
+                if (await ContentAssist.isOpen(this) === true) {
+                    return new ContentAssist(this);
+                }
+                await action.sendKeys(Key.chord(TextEditor.ctlKey, Key.SPACE));
+                return undefined;
+            }, {
+                timeout: this.timeoutManager().findElementTimeout(),
+                message: 'Cloud not toggle content assist.'
+            }) as IContentAssist;
         }
         else {
             await new ContentAssist(this).close();
@@ -90,8 +106,7 @@ export class TextEditor extends Editor implements ITextEditor {
             return clipboardy.readSync();
         }
         finally {
-            clipboardy.writeSync(oldClipboard);
-            await this.sendKeys(Key.ARROW_RIGHT);
+            await this.cancelHighlight(oldClipboard);
         }
     }
     async setText(text: string, formatText?: boolean): Promise<void> {
@@ -110,18 +125,45 @@ export class TextEditor extends Editor implements ITextEditor {
     }
 
     async getTextAtLine(line: number): Promise<string> {
+        let text: string = '';
+        let clipboardBackup = await clipboardy.read();
         try {
             await this.moveCursor(line, 1);
             await this.sendKeys(Key.chord(Key.SHIFT, Key.END), Key.chord(TextEditor.ctlKey, 'c'));
-            return clipboardy.read();
+            text = await clipboardy.read();
+            return text;
         }
         finally {
-            await this.sendKeys(Key.ARROW_RIGHT);
+            if (text.length > 0) {
+                await this.cancelHighlight(clipboardBackup);
+            }
+            else {
+                await clipboardy.write(clipboardBackup);
+            }
         }
     }
     async setTextAtLine(line: number, text: string): Promise<void> {
+        const newLineIndex = text.lastIndexOf('\n');
+        if (newLineIndex !== -1) {
+            throw new Error(`setTextAtLine does not support strings with "\\n". Got: "${text.replace(/\\n/g, '<EOL>')}".`);
+        }
+
         await this.moveCursor(line, 1);
         await this.sendKeys(Key.END, Key.chord(Key.SHIFT, Key.HOME), Key.BACK_SPACE, text);
+
+        try {
+            await repeat(async () => await this.getTextAtLine(line) === text, {
+                timeout: this.timeoutManager().defaultTimeout(),
+                message: `Could not set text at line ${line} to "${text}".`
+            })
+        }
+        catch (e) {
+            const text = await this.getTextAtLine(line).catch(() => '');
+            if (e instanceof TimeoutError && text) {
+                e.appendMessage(` Current text on line ${line}: "${text}".`);
+            }
+            throw e;
+        }
     }
     async typeText(line: number, column: number, text: string): Promise<void> {
         await this.moveCursor(line, column);

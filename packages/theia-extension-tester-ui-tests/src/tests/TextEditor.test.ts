@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ContentAssist, EditorView, IContentAssist, IDefaultTreeSection, IMenu, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
+import { ContentAssist, ContextMenu, EditorView, IDefaultTreeSection, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
 import { deleteFiles, getExplorerSection } from "./utils/File";
 import * as path from "path";
 
@@ -16,7 +16,7 @@ describe('TextEditor', function () {
     let editorView: EditorView;
     let tree: IDefaultTreeSection;
     let editor: TextEditor;
-    let menu: IMenu | undefined;
+    let menu: ContentAssist | ContextMenu | undefined;
     const file = "Editor.ts";
     let filePath: string;
 
@@ -52,7 +52,7 @@ describe('TextEditor', function () {
     });
 
     it('openContextMenu', async function() {
-        menu = await editor.openContextMenu();
+        menu = await editor.openContextMenu() as ContextMenu;
         const titles = await Promise.all((await menu.getItems()).map((item) => item.getLabel()));
         expect(titles).to.include.members(['Call Hierarchy', 'Peek', 'Change All Occurrences', 'Redo', 'Copy']);
         expect(titles).not.to.include.members(['']);
@@ -80,18 +80,19 @@ describe('TextEditor', function () {
     });
 
     it('toggleContentAssist - open', async function () {
-        const assist = await editor.toggleContentAssist(true) as IContentAssist;
+        const assist = await editor.toggleContentAssist(true) as ContentAssist;
+        await assist.getDriver().wait(() => assist.isLoaded(), this.timeout() - 1000, 'Could not load assist.');
         menu = assist;
         expect(await assist.isDisplayed()).to.be.true;
         expect(await assist.isLoaded()).to.be.true;
     });
 
     it('toggleContentAssist - close', async function () {
-        menu = await editor.toggleContentAssist(true) as IMenu;
+        menu = await editor.toggleContentAssist(true) as ContentAssist;
         expect(await menu.isDisplayed()).to.be.true;
 
         await editor.toggleContentAssist(false);
-        menu = new ContentAssist(editor) as IMenu;
+        menu = new ContentAssist(editor) as ContentAssist;
         expect(await menu.isDisplayed()).to.be.false;
     });
 

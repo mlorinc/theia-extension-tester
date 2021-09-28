@@ -7,7 +7,7 @@ import {
     WebElement
 } from '../../../module';
 import { DefaultViewSection } from './DefaultViewSection';
-import { repeat } from '@theia-extension-tester/repeat';
+import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
 
 export class ViewContent extends TheiaElement implements IViewContent {
     constructor(sideBar: SideBarView = new SideBarView()) {
@@ -18,7 +18,7 @@ export class ViewContent extends TheiaElement implements IViewContent {
         const elements = await this.findElements(ViewContent.locators.components.sideBar.viewContent.progress);
 
         for (const element of elements) {
-            if (await element.isDisplayed()) {
+            if (await element.isDisplayed().catch(() => false)) {
                 return true;
             }
         }
@@ -26,19 +26,30 @@ export class ViewContent extends TheiaElement implements IViewContent {
     }
 
     async getSection(title: string): Promise<IViewSection> {
-        return await repeat(async () => {
-            const sections = await this.getSections();
+        let sections: IViewSection[] = [];
 
-            for (const section of sections) {
-                if ((await section.getTitle()).startsWith(title)) {
-                    return section;
+        try {
+            return await repeat(async () => {
+                sections = await this.getSections();
+
+                for (const section of sections) {
+                    if ((await section.getTitle()).startsWith(title)) {
+                        return section;
+                    }
                 }
+                return undefined;
+            }, {
+                timeout: this.timeoutManager().findElementTimeout(),
+                message: `Could not find section with title "${title}".`
+            }) as IViewSection;
+        }
+        catch (e) {
+            if (e instanceof TimeoutError) {
+                const titles = await Promise.all(sections.map((section) => section.getTitle()));
+                e.appendMessage(`\nSection titles:\n\t${titles.join('\n\t')}`);
             }
-            return undefined;
-        }, {
-            timeout: this.timeoutManager().findElementTimeout(),
-            message: `Could not find section with title "${title}".`
-        }) as IViewSection;
+            throw e;
+        }
     }
 
     async getSections(): Promise<IViewSection[]> {
@@ -47,7 +58,7 @@ export class ViewContent extends TheiaElement implements IViewContent {
         const sections: IViewSection[] = [];
 
         for (const section of elements) {
-            if (await section.isDisplayed() === false) {
+            if (await section.isDisplayed().catch(() => false) === false) {
                 continue;
             }
 
@@ -62,7 +73,11 @@ export class ViewContent extends TheiaElement implements IViewContent {
     }
 
     protected async getActiveView(): Promise<TheiaElement> {
-        return await this.getDriver().wait(async () => {
+        return await repeat(async () => {
+            if (await this.isDisplayed().catch(() => false) === false) {
+                throw new Error('ViewContent must be displayed.');
+            }
+
             const views = await this.findElements(ViewContent.locators.components.sideBar.sections.constructor);
             let outputView: WebElement | undefined = undefined;
             for (const view of views) {
@@ -75,6 +90,9 @@ export class ViewContent extends TheiaElement implements IViewContent {
             }
 
             return outputView;
-        }, this.timeoutManager().findElementTimeout(), 'Could not find active view.') as TheiaElement;
+        }, {
+            timeout: this.timeoutManager().findElementTimeout(),
+            message: 'Could not find active view.'
+        }) as TheiaElement;
     }
 }

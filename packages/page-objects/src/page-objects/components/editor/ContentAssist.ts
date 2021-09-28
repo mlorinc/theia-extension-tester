@@ -10,7 +10,7 @@ import {
     until
 } from '../../../module';
 import { ScrollItemNotFound } from '../../theia-components/widgets/scrollable/ScrollableWidget';
-import { repeat } from "@theia-extension-tester/repeat";
+import { repeat, TimeoutError } from "@theia-extension-tester/repeat";
 
 export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> implements IContentAssist {
     private editor: TheiaElement;
@@ -26,24 +26,40 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
     }
 
     async getItem(name: string): Promise<IMenuItem> {
-        return await repeat(async () => {
-            try {
-                return await this.findItem(name);
-            }
-            catch (e) {
-                if (e instanceof ScrollItemNotFound) {
-                    return false;
+        try {
+            return await repeat(async () => {
+                try {
+                    if (await this.isLoaded() === false) {
+                        return false;
+                    }
+
+                    return await this.findItem(name);
                 }
-                throw e;
+                catch (e) {
+                    if (e instanceof ScrollItemNotFound) {
+                        return false;
+                    }
+                    throw e;
+                }
+            }, {
+                timeout: this.timeoutManager().findElementTimeout(),
+                message: `Could not find content assist item with name "${name}".`
+            }) as IMenuItem;
+        }
+        catch (e) {
+            if (e instanceof TimeoutError && await this.isLoaded() === false) {
+                e.appendMessage('Content assist was not loaded on time.');
             }
-        }, {
-            timeout: this.timeoutManager().findElementTimeout(),
-            message: `Could not find content assist item with name "${name}".`
-        }) as IMenuItem;
+            throw e;
+        }
     }
 
     async hasItem(name: string): Promise<boolean> {
         try {
+            if (await this.isLoaded() === false) {
+                return false;
+            }
+
             await this.findItem(name, 0);
             return true;
         }
@@ -108,7 +124,7 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
     }
 
     async isDisplayed(): Promise<boolean> {
-        return await this.enclosingItem.isDisplayed() && await super.isDisplayed();
+        return await this.getEnclosingElement().isDisplayed() && await super.isDisplayed();
     }
 
     static async isOpen(parent: TheiaElement = new TextEditor()): Promise<boolean> {
@@ -123,13 +139,17 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
     }
 
     private async findItem(label: string, timeout?: number): Promise<ContentAssistItem> {
+        if (await this.isLoaded() === false) {
+            throw new Error('Content assist has not been loaded.');
+        }
+
         async function predicate(item: ContentAssistItem): Promise<boolean> {
             return await item.getLabel() === label;
         }
 
         const errorMessage = `Could not find content assist item with label "${label}".`;
 
-        await this.getDriver().wait(until.elementIsEnabled(this), this.timeoutManager().findElementTimeout(timeout));
+        await this.getDriver().wait(until.elementIsEnabled(this), this.timeoutManager().defaultTimeout(timeout));
 
         return await this.findItemSequentially(
             predicate.bind(this),

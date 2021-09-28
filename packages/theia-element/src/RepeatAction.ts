@@ -1,0 +1,29 @@
+import { Button, promise } from "extension-tester-page-objects";
+import { Threshold } from "@theia-extension-tester/repeat";
+import { TheiaElement } from ".";
+
+export class ElementRepeatAction {
+    private timer: Threshold;
+
+    constructor(private element: TheiaElement, private interval: number) {
+        this.timer = new Threshold(interval);
+    }
+
+    async click(button: string = Button.LEFT): Promise<void> {
+        if (this.timer.resetCount === 0 || this.timer.hasFinished()) {
+            await this.element.safeClick(button);
+            this.timer.reset();
+        }
+    }
+
+    async sendKeys(...var_args: (string | number | promise.Promise<string | number>)[]): Promise<void> {
+        if (this.timer.resetCount === 0 || this.timer.hasFinished()) {
+            await this.element.sendKeys(...var_args);
+            this.timer.reset();
+        }
+    }
+
+    reset(): void {
+        this.timer = new Threshold(this.interval);
+    }
+}

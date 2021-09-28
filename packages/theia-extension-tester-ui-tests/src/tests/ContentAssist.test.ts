@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { EditorView, IContentAssist, IContentAssistItem, IDefaultTreeSection, TextEditor } from "@theia-extension-tester/page-objects";
+import { ContentAssist, ContentAssistItem, EditorView, IDefaultTreeSection, TextEditor } from "@theia-extension-tester/page-objects";
 import { getExplorerSection, deleteFiles } from "./utils/File";
 
 describe('ContentAssist', function () {
@@ -7,7 +7,7 @@ describe('ContentAssist', function () {
     let editorView: EditorView;
     let tree: IDefaultTreeSection;
     let editor: TextEditor;
-    let menu: IContentAssist | undefined;
+    let menu: ContentAssist | undefined;
     const file = "Editor.ts";
     const validationItems = ['#endregion', '#region', 'for', 'forin', 'forof', 'ctor', 'function', 'get'];
 
@@ -21,7 +21,7 @@ describe('ContentAssist', function () {
 
     beforeEach(async function () {
         await editor.clearText();
-        menu = await editor.toggleContentAssist(true) as IContentAssist;
+        menu = await editor.toggleContentAssist(true) as ContentAssist;
 
         expect(menu).not.to.be.undefined;
         expect(validationItems).not.to.be.empty;
@@ -67,7 +67,8 @@ describe('ContentAssist', function () {
     for (const item of validationItems) {
         it(`hasItem("${item}")`, async function () {
             await editor.setText(item[0]);
-            menu = await editor.toggleContentAssist(true) as IContentAssist;
+            menu = await editor.toggleContentAssist(true) as ContentAssist;
+            await menu.getItem(item);
             expect(await menu!.hasItem(item)).to.be.true;
         });
     }
@@ -99,10 +100,10 @@ describe('ContentAssist', function () {
     });
 
     describe('ContentAssistItem', async function () {
-        let item: IContentAssistItem;
+        let item: ContentAssistItem;
         beforeEach(async function () {
             await editor.setText('f');
-            item = await menu!.getItem('forof');
+            item = await menu!.getItem('forof') as ContentAssistItem;
         });
 
         it('select', async function () {

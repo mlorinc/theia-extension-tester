@@ -3,7 +3,7 @@ import { DefaultTreeSection, EditorView, ISideBarView, IViewContent, IViewContro
 import * as path from "path";
 import { deleteFiles } from "./utils/File";
 
-describe('DefaultTreeSection', function () {
+describe.skip('DefaultTreeSection', function () {
     this.timeout(60000);
     let workbench: IWorkbench;
     let view: ISideBarView;
@@ -35,7 +35,7 @@ describe('DefaultTreeSection', function () {
         await deleteFiles('file.txt', 'file-absolute.txt', 'folder', 'folder-absolute');
     }
 
-    it.skip('getVisibleItems', async function () {
+    it('getVisibleItems', async function () {
         this.retries(3);
         const items = await section.getVisibleItems();
         const labels = await Promise.all(items.map((item) => item.getLabel()))

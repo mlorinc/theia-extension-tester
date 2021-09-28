@@ -29,6 +29,7 @@ import {
     WebDriver
 } from '../../../module';
 import { PathUtils } from "@theia-extension-tester/path-utils";
+import { repeat } from '@theia-extension-tester/repeat';
 
 
 export class Workbench extends TheiaElement implements IWorkbench {
@@ -61,14 +62,17 @@ export class Workbench extends TheiaElement implements IWorkbench {
 
         const sideBar = await explorer.openView();
 
-        const title = await this.getDriver().wait(async () => {
+        const title = await repeat(async () => {
             for (const section of await sideBar.getContent().getSections()) {
                 if (section instanceof DefaultTreeSection) {
                     return await section.getTitle().catch(() => undefined);
                 }
             }
             return undefined;
-        }, this.timeoutManager().findElementTimeout(), 'Could not find file section.') as string;
+        }, {
+            timeout: this.timeoutManager().findElementTimeout(),
+            message: 'Could not find file section.'
+        }) as string;
 
         await originalControl?.openView();
         Workbench.openFolder = title;

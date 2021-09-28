@@ -1,7 +1,8 @@
+import * as path from 'path';
 export { TheiaElement } from './TheiaElement';
-export *  from './locators/TheiaLocators';
+export * from './RepeatAction';
+export * from './locators/TheiaLocators';
 
-import * as path from "path";
 
 export type PlatformType = 'che' | 'codeready' | 'theia';
 

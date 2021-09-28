@@ -1,12 +1,12 @@
 import { expect } from "chai";
-import { ActivityBar, IMenu, IViewControl, SeleniumBrowser, SideBarView } from "@theia-extension-tester/page-objects";
+import { ActivityBar, ContextMenu, IViewControl, SeleniumBrowser, SideBarView } from "@theia-extension-tester/page-objects";
 import { CheTheiaBrowser } from "@theia-extension-tester/che-browser";
 
 describe('ActivityBar', function () {
     this.timeout(40000);
     let bar: ActivityBar;
     let viewControl: IViewControl | undefined;
-    let menu: IMenu | undefined;
+    let menu: ContextMenu | undefined;
 
     beforeEach(async function () {
         bar = new ActivityBar();
@@ -25,7 +25,11 @@ describe('ActivityBar', function () {
         viewControl = await bar.getViewControl('Explorer');
         expect(await viewControl.getTitle()).includes('Explorer');
         const view = await viewControl.openView();
-        expect(await view.getTitlePart().getTitle()).includes('Explorer');
+        expect(await view.isDisplayed()).to.be.true;
+        const titlePart = view.getTitlePart();
+        expect(await titlePart.isDisplayed()).to.be.true;
+        console.log(await titlePart.getAttribute('innerHTML'));
+        expect(await titlePart.getTitle()).includes('Explorer');
     });
 
     it('getViewControls', async function () {
@@ -37,7 +41,7 @@ describe('ActivityBar', function () {
     it('getGlobalAction', async function () {
         if (SeleniumBrowser.instance instanceof CheTheiaBrowser) {
             const action = await bar.getGlobalAction('Accounts');
-            menu = await action.openContextMenu();
+            menu = await action.openContextMenu() as ContextMenu;
             // includes 'You are not signed in to any accounts'
             expect(await menu.getItems()).length(1);
         }
@@ -92,7 +96,7 @@ describe('ActivityBar', function () {
 
         it('openContextMenu', async function() {
             viewControl = await bar.getViewControl('Explorer');
-            menu = await viewControl.openContextMenu();
+            menu = await viewControl.openContextMenu() as ContextMenu;
             const items = await Promise.all((await menu.getItems()).map((item) => item.getLabel()));
             expect(items).include.members(['Close', 'Close Others', 'Close All', 'Collapse']);
         });

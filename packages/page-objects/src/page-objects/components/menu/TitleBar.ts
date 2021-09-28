@@ -1,3 +1,4 @@
+import { ITitleBar } from 'extension-tester-page-objects';
 import {
     IMenuItem,
     Menu,
@@ -6,7 +7,7 @@ import {
     WindowControls
 } from '../../../module';
 
-export class TitleBar extends Menu {
+export class TitleBar extends Menu implements ITitleBar {
     constructor() {
         super(TheiaElement.locators.components.menu.titleBar.locator);
     }

@@ -11,7 +11,7 @@ import { expect } from 'chai';
 import { repeat } from '@theia-extension-tester/repeat';
 
 // File has prefix 01, so it is not influenced by others tests (Copy Path command does not work if any file has been opened.).
-describe('Notifications', function () {
+describe.skip('Notifications', function () {
     this.timeout(40000);
 
     beforeEach(async function () {
