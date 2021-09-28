@@ -100,7 +100,7 @@ describe('Input', function() {
         this.timeout(120000);
         await new Workbench().executeCommand('Quarkus: Generate a Quarkus project');
         await input.getDriver().wait(async () => await input.getPlaceHolder() === 'Pick build tool', this.timeout() - 2000);
-        expect(await input.getTitle()).equals('Quarkus Tools (1/7)');
+        expect(await input.getTitle()).equals('Quarkus Tools (1/8)');
     });
 
     it('Input.back', async function() {
@@ -108,9 +108,9 @@ describe('Input', function() {
         await new Workbench().executeCommand('Quarkus: Generate a Quarkus project');
         await input.getDriver().wait(async () => await input.getPlaceHolder() === 'Pick build tool', this.timeout() - 2000);
         await input.confirm();
-        await input.getDriver().wait(async () => await input.getTitle() === 'Quarkus Tools (2/7)', this.timeout() - 2000);
+        await input.getDriver().wait(async () => await input.getTitle() === 'Quarkus Tools (2/8)', this.timeout() - 2000);
         await input.back();
-        await input.getDriver().wait(async () => await input.getTitle() === 'Quarkus Tools (1/7)', this.timeout() - 2000);
+        await input.getDriver().wait(async () => await input.getTitle() === 'Quarkus Tools (1/8)', this.timeout() - 2000);
     });
 
     it('Input.hasError', async function() {
@@ -118,7 +118,7 @@ describe('Input', function() {
         await new Workbench().executeCommand('Quarkus: Generate a Quarkus project');
         await input.getDriver().wait(async () => await input.getPlaceHolder() === 'Pick build tool', this.timeout() - 2000);
         await input.confirm();
-        await input.getDriver().wait(async () => await input.getTitle() === 'Quarkus Tools (2/7)', this.timeout() - 2000);
+        await input.getDriver().wait(async () => await input.getTitle() === 'Quarkus Tools (2/8)', this.timeout() - 2000);
 
         expect(await input.hasError()).to.be.false;
 
