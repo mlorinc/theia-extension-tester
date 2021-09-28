@@ -56,7 +56,7 @@ export abstract class TreeNode extends TheiaElement {
     }
 
     async getTreeDepth(): Promise<number> {
-        const elements = await this.enclosingItem.findElements(TreeNode.locators.widgets.tree.indent);
+        const elements = await (await this.enclosingItem).findElements(TreeNode.locators.widgets.tree.indent);
         return elements.length;
     }
 

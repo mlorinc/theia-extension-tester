@@ -31,8 +31,8 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
         throw new Error('Could not find active item.');
     }
 
-    private async getParent(): Promise<TheiaElement> {
-        return new TheiaElement(this.enclosingItem);
+    private async getParent(): Promise<WebElement> {
+        return await this.enclosingItem;
     }
 
     protected async getVerticalScroll(): Promise<ScrollWidget> {

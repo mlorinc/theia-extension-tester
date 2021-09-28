@@ -21,12 +21,12 @@ export class TheiaElement extends AbstractElement {
     protected properties?: TheiaLocatorProperties;
     protected static timeoutManager: () => TheiaTimeouts;
 
-    constructor(base: Locator | WebElement | TheiaLocator, enclosingItem?: Locator | WebElement | TheiaLocator, baseTheiaLocator?: TheiaLocator) {
+    constructor(base: Locator | WebElement | TheiaLocator, enclosingItem?: Locator | WebElement | TheiaLocator, baseTheiaLocator?: TheiaLocator, timeout?: number) {
         const baseLocator = TheiaElement.handleLocator(base);
         const parentLocator = TheiaElement.handleLocator(enclosingItem);
 
         if (baseLocator !== undefined) {
-            super(baseLocator, parentLocator);
+            super(baseLocator, parentLocator, timeout, transformParent(enclosingItem, timeout));
         }
         else {
             throw new Error('Base locator must not be undefined.');
@@ -64,20 +64,16 @@ export class TheiaElement extends AbstractElement {
     findElement(locator: Locator | TheiaLocator): WebElementPromise {
         const baseLocator = TheiaElement.handleLocator(locator) as Locator;
         const loc: TheiaLocator | undefined = isTheiaLocator(locator) ? (locator as TheiaLocator) : undefined;
-        const element = this.getDriver()
-            .wait(
-                () => super.findElement(baseLocator).catch(() => undefined), AbstractElement.getTimeout(),
-                `Could not find element with locator "${baseLocator.toString()}" relative to "${this.constructor.name}".`
-            )
-            .then((element) => new TheiaElement(element as WebElement, this, loc))
+        const elementPromise = super.findElement(baseLocator)
+            .then((element) => new TheiaElement(element as WebElement, this, loc, this.timeout));
 
-        return new WebElementPromise(this.getDriver(), element as Promise<TheiaElement>);
+        return new WebElementPromise(this.getDriver(), Promise.resolve(elementPromise));
     }
 
     async findElements(locator: Locator | TheiaLocator): Promise<WebElement[]> {
         const elements = await super.findElements(TheiaElement.handleLocator(locator) as Locator);
         const loc: TheiaLocator | undefined = isTheiaLocator(locator) ? (locator as TheiaLocator) : undefined;
-        return elements.map((element) => new TheiaElement(element, this, loc));
+        return elements.map((element) => new TheiaElement(element, this, loc, this.timeout));
     }
 
     async focus(): Promise<void> {
@@ -93,7 +89,6 @@ export class TheiaElement extends AbstractElement {
             if (this.theiaLocator.properties) {
                 const fn = this.theiaLocator.properties[property];
                 if (fn) {
-                    await this.getDriver().wait(() => this.getEnclosingElement(), AbstractElement.getTimeout(), 'Waiting for enclosing element to load.');
                     const value = await fn(this, TheiaElement.locators);
                     return value;
                 }
@@ -235,5 +230,21 @@ export class TheiaElement extends AbstractElement {
             }
         }
         throw new Error('Could find element');
+    }
+}
+
+function transformParent(enclosingItem?: Locator | WebElement | TheiaLocator, timeout?: number): ((parent: WebElement) => PromiseLike<WebElement>) {
+    return async (parent: WebElement) => {
+        if (parent instanceof TheiaElement) {
+            return parent;
+        }
+
+        const loc: TheiaLocator | undefined = (isTheiaLocator(enclosingItem)) ? (enclosingItem as TheiaLocator) : (undefined);
+
+        if (loc) {
+            return new TheiaElement(parent, undefined, loc, timeout);
+        }
+
+        return parent;
     }
 }

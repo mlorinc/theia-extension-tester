@@ -8,8 +8,9 @@ import {
     WebElementPromise,
     SeleniumBrowser
 } from 'extension-tester-page-objects';
-import { repeat } from '@theia-extension-tester/repeat';
+import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
 import { ExtestUntil } from '@theia-extension-tester/until';
+import { TimeoutPromise } from '@theia-extension-tester/timeout-promise';
 
 /**
  * Default wrapper for webelement
@@ -18,7 +19,10 @@ export abstract class AbstractElement extends WebElement {
 
     public static ctlKey = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
     protected static locators: Object;
-    protected enclosingItem!: WebElement;
+    protected enclosingItem!: Promise<WebElement> | WebElement;
+    protected readyPromise!: Promise<any>;
+    protected abortSearch?: boolean;
+    protected timeout: number;
     private static findElementTimeout: number = 0;
 
     /**
@@ -28,29 +32,46 @@ export abstract class AbstractElement extends WebElement {
      * @param timeout timeout used when looking for elements
      * this will be used to narrow down the search for the underlying DOM element
      */
-    constructor(base: Locator | WebElement, enclosingItem?: WebElement | Locator, timeout?: number) {
+    constructor(base: Locator | WebElement, enclosingItem?: WebElement | Locator,
+        timeout?: number, transformParent?: ((transform: WebElement) => WebElement | PromiseLike<WebElement> | AbstractElement)) {
         try {
+            const driver = SeleniumBrowser.instance.driver;
+
             if (base instanceof WebElement) {
-                super(SeleniumBrowser.instance.driver, base.getId());
-                this.enclosingItem = AbstractElement.findParent(enclosingItem, timeout);
+                const id = base.getId();
+                let parent = AbstractElement.findParent(enclosingItem, timeout);
+
+                if (transformParent) {
+                    parent = parent.then(transformParent);
+                }
+
+                super(driver, id);
+                this.enclosingItem = parent;
+                this.readyPromise = Promise.all([id, parent]);
             }
             else {
                 const findElementPromise = AbstractElement.findElement(enclosingItem, base, timeout);
+
                 const id = findElementPromise
-                    .then(([id, _]) => {
-                        return id;
+                    .then(([element, _]) => {
+                        return element.getId();
                     })
                     .catch((e) => {
                         e.message = `${e.message}. Called from "${this.constructor.name}".`
                         throw e;
                     })
 
-                super(
-                    SeleniumBrowser.instance.driver,
-                    id
-                );
-                this.enclosingItem = new WebElementPromise(SeleniumBrowser.instance.driver, findElementPromise.then(([_, parent]) => parent));
+                super(driver, id);
+
+                let parent = findElementPromise.then(([_, parent]) => parent);
+                if (transformParent) {
+                    parent = parent.then(transformParent);
+                }
+
+                this.enclosingItem = parent;
+                this.readyPromise = findElementPromise;
             }
+            this.timeout = AbstractElement.getTimeout(timeout);
         }
         catch (e) {
             e.message = errorHelper(e, base, enclosingItem);
@@ -60,6 +81,20 @@ export abstract class AbstractElement extends WebElement {
 
     public static setDefaultFindElementTimeout(value: number): void {
         AbstractElement.findElementTimeout = value;
+    }
+
+    async waitReady(timeout?: number): Promise<this> {
+        if (this.readyPromise === undefined) {
+            throw new Error('Unexpected error. AbstractElement.readyPromise is undefined.');
+        }
+
+        const errorMessage = `${this.constructor.name} is not ready. (Element and its parent has not been located on time)`;
+
+        await TimeoutPromise.createFrom(this.readyPromise, AbstractElement.getTimeout(timeout), {
+            id: 'AbstractElement.waitReady',
+            message: errorMessage
+        });
+        return this;
     }
 
     /**
@@ -89,25 +124,68 @@ export abstract class AbstractElement extends WebElement {
      * Return a reference to the WebElement containing this element
      */
     getEnclosingElement(): WebElement {
-        return this.enclosingItem;
+        if (this.enclosingItem instanceof WebElement) {
+            return this.enclosingItem;
+        }
+
+        return new WebElementPromise(this.getDriver(), this.enclosingItem);
+    }
+
+    private async findElementHelper(locator: Locator): Promise<WebElement | undefined> {
+        try {
+            const element = await WebElement.prototype.findElement.call(this, locator);
+            return element;
+        }
+        catch (e) {
+            if (e instanceof TimeoutError) {
+                throw e;
+            }
+            else if ((e instanceof Error) && (e.name === 'StaleElementReferenceError' || e.message.includes('Invalid locator'))) {
+                throw e;
+            }
+            console.error(e);
+
+            return undefined;
+        }
+    }
+
+    findElement(locator: Locator): WebElementPromise {
+        const elementPromise = this.waitReady()
+            .then(async () => {
+                const element = await repeat(this.findElementHelper.bind(this, locator),
+                    {
+                        id: 'AbstractElement.findElement(class method)',
+                        timeout: AbstractElement.getTimeout(this.timeout),
+                        message: `Could not find element with locator "${locator.toString()}" relative to "${this.constructor.name}".`
+                    }
+                );
+                return element;
+            });
+
+        return new WebElementPromise(this.getDriver(), elementPromise as Promise<WebElement>);
+    }
+
+    async findElements(locator: Locator): Promise<WebElement[]> {
+        await this.waitReady();
+        return super.findElements(locator);
     }
 
     static init(locators: Object) {
         AbstractElement.locators = locators;
     }
 
-    protected static findParent(element?: WebElement | Locator, timeout?: number): WebElement | WebElementPromise {
+    protected static async findParent(element?: WebElement | Locator, timeout?: number): Promise<WebElement> {
         const driver = SeleniumBrowser.instance.driver;
         timeout = AbstractElement.getTimeout(timeout);
 
-        if (element == null) {
+        if (element instanceof WebElement) {
+            return element;
+        }
+        else if (element === undefined) {
             if (timeout > 0) {
                 return driver.wait(until.elementLocated(By.css('html')), timeout);
             }
             return driver.findElement(By.css('html'));
-        }
-        else if (element instanceof WebElement || element instanceof WebElementPromise) {
-            return element;
         }
         else {
             if (timeout > 0) {
@@ -116,34 +194,48 @@ export abstract class AbstractElement extends WebElement {
             return driver.findElement(element);
         }
     }
-    
-    protected static async findElement(parent: Locator | WebElement | undefined, base: Locator, timeout?: number): Promise<[string, WebElement]> {
+
+    protected static async findElement(parent: Locator | WebElement | undefined, base: Locator, timeout?: number): Promise<Array<WebElement>> {
         let parentElement = await AbstractElement.findParent(parent, timeout);
         let repeatTimeout = AbstractElement.getTimeout(timeout);
-    
-        const element = await repeat(async () => {
-            try {
-                return await parentElement.findElement(base);
-            }
-            catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
-                    if (parent instanceof WebElement) {
-                        throw new Error(`StaleElementReferenceError of parent element. Try using locator.\n${e}`);
+
+        try {
+            const element = await repeat(async () => {
+                try {
+                    const element = await parentElement.findElement(base);
+                    return element;
+                }
+                catch (e) {
+                    if (e instanceof Error && e.name === 'StaleElementReferenceError') {
+                        if (parent instanceof WebElement) {
+                            throw new Error(`StaleElementReferenceError of parent element. Try using locator.\n${e}`);
+                        }
+                        parentElement = await AbstractElement.findParent(parent, timeout);
                     }
-                    parentElement = await AbstractElement.findParent(parent, timeout);
+                    else if (e instanceof Error && e.message.includes('Invalid locator')) {
+                        throw new Error(`Invalid locator: toString(${base.toString()}), class(${base?.constructor?.name}), keys(${Object.keys(base).join(', ')}}).`);
+                    }
+                    else if (e instanceof TimeoutError) {
+                        throw e;
+                    }
+                    else {
+                        return undefined;
+                    }
                 }
-    
-                if (e.message.includes('Invalid locator')) {
-                    throw new Error(`Invalid locator: toString(${base.toString()}), class(${base?.constructor?.name}), keys(${Object.keys(base).join(', ')}}).`);
-                }
-                return undefined;
+            }, {
+                timeout: repeatTimeout,
+                id: 'AbstractElement.findElement',
+                message: errorHelper('Could not find element', base, parentElement)
+            }) as WebElement;
+            return Promise.all([element, parentElement]);
+        }
+        catch (e) {
+            if (e instanceof TimeoutError && parent instanceof AbstractElement) {
+                const status = await parent.waitReady(0).then(() => 'ready').catch(() => 'not ready');
+                e.appendMessage(`Element was ${status}.`);
             }
-        }, {
-            timeout: repeatTimeout,
-            id: 'AbstractElement.findElement',
-            message: errorHelper('Could not find element', base, parentElement)
-        });
-        return [await element!.getId(), parentElement];
+            throw e;
+        }
     }
 
     protected static getTimeout(value?: number): number {
@@ -154,7 +246,34 @@ export abstract class AbstractElement extends WebElement {
 
 function errorHelper(e: Error | string, base: WebElement | Locator, enclosingItem: WebElement | Locator | undefined): string {
     const message = e instanceof Error ? e.message : e;
-    const baseMessage = base?.constructor?.name || `WebElement: ${base instanceof WebElement}`;
-    const parentMessage = enclosingItem?.constructor?.name || `WebElement: ${enclosingItem instanceof WebElement}, undefined: ${enclosingItem === undefined}`;
-    return `${message}: Base locator: ${baseMessage}, Parent locator: ${parentMessage}`;
+    let baseMessage: string;
+    let enclosingItemMessage: string;
+
+    if (base instanceof WebElement) {
+        baseMessage = `Base element is represented by "${base.constructor.name}" class.`;
+    }
+    else if (base instanceof By) {
+        baseMessage = `Base element is using locator: ${base.toString()}`;
+    }
+    else if (base instanceof Function) {
+        baseMessage = `Base element is searched by function "${base.name}".`;
+    }
+    else {
+        baseMessage = `Base element is represented by unknown "${typeof (base)}".`;
+    }
+
+    if (enclosingItem instanceof WebElement) {
+        enclosingItemMessage = `Parent element is represented by "${enclosingItem.constructor.name}" class.`;
+    }
+    else if (enclosingItem instanceof By) {
+        enclosingItemMessage = `Parent element is using locator: ${enclosingItem.toString()}`;
+    }
+    else if (enclosingItem instanceof Function) {
+        enclosingItemMessage = `Parent element is searched by function "${enclosingItem.name}".`;
+    }
+    else {
+        enclosingItemMessage = `Parent element is represented by unknown "${typeof (enclosingItem)}".`;
+    }
+
+    return `${message}\n${baseMessage}\n${enclosingItemMessage}`;
 }

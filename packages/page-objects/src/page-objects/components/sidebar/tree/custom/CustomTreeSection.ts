@@ -22,7 +22,7 @@ export class CustomTreeSection extends ViewSection implements ICustomTreeSection
             direction: ScrollDirection.NEXT,
             path
         });
-        return new CustomTreeItem(node);
+        return new CustomTreeItem(node, this);
     }
 
     async getVisibleItems(): Promise<ICustomTreeItem[]> {

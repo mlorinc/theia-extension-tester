@@ -6,7 +6,7 @@ import {
 } from '../../../module';
 
 export abstract class MenuItem extends TheiaElement implements IMenuItem {
-    constructor(element: WebElement, parent: IMenu) {
+    constructor(element: WebElement, private parent: IMenu) {
         super(element, parent);
     }
 
@@ -24,7 +24,7 @@ export abstract class MenuItem extends TheiaElement implements IMenuItem {
     }
 
     getParent(): IMenu {
-        return this.enclosingItem as IMenu;
+        return this.parent;
     }
 
     async getLabel(): Promise<string> {

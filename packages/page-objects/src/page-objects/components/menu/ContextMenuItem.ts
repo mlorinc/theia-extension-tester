@@ -1,6 +1,7 @@
 import {
     ContextMenu,
     IMenu,
+    Menu,
     MenuItem,
     TheiaElement,
     WebDriver,
@@ -19,7 +20,13 @@ export class ContextMenuItem extends MenuItem {
             return undefined;
         }
 
-        return new ContextMenu(menus[this.level + 1], this.enclosingItem as IMenu, this.level + 1);
+        const menu = await this.enclosingItem;
+
+        if (menu instanceof Menu) {
+            return new ContextMenu(menus[this.level + 1], (await this.enclosingItem as IMenu), this.level + 1);
+        }
+
+        throw new Error('Enclosing item must be instance of Menu page object.');
     }
 
     async getNextMenu(): Promise<IMenu> {

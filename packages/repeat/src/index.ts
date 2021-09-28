@@ -2,10 +2,6 @@ import { Rejecter, Resolver, TimeoutError, TimeoutPromise } from '@theia-extensi
 
 export interface RepeatArguments {
 	/**
-	 * Repeat function <count> times. If undefined function will be repeated infinitely or until time outs.
-	 */
-	count?: number;
-	/**
 	 * Repeat timeout after promise is rejected. If undefined function will be repeated <count> times or infinitely.
 	 */
 	timeout?: number;
@@ -18,12 +14,148 @@ export interface RepeatArguments {
 	/**
 	 * Error message when repeat time outs.
 	 */
-	message?: string;
-
-	log?: boolean;
+	message?: string | (() => string);
 
 	// Repeat identification. For log purposes.
 	id?: string;
+}
+
+export class Threshold {
+	private start: number;
+	private interval: number;
+	private resetCounter: number;
+
+	constructor(interval: number) {
+		this.interval = interval;
+		this.start = Date.now();
+		this.resetCounter = 0;
+	}
+
+	reset(): void {
+		this.start = Date.now();
+		this.resetCounter++;
+	}
+
+	hasFinished(): boolean {
+		return Date.now() - this.start >= this.interval;
+	}
+
+	
+	public get resetCount() : number {
+		return this.resetCounter;
+	}
+}
+
+export class Repeat<T> {
+	protected timeout?: number;
+	protected id: string;
+	protected threshold: Threshold;
+	private message?: string | (() => string);
+	private plannedTask?: NodeJS.Immediate;
+	private resolve!: Resolver<T>;
+	private reject!: Rejecter;
+	private promise!: Promise<T>;
+	private run: boolean = false;
+	private hasStarted: boolean = false;
+
+	constructor(protected func: (() => T | PromiseLike<T>), protected options?: RepeatArguments) {
+		this.timeout = options?.timeout;
+		this.id = options?.id ?? 'anonymous';
+		this.threshold = new Threshold(options?.threshold ?? 0);
+		this.message = options?.message;
+		this.loop = this.loop.bind(this);
+	}
+
+	protected async loop(): Promise<void> {
+		// task has been started
+		this.plannedTask = undefined;
+
+		if (this.run === false) {
+			this.reject(new Error('Aborted'));
+		}
+
+		try {
+			const value = await this.func();
+			if (value && this.threshold.hasFinished()) {
+				this.resolve(value);
+			}
+			else if (value) {
+				this.scheduleNextLoop();
+			}
+			else {
+				this.threshold.reset();
+				if (this.run) {
+					this.scheduleNextLoop();
+				}
+			}
+		}
+		catch (e) {
+			this.reject(e);
+		}
+	}
+
+	async execute(): Promise<T> {
+		if (this.hasStarted) {
+			throw new Error('It is not possible to run Repeat task again. Create new instance.');
+		}
+
+		this.hasStarted = true;
+		try {
+			this.promise = new Promise((resolve, reject) => {
+				this.resolve = resolve;
+				this.reject = reject;
+				this.run = true;
+				process.nextTick(() => this.loop());
+			});
+
+			if (this.timeout !== 0) {
+				this.promise = TimeoutPromise.createFrom(this.promise, this.timeout, {
+					id: this.id,
+					message: this.message
+				});
+			}
+
+			return await this.promise;
+		}
+		finally {
+			this.cleanup();
+		}
+	}
+
+	abort(value: Error | T | undefined): void {
+		if (!this.hasStarted) {
+			throw new Error('Repeat has not been started.');
+		}
+
+		this.run = false;
+
+		if (typeof (value) === 'undefined') {
+			this.reject(new Error('Aborted'));
+		}
+		else if (value instanceof Error) {
+			this.reject(value);
+		}
+		else {
+			this.resolve(value);
+		}
+	}
+
+	protected cleanup(): void {
+		this.run = false;
+		if (this.plannedTask) {
+			clearImmediate(this.plannedTask);
+			this.plannedTask = undefined;
+		}
+	}
+
+	private scheduleNextLoop(): void {
+		if (this.timeout !== 0) {
+			this.plannedTask = setImmediate(this.loop);
+		}
+		else {
+			this.reject(new TimeoutError(this.resolve, 'Cannot iterate more than 1 times. Timeout is set to 0.', this.id))
+		}
+	}
 }
 
 /**
@@ -33,85 +165,7 @@ export interface RepeatArguments {
  * @param options repeat options
  */
 export async function repeat<T>(func: (() => T | PromiseLike<T>), options?: RepeatArguments): Promise<T> {
-	let { count, timeout } = options || { count: undefined, timeout: undefined };
-	let run = true;
-	let start = 0;
-	let plannedTask: NodeJS.Immediate | undefined = undefined;
-	const id = options?.id || "anonymous";
-	const threshold = options?.threshold || 0;
-	
-	const log = options?.log ? (message: string, loggerFunction: (message: string) => void = console.log) => {
-		loggerFunction(`[${id}] ${message}`);
-	} : () => { };
-
-	if (count !== undefined && count <= 0) {
-		throw new Error("Count must be larger than 0");
-	}
-
-	if (timeout === 0 && count === undefined) {
-		count = 1;
-		timeout = undefined;
-	}
-
-	async function closure(cnt: number | undefined, resolve: Resolver<T>, reject: Rejecter, callStack: string | undefined) {
-		if (cnt !== undefined && cnt === 0) {
-			plannedTask = undefined;
-			reject(new TimeoutError(`[${id}] Cannot repeat function more than ${count} times.\n${callStack}`));
-			return;
-		}
-		try {
-			const value = await func();
-			if (value && ((start !== 0 && Date.now() - start >= threshold) || (threshold === 0))) {
-				plannedTask = undefined;
-				resolve(value);
-				log("Threshold reached");
-			}
-			else if (value) {
-				if (start === 0) {
-					start = Date.now();
-				}
-				log("Threshold not reached");
-				plannedTask = setImmediate(closure, cnt, resolve, reject);
-			}
-			else {
-				start = 0;
-				if (run) {
-					plannedTask = setImmediate(closure, cnt !== undefined ? cnt - 1 : undefined, resolve, reject);
-				}
-				else {
-					plannedTask = undefined;
-				}
-			}
-		}
-		catch (e) {
-			e.message += '\n' + callStack;
-			plannedTask = undefined;
-			reject(e);
-		}
-	}
-
-	// get call stack
-	let callStack: string | undefined = undefined;
-	try {
-		throw new Error();
-	}
-	catch (e) {
-		callStack = (e as Error).stack;
-		callStack = callStack?.split('\n\t').join('\t\n');
-	}
-
-	return new TimeoutPromise<T>((resolve, reject) => {
-		plannedTask = setImmediate(closure, count, resolve, reject, callStack);
-	}, timeout, {
-		onTimeout: () => {
-			run = false;
-			if (plannedTask) {
-				clearImmediate(plannedTask);
-				plannedTask = undefined;
-			}
-		},
-		id: options?.id,
-		message: options?.message,
-		callStack
-	});
+	return new Repeat(func, options).execute();
 }
+
+export { TimeoutError };

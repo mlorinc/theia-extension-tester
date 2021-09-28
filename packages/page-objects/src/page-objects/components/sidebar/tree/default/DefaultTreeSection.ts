@@ -55,8 +55,12 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
     }
 
     protected async hasProgress(): Promise<boolean> {
-        const content = this.enclosingItem as ViewContent;
-        return await content.hasProgress();
+        const content = await this.enclosingItem;
+        if (content instanceof ViewContent) {
+            return await content.hasProgress();
+        }
+
+        throw new Error('Enclosing item must be ViewContent.');
     }
 
     protected async waitTreeLoaded(timeout?: number): Promise<void> {

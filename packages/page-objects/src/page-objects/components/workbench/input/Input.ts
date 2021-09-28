@@ -18,8 +18,12 @@ export class InputContainer extends TheiaElement {
 }
 
 export class Input extends InputWidget implements IInputBox {
+    private container: InputContainer;
+
     constructor() {
-        super({ parent: new InputContainer() });
+        const container = new InputContainer();
+        super({ parent: container });
+        this.container = container;
     }
 
     static async create(timeout?: number): Promise<IInputBox> {
@@ -46,7 +50,6 @@ export class Input extends InputWidget implements IInputBox {
         const fn = Input.locators.components.workbench.input.constructor.properties?.title;
 
         if (fn) {
-            await this.getDriver().wait(() => this.getEnclosingElement() !== undefined, this.timeoutManager().findElementTimeout(), 'Could not get enclosing element.');
             return await fn(this, Input.locators);
         }
         else {
@@ -55,7 +58,7 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async back(): Promise<boolean> {
-        const buttons = await this.enclosingItem.findElements(Input.locators.components.workbench.input.back) as TheiaElement[];
+        const buttons = await this.container.findElements(Input.locators.components.workbench.input.back) as TheiaElement[];
 
         if (buttons.length > 0) {
             await buttons[0].safeClick();
@@ -66,7 +69,7 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async hasProgress(): Promise<boolean> {
-        const progress = await this.enclosingItem.findElements(Input.locators.components.workbench.input.progress);
+        const progress = await this.container.findElements(Input.locators.components.workbench.input.progress);
         return progress.length === 1 && await progress[0].isDisplayed();
     }
 
@@ -76,13 +79,13 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async getMessage(): Promise<string> {
-        const message = await this.enclosingItem.findElements(Input.locators.components.workbench.input.message) as TheiaElement[];
+        const message = await this.container.findElements(Input.locators.components.workbench.input.message) as TheiaElement[];
 
         return message.length > 0 ? await message[0].getText() : '';
     }
 
     async hasError(): Promise<boolean> {
-        const errors = await this.enclosingItem.findElements(Input.locators.components.workbench.input.error);
+        const errors = await this.container.findElements(Input.locators.components.workbench.input.error);
         return errors.length > 0;
     }
 
@@ -94,10 +97,6 @@ export class Input extends InputWidget implements IInputBox {
         await repeat(async () => {
             if (await Input.isOpen() === false) {
                 return true;
-            }
-
-            if (this.enclosingItem === undefined) {
-                return false;
             }
 
             try {
@@ -120,7 +119,7 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async isFocused(): Promise<boolean> {
-        return await (this.enclosingItem as TheiaElement).isFocused();
+        return this.container.isFocused();
     }
 
     static async isOpen(): Promise<boolean> {

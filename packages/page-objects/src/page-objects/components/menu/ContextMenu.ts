@@ -11,7 +11,7 @@ export class ContextMenu extends Menu {
 
     constructor(element?: WebElement, parent?: IMenu, level: number = 0) {
         super(element || TheiaElement.locators.components.menu.contextMenu, undefined, level);
-        this.enclosingItem = parent || this.enclosingItem;
+        this.enclosingItem = parent ?? this.enclosingItem;
     }
 
     async getItems(): Promise<IMenuItem[]> {

@@ -1,5 +1,6 @@
 import {
     By,
+    CustomTreeSection,
     ICustomTreeItem,
     IMenu,
     ITreeItem,
@@ -10,8 +11,8 @@ import {
 } from '../../../../../module';
 
 export class CustomTreeItem extends TreeNode implements ICustomTreeItem {
-    constructor(element: TheiaElement) {
-        super(element, element.getEnclosingElement() as TheiaElement);
+    constructor(element: TheiaElement, parent: CustomTreeSection) {
+        super(element, parent);
     }
 
     getLabel(): Promise<string> {

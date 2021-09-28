@@ -53,8 +53,15 @@ export abstract class ScrollWidget extends TheiaElement implements Scroll {
         return value;
     }
 
-    protected getContainer(): TheiaElement {
-        return this.enclosingItem as TheiaElement;
+    protected async getContainer(): Promise<TheiaElement> {
+        const element = await this.enclosingItem;
+
+        if (element instanceof TheiaElement) {
+            return element;
+        }
+        else {
+            throw new Error('Enclosing item must be TheiaElement.');
+        }
     }
 
     async isScrollOnEnd(): Promise<boolean> {
@@ -92,7 +99,8 @@ export class HorizontalScrollWidget extends ScrollWidget {
         await this.waitForPositionChange(expectedPosition, timeout);
     }
     async getScrollPosition(): Promise<number> {
-        const containerLocation = await this.enclosingItem.getLocation();
+        const element = await this.enclosingItem;
+        const containerLocation = await element.getLocation();
         const location = await this.getLocation();
         return location.x - containerLocation.x;
     }
@@ -100,7 +108,8 @@ export class HorizontalScrollWidget extends ScrollWidget {
         return (await this.getSize()).width;
     }
     async getScrollContainerSize(): Promise<number> {
-        return (await this.getContainer().getSize()).width;
+        const element = await this.getContainer();
+        return (await element.getSize()).width;
     }
 }
 
@@ -116,8 +125,8 @@ export class VerticalScrollWidget extends ScrollWidget {
         await this.waitForPositionChange(expectedPosition, timeout);
     }
 
-    private async getScrollValue(node: TheiaElement, parent?: TheiaElement, bias: number = 0) {
-        parent = parent || node.getEnclosingElement() as TheiaElement;
+    private async getScrollValue(node: TheiaElement, parent?: WebElement, bias: number = 0) {
+        parent = parent || node.getEnclosingElement();
 
         const scrollSize = await this.getScrollSize();
 
@@ -139,7 +148,8 @@ export class VerticalScrollWidget extends ScrollWidget {
     }
 
     async getScrollPosition(): Promise<number> {
-        const containerLocation = await this.enclosingItem.getLocation();
+        const element = await this.enclosingItem;
+        const containerLocation = await element.getLocation();
         const location = await this.getLocation();
         return location.y - containerLocation.y;
     }
@@ -147,6 +157,7 @@ export class VerticalScrollWidget extends ScrollWidget {
         return (await this.getSize()).height;
     }
     async getScrollContainerSize(): Promise<number> {
-        return (await this.getContainer().getSize()).height;
+        const element = await this.getContainer();
+        return (await element.getSize()).height;
     }
 }

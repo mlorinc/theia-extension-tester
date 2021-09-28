@@ -21,5 +21,8 @@
     "test": "echo \"Error: run tests from root\" && exit 1",
     "build": "tsc",
     "clean": "rimraf lib"
+  },
+  "peerDependencies": {
+    "extension-tester-page-objects": "^1.0.0"
   }
 }

@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@theia-extension-tester/abstract-element": "^1.0.0",
+    "@theia-extension-tester/repeat": "^1.0.0",
     "@theia-extension-tester/timeout-manager": "^1.0.0"
   },
   "peerDependencies": {
