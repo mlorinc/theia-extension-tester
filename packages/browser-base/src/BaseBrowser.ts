@@ -4,6 +4,7 @@ import * as path from 'path';
 import {
     Builder,
     Capabilities,
+    Locator,
     logging,
     SeleniumBrowser,
     until,
@@ -15,7 +16,7 @@ import {
     OperaOptions,
     SafariOptions
 } from '.';
-import { TheiaElement, getLocatorsPath, PlatformType } from '@theia-extension-tester/theia-element';
+import { getLocatorsPath, PlatformType, TheiaElement } from '@theia-extension-tester/theia-element';
 import { TheiaLocatorLoader } from '@theia-extension-tester/locator-loader';
 import { TheiaTimeouts, timeout } from '@theia-extension-tester/timeout-manager';
 
@@ -111,16 +112,21 @@ export abstract class BaseBrowser extends SeleniumBrowser {
 
         const browserName = this.browserName;
 
-        const preferences = new logging.Preferences();
-        preferences.setLevel(logging.Type.DRIVER, this.options.logLevel || logging.Level.INFO);
-
         const capabilities = new Capabilities();
         capabilities.set('acceptInsecureCerts', true);
+
+        const preferences = new logging.Preferences();
+        preferences.setLevel(logging.Type.DRIVER, this.options.logLevel || logging.Level.INFO);
 
         const chromeOptions = new ChromeOptions();
         const firefoxOptions = new FirefoxOptions();
         const operaOptions = new OperaOptions();
         const safariOptions = new SafariOptions();
+
+        chromeOptions.setLoggingPrefs(preferences);
+        firefoxOptions.setLoggingPreferences(preferences);
+        operaOptions.setLoggingPrefs(preferences);
+        safariOptions.setLoggingPrefs(preferences);
 
         const profileRoot = process.env['SELENIUM_REMOTE_URL'] ? os.tmpdir() : process.cwd();
 
@@ -215,5 +221,10 @@ export abstract class BaseBrowser extends SeleniumBrowser {
         catch (e) {
             throw new Error(`${e} - Could not load Eclipse Theia workbench. Increase timeout in browser.waitForWorkbench(timeout?: number).`);
         }
+    }
+
+    static async findElements(locator: Locator, timeout?: number): Promise<TheiaElement[]> {
+        const elements = await BaseBrowser.instance.driver.findElements(locator);
+        return Promise.all(elements.map((el) => new TheiaElement(el, undefined, undefined, timeout)));
     }
 }

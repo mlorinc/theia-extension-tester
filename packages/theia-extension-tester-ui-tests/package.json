@@ -8,7 +8,7 @@
     "prepublish": "yarn run clean && yarn run build",
     "build": "tsc",
     "clean": "rimraf out",
-    "che:test": "SELENIUM_REMOTE_URL='http://localhost:4444/wd/hub' node -r dotenv/config out/che.runner.js out/tests/*.test.js",
+    "che:test": "node -r dotenv/config out/che.runner.js out/tests/*.test.js",
     "theia-browser:test": "node out/theia.runner.js out/tests/*.test.js"
   },
   "keywords": [],

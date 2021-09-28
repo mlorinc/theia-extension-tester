@@ -1,6 +1,7 @@
 import { OpenShiftAuthenticator, OpenShiftAuthenticatorMethod } from "@theia-extension-tester/openshift-authenticator";
 import { CheTheiaFactoryRunner } from "@theia-extension-tester/che-factory-runner";
 import { CheTheiaBrowser } from "@theia-extension-tester/che-browser";
+import { Authenticator } from "@theia-extension-tester/base-authenticator";
 
 async function main() {
 	if (process.env.CHE_USERNAME === undefined) {
@@ -29,9 +30,21 @@ async function main() {
 	});
 
 	////https://workspaces.openshift.com/f?url=https://codeready-codeready-workspaces-operator.apps.sandbox.x8i5.p1.openshiftapps.com/devfile-registry/devfiles/03_java11-maven-quarkus/devfile.yaml&override.attributes.persistVolumes=false
+	const runner = cheRunner(authenticator);
+
+	// Remove first element - program path
+	const [, ...args] = process.argv;
+	process.exit(await runner.runTests(args));
+}
+
+main();
+
+// @ts-ignore
+function cheRunner(auth: Authenticator): CheTheiaFactoryRunner {
+	////https://workspaces.openshift.com/f?url=https://codeready-codeready-workspaces-operator.apps.sandbox.x8i5.p1.openshiftapps.com/devfile-registry/devfiles/03_java11-maven-quarkus/devfile.yaml&override.attributes.persistVolumes=false
 	const runner = new CheTheiaFactoryRunner(new CheTheiaBrowser('chrome', {
 		timeouts: {
-			implicit: 30000,
+			implicit: 15000,
 			pageLoad: 250000
 		}
 	}), {
@@ -40,11 +53,6 @@ async function main() {
 		mochaOptions: {
 			bail: true
 		}
-	}, authenticator);
-
-	// Remove first element - program path
-	const [, ...args] = process.argv;
-	process.exit(await runner.runTests(args));
+	}, auth);
+	return runner;
 }
-
-main();

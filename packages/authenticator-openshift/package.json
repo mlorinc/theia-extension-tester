@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@theia-extension-tester/base-authenticator": "^1.0.0",
-    "@theia-extension-tester/base-browser": "^1.0.0"
+    "@theia-extension-tester/base-browser": "^1.0.0",
+    "@theia-extension-tester/repeat": "^1.0.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "^1.0.0"

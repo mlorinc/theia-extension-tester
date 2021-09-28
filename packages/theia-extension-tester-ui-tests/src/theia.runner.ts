@@ -4,9 +4,10 @@ import * as fs from "fs-extra";
 import * as path from "path";
 
 function prepareWorkspace() {
+	const root = path.resolve(__dirname, '..');
 	// create test dir
-	const dir = path.resolve('.', 'out', 'projects');
-	const resources = path.resolve('.', 'src', 'tests', 'resources');
+	const dir = path.join(root, 'out', 'projects');
+	const resources = path.join(root, 'src', 'tests', 'resources');
 
 	// set expected path in tests
 	process.env['THEIA_EXPECTED_WORKBENCH_PATH'] = dir;
@@ -30,7 +31,7 @@ async function main() {
 		browserLocation: electronPath,
 		timeouts: {
 			implicit: 30000,
-			pageLoad: 250000
+			pageLoad: 50000
 		}
 	});
 

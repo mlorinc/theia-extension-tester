@@ -2,6 +2,7 @@ import {
     Button,
     By,
     Key,
+    Locator,
     SeleniumBrowser,
     until
 } from 'extension-tester-page-objects';
@@ -9,6 +10,7 @@ import {
 import { TheiaElement } from "@theia-extension-tester/theia-element";
 import { Authenticator } from "@theia-extension-tester/base-authenticator";
 import { BaseBrowser } from "@theia-extension-tester/base-browser";
+import { repeat, TimeoutError } from "@theia-extension-tester/repeat";
 
 export module OpenShiftAuthenticatorMethod {
     export const HTPASSWD_PROVIDER = 'htpasswd_provider';
@@ -45,14 +47,11 @@ export class OpenShiftAuthenticator implements Authenticator {
 
     async authenticate(): Promise<void> {
         const browser = SeleniumBrowser.instance as BaseBrowser;
-        const timeout = browser.timeouts.pageLoadTimeout(this.options.timeout);
-
-        const form = new TheiaElement(By.css('form'));
-        console.log('Found form.');
+        const timeout = browser.timeouts.pageLoadTimeout(this.options.timeout) - 5000;
 
         let counter = 0;
         for (const pair of this.options.inputData) {
-            const input = await form.findElement(By.name(pair.name)) as TheiaElement;
+            const input = await getInput(By.css('form'), By.name(pair.name), timeout, `Could not find "${pair.name}" input.`);
             console.log(`Filling out "${pair.name}". Visible: ${await input.isDisplayed()}, Enabled: ${await input.isEnabled()}`);
             await input.safeSendKeys(timeout, pair.value);
             console.log(`Filled out "${pair.name}".`);
@@ -61,12 +60,11 @@ export class OpenShiftAuthenticator implements Authenticator {
             if (this.options.multiStepForm && counter !== this.options.inputData.length) {
                 console.log('Next step.');
                 await input.safeSendKeys(timeout, Key.ENTER);
-                await new Promise((resolve) => setTimeout(resolve, 750));
             }
         }
 
         console.log('Looking for submit.');
-        const submitButton = await form.findElement(By.xpath('.//*[@type="submit"]')) as TheiaElement;
+        const submitButton = await getInput(By.css('form'), By.xpath('.//*[@type="submit"]'), timeout, `Could not find submit button.`);
         console.log('Found submit.');
         await submitButton.safeClick(Button.LEFT, timeout);
         console.log('Logged in user.');
@@ -82,4 +80,44 @@ export class OpenShiftAuthenticator implements Authenticator {
             console.log(`Clicked on login method: "${this.options.loginMethod}".`);
         }
     };
+}
+
+async function getInput(formLocator: Locator, locator: Locator, timeout: number, errorMessage: string = 'Could not get input.', interval: number = 500): Promise<TheiaElement> {
+    return await repeat(async () => {
+        try {
+            const forms = await BaseBrowser.findElements(formLocator, interval);
+
+            for (const form of forms) {
+                if (await form.isDisplayed().catch(() => false)) {
+                    try {
+                        const input = form.findElement(locator);
+                        if (await input.isDisplayed()) {
+                            return input;
+                        }
+                    }
+                    catch (e) {
+                        if (e instanceof TimeoutError) {
+                            continue;
+                        }
+                        throw e;
+                    }
+                }
+            }
+        }
+        catch (e) {
+            if (e instanceof TimeoutError) {
+                return undefined;
+            }
+            if ((e instanceof Error) && e.name === 'StaleElementReferenceError') {
+                return undefined;
+            }
+
+            throw e;
+        }
+
+        return undefined;
+    }, {
+        timeout,
+        message: errorMessage
+    }) as TheiaElement;
 }
