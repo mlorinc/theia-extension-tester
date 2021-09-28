@@ -5,6 +5,10 @@ export class ActionsControl extends TheiaElement implements IActionsControl {
         super(element, parent);
     }
 
+    openActionMenu(): Promise<IMenu> {
+        return this.openContextMenu();
+    }
+
     async getTitle(): Promise<string> {
         const fn = ActionsControl.locators.components.activityBar.action.constructor.properties?.title;
 
