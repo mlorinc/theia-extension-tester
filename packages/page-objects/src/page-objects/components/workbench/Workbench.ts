@@ -51,6 +51,11 @@ export class Workbench extends TheiaElement implements IWorkbench {
         }
 
         const explorer = await this.getActivityBar().getViewControl('Explorer');
+
+        if (explorer === undefined) {
+            throw new Error('Explorer must not be undefined.');
+        }
+
         const controls = await this.getActivityBar().getViewControls();
         let originalControl: IViewControl | undefined = undefined;
 

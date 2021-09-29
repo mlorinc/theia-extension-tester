@@ -3,7 +3,8 @@ import {
     IEditor,
     IEditorGroup,
     IEditorTab,
-    TheiaElement
+    TheiaElement,
+    WebElement
 } from '../../../module';
 
 export class EditorGroup extends TheiaElement implements IEditorGroup {
@@ -41,5 +42,13 @@ export class EditorGroup extends TheiaElement implements IEditorGroup {
         }
 
         throw new Error('Could find selected tab')
+    }
+
+    getActions(): Promise<WebElement[]> {
+        throw new Error('Not implemented');
+    }
+
+    getAction(title: string): Promise<WebElement | undefined> {
+        throw new Error('Not implemented');
     }
 }

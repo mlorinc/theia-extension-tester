@@ -1,16 +1,18 @@
 import {
     ContextMenuItem,
+    IContextMenu,
     IMenu,
     IMenuItem,
+    Key,
     Menu,
     TheiaElement,
     WebElement
 } from '../../../module';
 
-export class ContextMenu extends Menu {
+export class ContextMenu extends Menu implements IContextMenu {
 
-    constructor(element?: WebElement, parent?: IMenu, level: number = 0) {
-        super(element || TheiaElement.locators.components.menu.contextMenu, undefined, level);
+    constructor(element?: WebElement, parent?: IMenu, protected level: number = 0) {
+        super(element || TheiaElement.locators.components.menu.contextMenu, undefined);
         this.enclosingItem = parent ?? this.enclosingItem;
     }
 
@@ -24,5 +26,21 @@ export class ContextMenu extends Menu {
             }
         }
         return out;
+    }
+
+    async close(): Promise<void> {
+        await this.getDriver().wait(async () => {
+            try {
+                if (await this.isDisplayed() === false) {
+                    return true;
+                }
+
+                await this.sendKeys(Key.ESCAPE);
+                return false;
+            }
+            catch {
+                return true;
+            }
+        }, this.timeoutManager().defaultTimeout(), 'Could not close context menu.');
     }
 }

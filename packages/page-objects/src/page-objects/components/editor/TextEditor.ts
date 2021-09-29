@@ -8,8 +8,8 @@ import {
     EditorView,
     ElementRepeatAction,
     IContentAssist,
+    IContextMenu,
     IEditorTab,
-    IMenu,
     ITextEditor,
     Key,
     SeleniumBrowser,
@@ -198,7 +198,7 @@ export class TextEditor extends Editor implements ITextEditor {
         await cursor.safeClick(Button.LEFT);
     }
 
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
     }

@@ -6,7 +6,7 @@ const FILE = 'Alternative.txt';
 
 describe('ContextMenu', function () {
     this.timeout(40000);
-    let menu: ContextMenu | undefined;
+    let menu: IMenu | undefined;
     let editor: TextEditor;
     let tree: IDefaultTreeSection;
 
@@ -23,7 +23,9 @@ describe('ContextMenu', function () {
     });
 
     afterEach(async function () {
-        await menu?.close();
+        if (menu instanceof ContextMenu) {
+            await menu.close();
+        }
     });
 
     after(async function () {
@@ -63,8 +65,6 @@ describe('ContextMenu', function () {
     });
 
     it('select', async function () {
-        await menu?.close();
-
         menu = new TitleBar();
         const subMenu = await menu.select('File') as IMenu;
         const items = await subMenu.getItems();
@@ -85,9 +85,6 @@ describe('ContextMenu', function () {
             const tab = await new EditorView().getTabByTitle('Preferences');
             await tab.close();
         }
-        catch (e) {
-            expect.fail(e);
-        }
         finally {
             // select closes menu
             menu = undefined;
@@ -95,10 +92,9 @@ describe('ContextMenu', function () {
     });
 
     it('close', async function () {
-        menu = await editor.openContextMenu() as ContextMenu;
+        const menu = await editor.openContextMenu();
         expect(menu).not.to.be.undefined;
         await menu.close();
         expect(await menu.isDisplayed().catch(() => false)).to.be.false;
-        menu = undefined;
     });
 })

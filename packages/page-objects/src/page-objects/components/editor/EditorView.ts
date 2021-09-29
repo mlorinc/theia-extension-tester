@@ -11,6 +11,7 @@ import {
     TextEditor,
     TheiaEditorPreview,
     TheiaElement,
+    WebElement,
     WebView
 } from '../../../module';
 
@@ -225,5 +226,14 @@ export class EditorView extends TheiaElement implements IEditorView {
         }
 
         throw new Error(`Unknown editor type: <${await editorElement.getTagName()} id="${id}" class="${classes}">`);
+    }
+
+
+    getActions(groupIndex?: number): Promise<WebElement[]> {
+        throw new Error('Not implemented');
+    }
+
+    getAction(title: string, groupIndex?: number): Promise<WebElement | undefined> {
+        throw new Error('Not implemented');
     }
 }

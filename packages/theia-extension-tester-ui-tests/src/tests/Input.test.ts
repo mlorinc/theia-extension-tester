@@ -96,7 +96,6 @@ describe('Input', function() {
 
     it('Input.getTitle', async function() {
         // Java extension is taking way too long to activate.
-        this.retries(3);
         this.timeout(120000);
         await new Workbench().executeCommand('Quarkus: Generate a Quarkus project');
         await input.getDriver().wait(async () => await input.getPlaceHolder() === 'Pick build tool', this.timeout() - 2000);

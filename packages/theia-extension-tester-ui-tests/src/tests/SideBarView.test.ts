@@ -10,7 +10,7 @@ describe('SideBarView', function() {
 
     before(async function() {
         workbench = new Workbench();
-        control = await workbench.getActivityBar().getViewControl(title);
+        control = await workbench.getActivityBar().getViewControl(title) as IViewControl;
         view = await control.openView();
     });
 

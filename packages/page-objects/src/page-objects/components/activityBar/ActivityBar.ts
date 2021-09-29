@@ -1,4 +1,4 @@
-import { ActionsControl, IActionsControl, IActivityBar, IMenu, IViewControl, TheiaElement, ViewControl } from "../../../module";
+import { ActionsControl, IActionsControl, IActivityBar, IContextMenu, IViewControl, TheiaElement, ViewControl } from "../../../module";
 
 export class ActivityBar extends TheiaElement implements IActivityBar {
 
@@ -49,7 +49,7 @@ export class ActivityBar extends TheiaElement implements IActivityBar {
         }, this.timeoutManager().findElementTimeout(), `Could not find view control with title "${name}".`) as ActionsControl;
     }
 
-    openContextMenu(): Promise<IMenu> {
+    openContextMenu(): Promise<IContextMenu> {
         throw new Error('ActivityBar.openContextMenu is not supported in Eclipse Che.');
     }
 }

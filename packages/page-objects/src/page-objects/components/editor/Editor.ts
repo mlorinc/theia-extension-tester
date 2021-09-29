@@ -2,9 +2,9 @@ import {
     Button,
     ContextMenu,
     EditorView,
+    IContextMenu,
     IEditor,
     IEditorTab,
-    IMenu,
     Locator,
     TheiaElement,
     TheiaLocator,
@@ -50,7 +50,7 @@ export class Editor extends TheiaElement implements IEditor {
         return await this.getEditorTab();
     }
 
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.getDriver().actions().click(this, Button.RIGHT).perform();
         return new ContextMenu();
     }

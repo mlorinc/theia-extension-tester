@@ -1,7 +1,7 @@
 import {
     Button,
     ContextMenu,
-    IMenu,
+    IContextMenu,
     IViewItem,
     TheiaElement,
     WebElement
@@ -15,7 +15,7 @@ export class ViewItem extends TheiaElement implements IViewItem {
     async select(): Promise<void> {
         await this.safeClick();
     }
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
     }

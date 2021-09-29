@@ -1,6 +1,6 @@
 import {
     ICenterNotification,
-    IMenu,
+    IContextMenu,
     INotification,
     INotificationButton,
     IStandaloneNotification,
@@ -87,7 +87,7 @@ export class Notification extends TheiaElement implements INotification, ICenter
         });
     }
 
-    openContextMenu(): Promise<IMenu> {
+    openContextMenu(): Promise<IContextMenu> {
         throw new Error("This action is not supported in Eclipse Che.");
     }
 

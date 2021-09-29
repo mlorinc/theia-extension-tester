@@ -3,7 +3,7 @@ import * as path from "path";
 
 export async function getExplorerSection(): Promise<IDefaultTreeSection> {
     const control = await new Workbench().getActivityBar().getViewControl('Explorer');
-    const sideBar = await control.openView();
+    const sideBar = await control!.openView();
     return (await sideBar.getContent().getSections())[0] as IDefaultTreeSection;
 }
 

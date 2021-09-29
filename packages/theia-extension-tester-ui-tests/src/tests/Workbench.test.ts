@@ -19,7 +19,8 @@ describe('Workbench', function () {
 
     it('getActivityBar', async function () {
         const item = await workbench.getActivityBar().getViewControl('Explorer');
-        await item.openView();
+        expect(item).not.to.be.undefined;
+        await item!.openView();
     });
 
     it('getSideBar', async function () {
@@ -75,11 +76,12 @@ describe('Workbench', function () {
 
     it('openFolderPath - another view opened', async function () {
         const debug = await workbench.getActivityBar().getViewControl('Debug');
-        const title = await debug.getTitle();
-        await debug.openView();
+        expect(debug).not.to.be.undefined;
+        const title = await debug!.getTitle();
+        await debug!.openView();
         const workspace = await workbench.getOpenFolderPath();
         expect(workspace).equals(expectedWorkbenchPath);
         expect(await workbench.getSideBar().getTitlePart().getTitle()).equals(title);
-        await debug.closeView();
+        await debug!.closeView();
     });
 });

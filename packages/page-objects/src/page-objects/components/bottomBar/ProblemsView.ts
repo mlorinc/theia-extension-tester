@@ -1,4 +1,4 @@
-import { BottomBarPanel, IMarker, IProblemsView, Menu, TheiaElement, WebElement } from "../../../module";
+import { BottomBarPanel, IContextMenu, IMarker, IProblemsView, TheiaElement, WebElement } from "../../../module";
 
 /**
  * Problems view in the bottom panel
@@ -52,7 +52,7 @@ export class Marker extends TheiaElement implements IMarker {
     constructor(element: WebElement, view: ProblemsView) {
         super(element, view);
     }
-    openContextMenu(): Promise<Menu> {
+    openContextMenu(): Promise<IContextMenu> {
         throw new Error("Method not implemented.");
     }
     /**

@@ -12,7 +12,7 @@ describe('ViewContent', function () {
 
     before(async function () {
         workbench = new Workbench();
-        control = await workbench.getActivityBar().getViewControl(title);
+        control = await workbench.getActivityBar().getViewControl(title) as IViewControl;
         view = await control.openView();
         content = view.getContent();
     });
@@ -25,7 +25,7 @@ describe('ViewContent', function () {
     });
 
     it('getSection', async function () {
-        control = await workbench.getActivityBar().getViewControl('Debug');
+        control = await workbench.getActivityBar().getViewControl('Debug') as IViewControl;
         view = await control.openView();
         content = view.getContent();
 

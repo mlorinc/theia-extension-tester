@@ -1,14 +1,13 @@
 import {
     IMenu,
     IMenuItem,
-    Key,
     Locator,
     TheiaElement,
     WebElement
 } from '../../../module';
 
 export abstract class Menu extends TheiaElement implements IMenu {
-    constructor(element: WebElement | Locator, parent?: WebElement, protected level: number = 0) {
+    constructor(element: WebElement | Locator, parent?: WebElement) {
         super(element, parent);
     }
 
@@ -61,21 +60,5 @@ export abstract class Menu extends TheiaElement implements IMenu {
         }
 
         return currentMenu;
-    }
-
-    async close(): Promise<void> {
-        await this.getDriver().wait(async () => {
-            try {
-                if (await this.isDisplayed() === false) {
-                    return true;
-                }
-
-                await this.sendKeys(Key.ESCAPE);
-                return false;
-            }
-            catch {
-                return true;
-            }
-        }, this.timeoutManager().defaultTimeout(), 'Could not close menu.');
     }
 }

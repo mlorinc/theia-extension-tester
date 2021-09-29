@@ -1,5 +1,5 @@
 import {
-    IMenu,
+    IContextMenu,
     ITitleActionButton,
     IViewTitlePart,
     SideBarView,
@@ -31,7 +31,7 @@ export class ViewTitlePart extends TheiaElement implements IViewTitlePart {
         }, this.timeoutManager().findElementTimeout(), `Could not find action button with title "${title}".`) as TitleActionButton;
     }
 
-    openContextMenu(): Promise<IMenu> {
+    openContextMenu(): Promise<IContextMenu> {
         throw new Error('ViewTitlePart.openContextMenu is not supported in Eclipse Che.');
     }
 }

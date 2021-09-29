@@ -1,4 +1,4 @@
-import { ITextView, Menu, TheiaElement } from "../../../module";
+import { IContextMenu, ITextView, TheiaElement } from "../../../module";
 
 /**
  * View with channel selection and text area
@@ -13,7 +13,7 @@ export class TextView extends TheiaElement implements ITextView {
     selectChannel(name: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    openContextMenu(): Promise<Menu> {
+    openContextMenu(): Promise<IContextMenu> {
         throw new Error("Method not implemented.");
     }
     /**

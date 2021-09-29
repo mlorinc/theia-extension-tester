@@ -6,6 +6,7 @@ import {
     EditorView,
     FileTreeWidget,
     FileType,
+    IContextMenu,
     IDefaultTreeItem,
     IDefaultTreeSection,
     IEditor,
@@ -29,8 +30,6 @@ import { PathUtils } from '@theia-extension-tester/path-utils';
 import { repeat } from '@theia-extension-tester/repeat';
 import { TimeoutError } from '@theia-extension-tester/timeout-promise';
 
-
-
 export class DefaultTreeSection extends ViewSection implements IDefaultTreeSection, IElementWithContextMenu {
     private tree: DefaultTree;
 
@@ -39,7 +38,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
         this.tree = new DefaultTree(this, new Workbench().getOpenFolderPath());
     }
 
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
     }
@@ -112,7 +111,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
         }
 
         const relativePath = await getRelativePath(filePath);
-        await this.createFileObject(relativePath, FileType.FILE, timeout) as DefaultTreeItem;
+        await this.createFileObject(relativePath, FileType.FILE, timeout);
         return await this.getEditor(path.join(await getOpenFolderPath(), relativePath), timeout);
     }
 

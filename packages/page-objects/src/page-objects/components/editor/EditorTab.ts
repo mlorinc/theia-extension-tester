@@ -2,8 +2,8 @@ import {
     Button,
     ContextMenu,
     EditorView,
+    IContextMenu,
     IEditorTab,
-    Menu,
     TheiaElement,
     WebElement
 } from '../../../module';
@@ -31,7 +31,7 @@ export class EditorTab extends TheiaElement implements IEditorTab {
         }, this.timeoutManager().defaultTimeout());
     }
 
-    async openContextMenu(): Promise<Menu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
     }

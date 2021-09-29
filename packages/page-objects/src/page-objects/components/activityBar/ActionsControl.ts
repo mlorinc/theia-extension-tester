@@ -1,11 +1,11 @@
-import { ActivityBar, ContextMenu, IActionsControl, IMenu, TheiaElement, WebElement } from "../../../module";
+import { ActivityBar, ContextMenu, IActionsControl, IContextMenu, TheiaElement, WebElement } from "../../../module";
 
 export class ActionsControl extends TheiaElement implements IActionsControl {
     constructor(element: WebElement, parent: ActivityBar) {
         super(element, parent);
     }
 
-    openActionMenu(): Promise<IMenu> {
+    openActionMenu(): Promise<IContextMenu> {
         return this.openContextMenu();
     }
 
@@ -20,7 +20,7 @@ export class ActionsControl extends TheiaElement implements IActionsControl {
         }
     }
 
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick();
         return new ContextMenu();
     }

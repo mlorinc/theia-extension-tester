@@ -5,7 +5,7 @@ import {
     Button,
     ContextMenu,
     ElementRepeatAction,
-    IMenu,
+    IContextMenu,
     ISideBarView,
     IViewControl,
     SideBarView,
@@ -47,7 +47,7 @@ export class ViewControl extends TheiaElement implements IViewControl {
         });
     }
 
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         return await repeat(async () => {
             await this.safeClick(Button.RIGHT);
             // make sure menu is ready, if not right click might have been blocked
@@ -62,7 +62,7 @@ export class ViewControl extends TheiaElement implements IViewControl {
             timeout: this.timeoutManager().findElementTimeout(),
             message: 'Could not open context menu.',
             id: 'ViewControl.openContextMenu'
-        }) as IMenu;
+        }) as IContextMenu;
     }
 
     protected async isOpen(sideBarView: ISideBarView = new SideBarView()): Promise<boolean> {

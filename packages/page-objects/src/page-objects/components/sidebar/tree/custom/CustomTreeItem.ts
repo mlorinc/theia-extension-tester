@@ -1,8 +1,8 @@
 import {
     By,
     CustomTreeSection,
+    IContextMenu,
     ICustomTreeItem,
-    IMenu,
     ITreeItem,
     IViewItemAction,
     TheiaElement,
@@ -39,7 +39,7 @@ export class CustomTreeItem extends TreeNode implements ICustomTreeItem {
     select(): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    openContextMenu(): Promise<IMenu> {
+    openContextMenu(): Promise<IContextMenu> {
         throw new Error("Method not implemented.");
     }
     isExpanded(): Promise<boolean> {

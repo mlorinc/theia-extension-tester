@@ -3,8 +3,8 @@ import {
     By,
     ContextMenu,
     FileTreeNode,
+    IContextMenu,
     IDefaultTreeItem,
-    IMenu,
     ITreeItem,
     IViewItemAction,
     TheiaElement,
@@ -60,7 +60,7 @@ export class DefaultTreeItem extends FileTreeNode implements IDefaultTreeItem {
         await this.safeClick();
     }
 
-    async openContextMenu(): Promise<IMenu> {
+    async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
     }

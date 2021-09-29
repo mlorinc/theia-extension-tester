@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ISideBarView, IViewContent, IViewControl, IViewSection, IWorkbench, Workbench } from "@theia-extension-tester/page-objects";
+import { ISideBarView, IViewContent, IViewControl, IViewPanelAction, IViewSection, IWorkbench, Workbench } from "@theia-extension-tester/page-objects";
 
 describe('ViewSection', function() {
     this.timeout(40000);
@@ -12,7 +12,7 @@ describe('ViewSection', function() {
 
     before(async function() {
         workbench = new Workbench();
-        control = await workbench.getActivityBar().getViewControl('Debug');
+        control = await workbench.getActivityBar().getViewControl('Debug') as IViewControl;
         view = await control.openView();
         content = view.getContent();
         section = await content.getSection(title);
@@ -63,7 +63,7 @@ describe('ViewSection', function() {
 
     it('getAction', async function() {
         await section.expand();
-        const action = await section.getAction('Collapse All');
+        const action = await section.getAction('Collapse All') as IViewPanelAction;
         expect(await action.getLabel()).equals('Collapse All');
     });
 });

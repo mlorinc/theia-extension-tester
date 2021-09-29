@@ -39,7 +39,7 @@ async function main() {
 		theiaUrl: 'http://localhost:3000',
 		openFolder: prepareWorkspace(),
 		mochaOptions: {
-			bail: true
+			bail: false
 		}
 	});
 

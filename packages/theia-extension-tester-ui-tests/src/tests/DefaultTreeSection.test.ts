@@ -13,7 +13,7 @@ describe.skip('DefaultTreeSection', function () {
 
     before(async function () {
         workbench = new Workbench();
-        control = await workbench.getActivityBar().getViewControl('Explorer');
+        control = await workbench.getActivityBar().getViewControl('Explorer') as IViewControl;
         view = await control.openView();
         content = view.getContent();
         section = (await content.getSections())[0] as DefaultTreeSection;
