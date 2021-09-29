@@ -83,9 +83,12 @@ export class TextEditor extends Editor implements ITextEditor {
             const action = new ElementRepeatAction(this, 500);
             return await repeat(async () => {
                 if (await ContentAssist.isOpen(this) === true) {
-                    return new ContentAssist(this);
+                    return new ContentAssist(undefined, this);
                 }
-                await action.sendKeys(Key.chord(TextEditor.ctlKey, Key.SPACE));
+                await action.perform(async () => {
+                    await this.focus();
+                    await this.sendKeys(Key.chord(TextEditor.ctlKey, Key.SPACE));
+                });
                 return undefined;
             }, {
                 timeout: this.timeoutManager().findElementTimeout(),
@@ -93,7 +96,9 @@ export class TextEditor extends Editor implements ITextEditor {
             }) as IContentAssist;
         }
         else {
-            await new ContentAssist(this).close();
+            if (await ContentAssist.isOpen(this) === true) {
+                await new ContentAssist(undefined, this).close();
+            }
         }
     }
     async getText(): Promise<string> {
@@ -194,9 +199,7 @@ export class TextEditor extends Editor implements ITextEditor {
     }
 
     async openContextMenu(): Promise<IMenu> {
-        const cursor = await this.getCursor();
-        await this.focus();
-        await cursor.safeClick(Button.RIGHT);
+        await this.safeClick(Button.RIGHT);
         return new ContextMenu();
     }
 }

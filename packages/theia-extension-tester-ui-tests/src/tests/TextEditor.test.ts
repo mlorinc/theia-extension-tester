@@ -92,7 +92,7 @@ describe('TextEditor', function () {
         expect(await menu.isDisplayed()).to.be.true;
 
         await editor.toggleContentAssist(false);
-        menu = new ContentAssist(editor) as ContentAssist;
+        menu = new ContentAssist(undefined, editor) as ContentAssist;
         expect(await menu.isDisplayed()).to.be.false;
     });
 

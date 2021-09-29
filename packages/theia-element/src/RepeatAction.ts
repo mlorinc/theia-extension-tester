@@ -23,6 +23,13 @@ export class ElementRepeatAction {
         }
     }
 
+    async perform(action: () => void | PromiseLike<void>): Promise<void> {
+        if (this.timer.resetCount === 0 || this.timer.hasFinished()) {
+            await action();
+            this.timer.reset();
+        }
+    }
+
     reset(): void {
         this.timer = new Threshold(this.interval);
     }

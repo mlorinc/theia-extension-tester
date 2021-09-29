@@ -11,13 +11,14 @@ import {
 } from '../../../module';
 import { ScrollItemNotFound } from '../../theia-components/widgets/scrollable/ScrollableWidget';
 import { repeat, TimeoutError } from "@theia-extension-tester/repeat";
+import { WebElement } from 'extension-tester-page-objects';
 
 export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> implements IContentAssist {
     private editor: TheiaElement;
 
-    constructor(parent: TheiaElement = new TextEditor()) {
+    constructor(element?: WebElement, parent: TheiaElement = new TextEditor()) {
         const container = parent.findElement(TheiaElement.locators.components.editor.contentAssist.constructor);
-        super(undefined, container, true);
+        super(element, container, true);
         this.editor = parent;
     }
 
@@ -116,7 +117,7 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
      */
     async isLoaded(): Promise<boolean> {
         const elements = await this.findElements(ContentAssist.locators.components.editor.contentAssist.loading);
-        return (elements.length === 0) || (elements.length === 1 && await elements[0].isDisplayed() === false);
+        return await this.isDisplayed() && ((elements.length === 0) || (elements.length === 1 && await elements[0].isDisplayed() === false));
     }
 
     async isEnabled(): Promise<boolean> {
@@ -124,7 +125,8 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
     }
 
     async isDisplayed(): Promise<boolean> {
-        return await this.getEnclosingElement().isDisplayed() && await super.isDisplayed();
+        const size = await this.getSize();
+        return await super.isDisplayed() && size.height > 0;
     }
 
     static async isOpen(parent: TheiaElement = new TextEditor()): Promise<boolean> {
@@ -134,8 +136,8 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
             return false;
         }
 
-        const classes = await elements[0].getAttribute('class');
-        return elements.length === 1 && elements[0].isDisplayed() && classes.includes('visible');
+        const menu = new ContentAssist(elements[0], parent);
+        return elements.length === 1 && await menu.isDisplayed().catch(() => false);
     }
 
     private async findItem(label: string, timeout?: number): Promise<ContentAssistItem> {
