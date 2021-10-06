@@ -1,0 +1,39 @@
+{
+  "name": "@theia-extension-tester/adapters",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "Marian Lorinc <mlorinc@redhat.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./theia.js": "./theia.js",
+    "./vscode.js": "./vscode.js",
+    "./theia": "./theia.js",
+    "./vscode": "./vscode.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.com/"
+  },
+  "scripts": {
+    "prepublish": "yarn run clean && yarn run build",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "tsc",
+    "clean": "rimraf lib"
+  },
+  "peerDependencies": {
+    "extension-tester-page-objects": "^1.0.0"
+  },
+  "dependencies": {
+    "tsconfig-paths": "^3.11.0"
+  }
+}
