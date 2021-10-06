@@ -1,0 +1,40 @@
+{
+  "name": "@theia-extension-tester/example-vscode-theia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "out/index.js",
+  "private": "true",
+  "scripts": {
+    "prepublish": "yarn run clean && yarn run build",
+    "build": "tsc",
+    "clean": "rimraf out",
+    "vscode:test": "node out/vscode.runner.js",
+    "theia-browser:test": "ADAPTER_PROJECT_ROOT=../.. node -r @theia-extension-tester/adapters/theia out/theia.runner.js out/tests/*.test.js"
+  },
+  "keywords": [],
+  "author": "Marian Lorinc <mlorinc@redhat.com>",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.3.0",
+    "dotenv": "^8.2.0",
+    "fs-extra": "^9.1.0",
+    "mocha": "^8.3.0",
+    "@theia-extension-tester/adapters": "^1.0.0",
+    "@theia-extension-tester/browser-runner": "^1.0.0",
+    "@theia-extension-tester/che-browser": "^1.0.0",
+    "@theia-extension-tester/page-objects": "^1.0.0",
+    "@theia-extension-tester/theia-browser": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.15",
+    "@types/fs-extra": "^9.0.7",
+    "@types/mocha": "^8.2.1",
+    "@types/node": "^14.14.31",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.0.3"
+  },
+  "peerDependencies": {
+    "vscode-extensions-tester": "^4.2.0",
+    "extension-tester-page-objects": "^1.0.0"
+  }
+}
