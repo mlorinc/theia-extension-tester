@@ -11,7 +11,7 @@ import {
 } from '../../../module';
 import { ScrollItemNotFound } from '../../theia-components/widgets/scrollable/ScrollableWidget';
 import { repeat, TimeoutError } from "@theia-extension-tester/repeat";
-import { WebElement } from 'extension-tester-page-objects';
+import { error, WebElement } from 'extension-tester-page-objects';
 
 export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> implements IContentAssist {
     private editor: TheiaElement;
@@ -89,7 +89,7 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
                 await this.editor.sendKeys(Key.ESCAPE);
             }
             catch (e) {
-                if (e.message.includes('element not interactable')) {
+                if (e instanceof error.StaleElementReferenceError) {
                     return false;
                 }
                 throw e;

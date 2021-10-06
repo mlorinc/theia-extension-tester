@@ -57,6 +57,11 @@ export abstract class LocatorLoader<T> {
 
             this.locators = mergeLocators(this.locators, diff);
         }
+
+        if (this.locators === undefined) {
+            throw new Error('Could not load locators.');
+        }
+
         return this.locators;
     }
 }

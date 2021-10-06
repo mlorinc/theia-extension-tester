@@ -1,4 +1,4 @@
-import { Button, promise } from "extension-tester-page-objects";
+import { Button } from "extension-tester-page-objects";
 import { Threshold } from "@theia-extension-tester/repeat";
 import { TheiaElement } from ".";
 
@@ -16,7 +16,7 @@ export class ElementRepeatAction {
         }
     }
 
-    async sendKeys(...var_args: (string | number | promise.Promise<string | number>)[]): Promise<void> {
+    async sendKeys(...var_args: (string | number | Promise<string | number>)[]): Promise<void> {
         if (this.timer.resetCount === 0 || this.timer.hasFinished()) {
             await this.element.sendKeys(...var_args);
             this.timer.reset();

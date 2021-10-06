@@ -4,18 +4,16 @@ import * as path from 'path';
 import {
     Builder,
     Capabilities,
+    chrome,
+    firefox,
     Locator,
     logging,
+    opera,
+    safari,
     SeleniumBrowser,
     until,
     WebDriver
-} from 'extension-tester-page-objects';
-import {
-    ChromeOptions,
-    FirefoxOptions,
-    OperaOptions,
-    SafariOptions
-} from '.';
+    } from 'extension-tester-page-objects';
 import { getLocatorsPath, PlatformType, TheiaElement } from '@theia-extension-tester/theia-element';
 import { TheiaLocatorLoader } from '@theia-extension-tester/locator-loader';
 import { TheiaTimeouts, timeout } from '@theia-extension-tester/timeout-manager';
@@ -118,10 +116,10 @@ export abstract class BaseBrowser extends SeleniumBrowser {
         const preferences = new logging.Preferences();
         preferences.setLevel(logging.Type.DRIVER, this.options.logLevel || logging.Level.INFO);
 
-        const chromeOptions = new ChromeOptions();
-        const firefoxOptions = new FirefoxOptions();
-        const operaOptions = new OperaOptions();
-        const safariOptions = new SafariOptions();
+        const chromeOptions = new chrome.Options();
+        const firefoxOptions = new firefox.Options();
+        const operaOptions = new opera.Options();
+        const safariOptions = new safari.Options();
 
         chromeOptions.setLoggingPrefs(preferences);
         firefoxOptions.setLoggingPreferences(preferences);

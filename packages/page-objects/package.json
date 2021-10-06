@@ -38,7 +38,7 @@
   },
   "peerDependencies": {
     "mocha": "^8.2.1",
-    "selenium-webdriver": "^3.6.0",
+    "selenium-webdriver": "3.0.0",
     "extension-tester-page-objects": "^1.0.0"
   }
 }

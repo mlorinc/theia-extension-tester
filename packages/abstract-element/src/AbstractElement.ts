@@ -74,7 +74,13 @@ export abstract class AbstractElement extends WebElement {
             this.timeout = AbstractElement.getTimeout(timeout);
         }
         catch (e) {
-            e.message = errorHelper(e, base, enclosingItem);
+            if (typeof e === 'string') {
+                e = new Error(e);
+            }
+
+            if (e instanceof Error) {
+                e.message = errorHelper(e, base, enclosingItem);
+            }
             throw e;
         }
     }

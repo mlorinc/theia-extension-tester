@@ -23,6 +23,6 @@
     "clean": "rimraf lib"
   },
   "peerDependencies": {
-    "selenium-webdriver": "^3.6.0"
+    "extension-tester-page-objects": "^1.0.0"
   }
 }

@@ -105,7 +105,7 @@ export class Input extends InputWidget implements IInputBox {
                 await this.sendKeys(Key.ESCAPE);
             }
             catch (e) {
-                if (e.message.includes('element not interactable')) {
+                if (e instanceof Error && e.message.includes('element not interactable')) {
                     return false;
                 }
                 throw e;

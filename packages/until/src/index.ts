@@ -1,4 +1,4 @@
-import { Button, WebDriver, WebElement, WebElementCondition } from "extension-tester-page-objects";
+import { Button, error, WebDriver, WebElement, WebElementCondition } from "extension-tester-page-objects";
 
 export namespace ExtestUntil {
     export function elementInteractive(element: WebElement): WebElementCondition {
@@ -9,7 +9,7 @@ export namespace ExtestUntil {
                 }
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     throw e;
                 }
             }
@@ -36,9 +36,7 @@ export namespace ExtestUntil {
                 }
             }
             catch (e) {
-                if ((e.name === 'ElementClickInterceptedError') ||
-                    (e.name === 'WebDriverError' && e.message.includes('element click intercepted: Element'))
-                ) {
+                if (e instanceof error.WebDriverError && e.message.includes('element click intercepted: Element')) {
                     console.warn(e.message);
                     return undefined;
                 }

@@ -102,7 +102,7 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
             await scroll.scroll(Math.ceil(pickPercentage * scrollSize * indexDelta));
             return await this.findItemWithComparator(comparator.bind(this), timeout, errorMessage);
         }
-        else if (this.hasNextPage()) {
+        else if (await this.hasNextPage()) {
             await this.nextPage(items[items.length - 1], timeout);
             return await this.findItemWithComparator(comparator.bind(this), timeout, errorMessage);
         }

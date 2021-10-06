@@ -31,7 +31,6 @@
     "@types/selenium-webdriver": "^3.0.15"
   },
   "peerDependencies": {
-    "extension-tester-page-objects": "^1.0.0",
-    "selenium-webdriver": "3.6.0"
+    "extension-tester-page-objects": "^1.0.0"
   }
 }

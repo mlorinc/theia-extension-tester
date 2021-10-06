@@ -1,3 +1,4 @@
+import { error } from 'extension-tester-page-objects';
 import {
     Editor,
     EditorGroup,
@@ -82,7 +83,7 @@ export class EditorView extends TheiaElement implements IEditorView {
                 await tab.close();
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     continue;
                 }
                 throw e;
@@ -99,7 +100,7 @@ export class EditorView extends TheiaElement implements IEditorView {
                 titles.push(await tab.getTitle());
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     continue;
                 }
                 throw e;
@@ -120,7 +121,7 @@ export class EditorView extends TheiaElement implements IEditorView {
                     }
                 }
                 catch (e) {
-                    if (e.name === 'StaleElementReferenceError') {
+                    if (e instanceof error.StaleElementReferenceError) {
                         continue;
                     }
                     throw e;
@@ -169,7 +170,7 @@ export class EditorView extends TheiaElement implements IEditorView {
                 }
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     continue;
                 }
                 throw e;

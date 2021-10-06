@@ -10,6 +10,7 @@ import {
     TreeWidget,
     WebElement,
 } from '../../../../module';
+import { error } from 'extension-tester-page-objects';
 
 export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<T> {
     private root: PromiseLike<string> | string;
@@ -39,7 +40,7 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
                 items.push(await this.mapTreeNode(node[0], element));
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     // file got deleted
                     continue;
                 }
@@ -65,7 +66,7 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
             }
             catch (e) {
                 // ignore removed files
-                if (e.name !== 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     throw e;
                 }
             }
@@ -85,7 +86,7 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
             }
             catch (e) {
                 // ignore removed files
-                if (e.name !== 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     throw e;
                 }
             }

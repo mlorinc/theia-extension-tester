@@ -29,6 +29,7 @@ import { ExtestUntil } from '@theia-extension-tester/until';
 import { PathUtils } from '@theia-extension-tester/path-utils';
 import { repeat } from '@theia-extension-tester/repeat';
 import { TimeoutError } from '@theia-extension-tester/timeout-promise';
+import { error } from 'extension-tester-page-objects';
 
 export class DefaultTreeSection extends ViewSection implements IDefaultTreeSection, IElementWithContextMenu {
     private tree: DefaultTree;
@@ -318,7 +319,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
                 }
             }
             catch (e) {
-                if (e instanceof TreeItemNotFound || e.name === 'StaleElementReferenceError') {
+                if (e instanceof TreeItemNotFound || e instanceof error.StaleElementReferenceError) {
                     return undefined;
                 }
                 throw e;

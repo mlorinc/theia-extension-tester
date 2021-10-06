@@ -1,4 +1,4 @@
-import { Key } from 'extension-tester-page-objects';
+import { error, Key } from 'extension-tester-page-objects';
 import {
     Locator,
     ScrollWidget,
@@ -354,7 +354,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
                 }
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError' || e.message.includes('stale element reference')) {
+                if (e instanceof error.StaleElementReferenceError) {
                     items = await this.getVisibleItems();
                     return undefined;
                 }

@@ -1,12 +1,13 @@
 import {
     EditorView,
+    error,
     INotification,
     INotificationsCenter,
     InputBox,
     NotificationType,
     until,
     Workbench
-} from '@theia-extension-tester/page-objects';
+    } from '@theia-extension-tester/page-objects';
 import { expect } from 'chai';
 import { repeat } from '@theia-extension-tester/repeat';
 
@@ -166,7 +167,7 @@ async function createNotifications(useCenter: boolean) {
                 }
             }
             catch (e) {
-                if (e.name === 'StaleElementReferenceError') {
+                if (e instanceof error.StaleElementReferenceError) {
                     break;
                 }
                 throw e;

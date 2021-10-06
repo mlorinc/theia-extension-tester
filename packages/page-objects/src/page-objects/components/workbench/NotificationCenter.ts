@@ -26,7 +26,7 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
                 await close.click();
             }
             catch (e) {
-                if (e.message.includes('element not interactable') || e.message.includes('element click intercepted')) {
+                if (e instanceof Error && (e.message.includes('element not interactable') || e.message.includes('element click intercepted'))) {
                     return false;
                 }
                 throw e;
@@ -59,7 +59,7 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
                 await clearAll.click();
             }
             catch (e) {
-                if (e.message.includes('element not interactable') || e.message.includes('element click intercepted')) {
+                if (e instanceof Error && (e.message.includes('element not interactable') || e.message.includes('element click intercepted'))) {
                     return false;
                 }
                 throw e;
