@@ -1,5 +1,4 @@
-import { TheiaBrowser } from "@theia-extension-tester/theia-browser";
-import { TheiaBrowserRunner } from "@theia-extension-tester/browser-runner";
+import { TheiaBrowser, TheiaBrowserRunner } from "theia-extension-tester";
 import { prepareWorkspace } from "./utils";
 
 async function main() {
