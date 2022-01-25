@@ -1,4 +1,6 @@
+import { SeleniumBrowser } from "extension-tester-page-objects";
 export * from 'extension-tester-page-objects';
+export { SeleniumBrowser as VSBrowser };
 
 export {
     ActionsControl,

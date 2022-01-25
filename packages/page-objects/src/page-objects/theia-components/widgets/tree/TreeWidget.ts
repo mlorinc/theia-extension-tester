@@ -1,22 +1,22 @@
 import { repeat } from '@theia-extension-tester/repeat';
 import {
+    Scroll,
     ScrollableWidget,
     ScrollDirection,
-    ScrollWidget,
     TreeItemNotFound,
     TreeNode,
     until,
-    VerticalScrollWidget,
+    HTMLVerticalScroll,
     WebElement
 } from '../../../../module';
 
 
 export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T> {
-    private verticalScroll: ScrollWidget;
+    private verticalScroll: Scroll;
 
     constructor(element: WebElement | undefined, parent?: WebElement) {
         super(element || TreeWidget.locators.widgets.tree.constructor, parent);
-        this.verticalScroll = new VerticalScrollWidget(this.findElement(TreeWidget.locators.widgets.tree.yScroll), this);
+        this.verticalScroll = new HTMLVerticalScroll(this);
     }
 
     async length(): Promise<number> {
@@ -36,10 +36,10 @@ export abstract class TreeWidget<T extends TreeNode> extends ScrollableWidget<T>
         }, this.timeoutManager().findElementTimeout(), 'Could not find active item.') as T;
     }
 
-    protected async getVerticalScroll(): Promise<ScrollWidget> {
+    protected async getVerticalScroll(): Promise<Scroll> {
         return this.verticalScroll;
     }
-    protected getHorizontalScroll(): Promise<ScrollWidget> {
+    protected getHorizontalScroll(): Promise<Scroll> {
         throw new Error("Method not implemented.");
     }
     protected async hasVerticalScroll(): Promise<boolean> {

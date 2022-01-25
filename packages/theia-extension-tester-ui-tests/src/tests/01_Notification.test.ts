@@ -9,10 +9,10 @@ import {
     Workbench
     } from '@theia-extension-tester/page-objects';
 import { expect } from 'chai';
-import { repeat } from '@theia-extension-tester/repeat';
+import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
 
 // File has prefix 01, so it is not influenced by others tests (Copy Path command does not work if any file has been opened.).
-describe.skip('Notifications', function () {
+describe('Notifications', function () {
     this.timeout(40000);
 
     beforeEach(async function () {
@@ -37,7 +37,18 @@ describe.skip('Notifications', function () {
             let center = await new Workbench().openNotificationsCenter();
             await center.clearAllNotifications();
             center = await new Workbench().openNotificationsCenter();
-            await repeat(async () => (await center.getNotifications(NotificationType.Any)).length === 0, { timeout: 5000 });
+            try {
+                await repeat(async () => (await center.getNotifications(NotificationType.Any)).length === 0, { timeout: 5000 });
+            }
+            catch (e) {
+                console.error(e);
+                if (e instanceof TimeoutError) {
+                    expect(await center.getNotifications(NotificationType.Any)).to.be.empty;
+                }
+                else {
+                    throw e;
+                }
+            }
         });
 
         it('getNotifications', async function () {

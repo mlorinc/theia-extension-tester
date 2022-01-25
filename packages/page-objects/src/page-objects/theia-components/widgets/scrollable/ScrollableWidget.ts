@@ -1,12 +1,12 @@
 import { error, Key } from 'extension-tester-page-objects';
 import {
     Locator,
-    ScrollWidget,
     TheiaElement,
     TheiaLocator,
     WebElement
 } from '../../../../module';
 import { repeat } from '@theia-extension-tester/repeat';
+import { Scroll } from './Scroll';
 
 export enum ScrollDirection {
     NEXT, PREVIOUS, NONE
@@ -38,9 +38,9 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
     }
 
     /**
-     * Get item count.
+     * Return true if items are available.
      */
-    abstract length(): Promise<number>;
+    abstract hasItems(): Promise<boolean>;
     /**
      * Get all items rendered in DOM.
      */
@@ -53,11 +53,11 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
     /**
      * Get vertical scroll component.
      */
-    protected abstract getVerticalScroll(): Promise<ScrollWidget>;
+    protected abstract getVerticalScroll(): Promise<Scroll>;
     /**
      * Get horizontal scroll component.
      */
-    protected abstract getHorizontalScroll(): Promise<ScrollWidget>;
+    protected abstract getHorizontalScroll(): Promise<Scroll>;
 
     /**
      * Check if vertical scroll is rendered.
@@ -105,7 +105,10 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
      * @returns boolean indicating availability of page
      */
     async hasAnotherPage(direction: ScrollDirection): Promise<boolean> {
-        if (await this.hasVerticalScroll() === false) {
+        const hasVerticalScroll = await this.hasVerticalScroll();
+        const hasItems = await this.hasItems();
+
+        if (hasVerticalScroll === false || hasItems === false) {
             return false;
         }
 
@@ -218,17 +221,32 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
     }
 
     async getVisibleItems(): Promise<T[]> {
-        const items: T[] = [];
-
-        for (const item of await this.getItems()) {
-            const displayed = await item.isDisplayed().catch(() => false);
-
-            if (!displayed) {
-                continue;
+        return await repeat (async () => {
+            if (await this.hasItems() === false) {
+                return [];
             }
-            items.push(item);
-        }
-        return items;
+
+            const items: T[] = [];
+    
+            for (const item of await this.getItems()) {
+                const displayed = await item.isDisplayed().catch(() => false);
+    
+                if (!displayed) {
+                    continue;
+                }
+                items.push(item);
+            }
+
+            // Assuming clear pages are not part of program.
+            if (items.length === 0) {
+                return undefined;
+            }
+
+            return items;
+        }, {
+            timeout: this.timeoutManager().defaultTimeout(),
+            message: 'Could load collection items on time.'
+        }) as T[];
     }
 
     /**
@@ -253,7 +271,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
         let items = await this.getVisibleItems();
 
         await repeat(async () => {
-            for (const item of items) {
+            for (const item of items) {                
                 const value = await callback(item);
 
                 if (value === false) {

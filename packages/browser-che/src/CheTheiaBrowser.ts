@@ -1,4 +1,3 @@
-import { ExtestUntil } from '@theia-extension-tester/until';
 import { TheiaBrowser } from '@theia-extension-tester/theia-browser';
 import { TheiaElement } from '@theia-extension-tester/theia-element';
 import { until } from 'extension-tester-page-objects';
@@ -11,14 +10,8 @@ export class CheTheiaBrowser extends TheiaBrowser {
     }
 
     private async attachToFrame(timeout: number): Promise<void> {
-        console.log('Waiting for theia frame.');
-        console.log(TheiaElement.locators.widgets.editorFrame.locator.toString());
-        const theiaFrame = await this.driver.wait(until.elementLocated(TheiaElement.locators.widgets.editorFrame.locator), timeout);
-        console.log('Waiting for theia frame to be interactive.');
-        await this.driver.wait(ExtestUntil.elementInteractive(theiaFrame), timeout);
-
         console.log('Attaching to Eclipse Che editor...');
-        await this.driver.wait(until.ableToSwitchToFrame(theiaFrame), timeout);
+        await this.driver.wait(until.ableToSwitchToFrame(TheiaElement.locators.widgets.editorFrame.locator), timeout);
         console.log('Successfully attached to Eclipse Che.');
         this.mainWindowHandle = await this.driver.getWindowHandle();
     }

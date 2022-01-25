@@ -6,7 +6,8 @@ import {
     ScrollableWidget,
     ScrollWidget,
     TheiaElement,
-    VerticalScrollWidget
+    VerticalScrollWidget,
+    By
 } from '../../../module';
 
 export class NotificationCenterScroll extends ScrollableWidget<Notification> {
@@ -14,8 +15,9 @@ export class NotificationCenterScroll extends ScrollableWidget<Notification> {
         super(NotificationCenterScroll.locators.components.workbench.notification.center.scroll.constructor, parent);
     }
 
-    length(): Promise<number> {
-        throw new Error("Method not implemented.");
+    async hasItems(): Promise<boolean> {
+        const element = await (await this.enclosingItem).findElements(By.xpath(".//*[text() = 'NO NEW NOTIFICATIONS']")).catch(() => [1]);
+        return element.length === 0;
     }
 
     protected async getItems(): Promise<Notification[]> {

@@ -7,6 +7,7 @@ import {
 } from '../../../../module';
 import { repeat } from '@theia-extension-tester/repeat';
 import { TimeoutError } from '@theia-extension-tester/timeout-promise';
+import { By } from '@theia-extension-tester/theia-element';
 
 export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
     private input: Input;
@@ -17,12 +18,17 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
         this.input = input;
     }
 
+    async hasItems(): Promise<boolean> {
+        const element = await this.input.findElements(By.xpath(".//*[text() = 'No matching results']")).catch(() => []);
+        return element.length === 0;
+    }
+
     protected async getElementId(element: QuickPickItem): Promise<string> {
         return element.getLabel();
     }
 
     async length(): Promise<number> {
-        const counter = await this.input.getEnclosingElement().findElement(QuickPickScroller.locators.components.workbench.input.counter);
+        const counter = await this.input.getCounter();
         const text = await counter.getAttribute('innerText');
         const [count, ..._] = text.split(/\s+/);
         return Number.parseInt(count);
@@ -88,13 +94,14 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
         }
 
         const errorMessage = `Could not find quick pick with ${typeof indexOrText === 'string' ? 'label' : 'index'} "${indexOrText}".`;
+        const scroll = await this.getVerticalScroll();
+        const scrollSize = await scroll.getScrollSize().catch(() => 0);
 
         // index scroll position heuristic
-        if (typeof indexOrText === 'number') {
+        if (typeof indexOrText === 'number' && scrollSize > 0) {
             const quickPickHeight = (await items[0].getSize()).height;
 
             const pickPercentage = quickPickHeight / (await this.getSize()).height;
-            const scroll = await this.getVerticalScroll();
 
             const scrollSize = await scroll.getScrollSize();
             const indexDelta = indexOrText - (await items[items.length - 1].getIndex());

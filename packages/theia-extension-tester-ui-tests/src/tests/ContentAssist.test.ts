@@ -22,7 +22,7 @@ describe('ContentAssist', function () {
     beforeEach(async function () {
         await editor.clearText();
         menu = await editor.toggleContentAssist(true) as ContentAssist;
-
+        await menu.getDriver().wait(() => menu?.isLoaded(), this.timeout() - 3000, 'Content assist did not load.');
         expect(menu).not.to.be.undefined;
         expect(validationItems).not.to.be.empty;
         expect(editor).not.to.be.undefined;

@@ -28,7 +28,7 @@ describe('ViewTitlePart', function() {
         await titlePart.getAction('Clear Search Results');
         const actions = await titlePart.getActions();
         const titles = await Promise.all(actions.map((action) => action.getTitle()));
-        expect(titles).to.have.members(['Refresh', 'Clear Search Results', 'Collapse All']);
+        expect(titles).to.have.members(['Refresh', 'Clear Search Results', 'Expand All']);
     });
 
     it('getAction', async function() { 

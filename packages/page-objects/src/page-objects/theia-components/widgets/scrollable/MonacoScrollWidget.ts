@@ -5,6 +5,7 @@ import {
     VerticalScrollWidget,
     WebElement
 } from '../../../../module';
+import { HorizontalScrollWidget } from './Scroll';
 
 export abstract class MonacoScrollWidget<T extends TheiaElement> extends ScrollableWidget<T> {
     private verticalScroll?: ScrollWidget;
@@ -61,17 +62,19 @@ export abstract class MonacoScrollWidget<T extends TheiaElement> extends Scrolla
         const scrollContainer = await container.findElement(scrollLocator.container) as TheiaElement;
         const scrollElement = await scrollContainer.findElement(scrollLocator.constructor);
 
-        this.horizontalScroll = new VerticalScrollWidget(scrollElement, scrollContainer);
+        this.horizontalScroll = new HorizontalScrollWidget(scrollElement, scrollContainer);
         return this.horizontalScroll;
     }
 
     protected async hasVerticalScroll(): Promise<boolean> {
         const scroll = await this.getVerticalScroll();
+        await this.getDriver().actions().mouseMove(scroll).perform();
         return await scroll.isDisplayed();
     }
 
     protected async hasHorizontalScroll(): Promise<boolean> {
         const scroll = await this.getHorizontalScroll();
+        await this.getDriver().actions().mouseMove(scroll).perform();
         return await scroll.isDisplayed();
     }
 }

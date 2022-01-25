@@ -7,7 +7,8 @@ import {
     MonacoScrollWidget,
     TextEditor,
     TheiaElement,
-    until
+    until,
+    By
 } from '../../../module';
 import { ScrollItemNotFound } from '../../theia-components/widgets/scrollable/ScrollableWidget';
 import { repeat, TimeoutError } from "@theia-extension-tester/repeat";
@@ -20,6 +21,11 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
         const container = parent.findElement(TheiaElement.locators.components.editor.contentAssist.constructor);
         super(element, container, true);
         this.editor = parent;
+    }
+
+    async hasItems(): Promise<boolean> {
+        const element = await this.findElements(By.xpath(".//*[text() = 'No suggestions.']")).catch(() => [1]);
+        return element.length === 0;
     }
 
     async getControllerElement(): Promise<TheiaElement> {

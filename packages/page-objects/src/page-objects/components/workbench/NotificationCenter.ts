@@ -73,6 +73,10 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
     }
 
     async getNotifications(type: NotificationType = NotificationType.Any): Promise<INotification[]> {
+        if (await NotificationCenter.isOpen() === false) {
+            throw new Error('NotificationCenter is not open.');
+        }
+
         const scroll = new NotificationCenterScroll(this);
         const notifications = await scroll.getVisibleItems();
         return await Notification.filterNotifications(this, notifications, type);

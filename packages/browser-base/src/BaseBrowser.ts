@@ -5,6 +5,7 @@ import {
     Builder,
     Capabilities,
     chrome,
+    error,
     firefox,
     Locator,
     logging,
@@ -13,7 +14,7 @@ import {
     SeleniumBrowser,
     until,
     WebDriver
-    } from 'extension-tester-page-objects';
+} from 'extension-tester-page-objects';
 import { getLocatorsPath, PlatformType, TheiaElement } from '@theia-extension-tester/theia-element';
 import { TheiaLocatorLoader } from '@theia-extension-tester/locator-loader';
 import { TheiaTimeouts, timeout } from '@theia-extension-tester/timeout-manager';
@@ -51,6 +52,7 @@ export interface BrowserOptions {
 
 export abstract class BaseBrowser extends SeleniumBrowser {
     private static baseVersion = "1.10.0";
+    private static latestVersion = "1.16.0";
     public static BROWSER_NAME = "Theia";
     private _name!: string;
     private _driver: WebDriver | undefined;
@@ -158,45 +160,56 @@ export abstract class BaseBrowser extends SeleniumBrowser {
         const driverLocation = this.options.driverLocation;
         const pathBackup = process.env.PATH;
 
-        // change PATH variable, so it is possible to use custom WebDriver
-        if (driverLocation) {
-            if (fs.statSync(driverLocation).isDirectory()) {
-                process.env.PATH = [driverLocation, process.env.PATH].join(path.delimiter);
+        try {
+            // change PATH variable, so it is possible to use custom WebDriver
+            if (driverLocation) {
+                if (fs.statSync(driverLocation).isDirectory()) {
+                    process.env.PATH = [driverLocation, process.env.PATH].join(path.delimiter);
+                }
+                else {
+                    process.env.PATH = [path.dirname(driverLocation), process.env.PATH].join(path.delimiter);
+                }
             }
-            else {
-                process.env.PATH = [path.dirname(driverLocation), process.env.PATH].join(path.delimiter);
+
+            this._driver = await new Builder()
+                .withCapabilities(capabilities)
+                .forBrowser(browserName)
+                .setLoggingPrefs(preferences)
+                .setChromeOptions(chromeOptions)
+                .setFirefoxOptions(firefoxOptions)
+                .setOperaOptions(operaOptions)
+                .setSafariOptions(safariOptions)
+                .build();
+
+            await this.driver.manage().window().maximize();
+
+            // Load locators
+            this._version = BaseBrowser.latestVersion;
+
+            const locatorLoader = new TheiaLocatorLoader(
+                this.version, BaseBrowser.baseVersion, getLocatorsPath(this.distribution)
+            );
+
+            TheiaElement.initTheiaElement(locatorLoader.loadLocators(), () => this.timeouts);
+
+            // create fresh screenshot directory
+            fs.removeSync(this.screenshotsStoragePath);
+            fs.mkdirpSync(this.screenshotsStoragePath);
+
+        }
+        catch (e) {
+            if (e instanceof error.WebDriverError) {
+                this._driver?.quit()
+                throw e;
+            }
+        }
+        finally {
+            // restore PATH variable
+            if (driverLocation) {
+                process.env.PATH = pathBackup;
             }
         }
 
-        this._driver = await new Builder()
-            .withCapabilities(capabilities)
-            .forBrowser(browserName)
-            .setLoggingPrefs(preferences)
-            .setChromeOptions(chromeOptions)
-            .setFirefoxOptions(firefoxOptions)
-            .setOperaOptions(operaOptions)
-            .setSafariOptions(safariOptions)
-            .build();
-
-        // restore PATH variable
-        if (driverLocation) {
-            process.env.PATH = pathBackup;
-        }
-
-        await this.driver.manage().window().maximize();
-
-        // Load locators
-        this._version = BaseBrowser.baseVersion;
-
-        const locatorLoader = new TheiaLocatorLoader(
-            this.version, BaseBrowser.baseVersion, getLocatorsPath(this.distribution)
-        );
-
-        TheiaElement.initTheiaElement(locatorLoader.loadLocators(), () => this.timeouts);
-
-        // create fresh screenshot directory
-        fs.removeSync(this.screenshotsStoragePath);
-        fs.mkdirpSync(this.screenshotsStoragePath);
         return this;
     }
 

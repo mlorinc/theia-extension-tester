@@ -13,6 +13,7 @@
   "scripts": {
     "prepublish": "yarn run clean && yarn run build",
     "build": "tsc",
+    "build:page-objects": "yarn build",
     "clean": "rimraf lib"
   },
   "author": "Marian Lorinc <mlorinc@redhat.com>",

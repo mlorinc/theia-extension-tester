@@ -1,5 +1,6 @@
 import { By, Locator } from "extension-tester-page-objects";
 import { TheiaElement } from "..";
+import { DeepPartial } from "ts-essentials";
 
 export interface TheiaLocator {
     locator: By;
@@ -11,11 +12,12 @@ export interface TheiaLocator {
 export type PropertyGetter<T> = (element: TheiaElement, locators: TheiaLocators) => Promise<T>
 
 export type TheiaLocatorProperty = 
-    'collapsed' | 'dirty' | 'enabled' | 'expandable' | 'focused' | 'index' | 'main' | 'secondary' | 'selected' | 'title';
+    'collapsed' | 'dirty' | 'displayed' | 'enabled' | 'expandable' | 'focused' | 'index' | 'main' | 'secondary' | 'selected' | 'title';
 
 export interface TheiaLocatorProperties {
     collapsed?: PropertyGetter<boolean>;
     dirty?: PropertyGetter<boolean>;
+    displayed?: PropertyGetter<boolean>;
     enabled?: PropertyGetter<boolean>;
     expandable?: PropertyGetter<boolean>;
     focused?: PropertyGetter<boolean>;
@@ -103,6 +105,15 @@ export interface MonacoScrollLocator {
         container: TheiaLocator
     }
 }
+ 
+/**
+ * Definition for locator diff object
+ */
+export interface LocatorDiff {
+    locators: DeepPartial<TheiaLocators>
+    extras?: Object
+}
+
 
 export interface TheiaLocators {
     dashboard: {
@@ -163,6 +174,7 @@ export interface TheiaLocators {
                 back: TheiaLocator,
                 constructor: TheiaLocator,
                 error: TheiaLocator,
+                field: TheiaLocator,
                 message: TheiaLocator,
                 progress: TheiaLocator,
                 counter: TheiaLocator,

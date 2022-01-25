@@ -7,6 +7,10 @@ export interface Scroll extends TheiaElement {
     getScrollContainerSize(): Promise<number>
     isScrollOnEnd(): Promise<boolean>;
     isScrollOnStart(): Promise<boolean>;
+    scroll(value: number, timeout?: number): Promise<void>
+    scrollTo(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;
+    scrollAfter(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;
+    scrollBefore(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;
 }
 
 export abstract class ScrollWidget extends TheiaElement implements Scroll {
@@ -68,7 +72,7 @@ export abstract class ScrollWidget extends TheiaElement implements Scroll {
         const position = await this.getScrollPosition();
         const size = await this.getScrollSize();
         const containerSize = await this.getScrollContainerSize();
-
+        console.log(`position + size ==== containerSize <=> ${position} + ${size} === ${containerSize}`);
         return (position + size) === containerSize;
     }
 
@@ -159,5 +163,104 @@ export class VerticalScrollWidget extends ScrollWidget {
     async getScrollContainerSize(): Promise<number> {
         const element = await this.getContainer();
         return (await element.getSize()).height;
+    }
+}
+
+export abstract class HTMLScroll extends TheiaElement implements Scroll {
+    abstract scrollTo(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;
+    abstract scrollAfter(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;
+    abstract scrollBefore(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void>;
+    abstract getScrollPosition(): Promise<number>;
+    abstract getScrollContainerSize(): Promise<number>;
+    protected abstract getScrollEnd(): Promise<number>;
+    protected abstract set(value: number): Promise<void>;
+
+    abstract getScrollSize(): Promise<number>;
+
+    async isScrollOnStart(): Promise<boolean> {
+        return await this.getScrollPosition() === 0;
+    }
+
+    async isScrollOnEnd(): Promise<boolean> {
+        const position = await this.getScrollPosition();
+        const clientHeight = await this.getScrollContainerSize();
+        const scrollHeight = await this.getScrollEnd();
+
+        return clientHeight >= scrollHeight - position;
+    }
+
+    async scroll(value: number, timeout?: number): Promise<void> {
+        if (value === 0) {
+            return;
+        }
+
+        const position = await this.getScrollPosition();
+        const newPosition = position + value;
+        value = value > 0 ? Math.min(newPosition, await this.getScrollEnd()) : Math.max(0, newPosition);
+        await this.set(value);
+        await repeat(async () => await this.getScrollPosition() === value, {
+            timeout: this.timeoutManager().findElementTimeout(timeout),
+            message: `Scroll has not changed position.\nExpected: ${value}.\nActual: ${await this.getScrollPosition()}.`
+        });
+    }
+}
+
+export class HTMLVerticalScroll extends HTMLScroll implements Scroll {
+    getScrollSize(): Promise<number> {
+        throw new Error('Vertical scroll bar size cannot be calculated.');
+    }
+    scrollTo(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    scrollAfter(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    scrollBefore(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    protected async set(value: number): Promise<void> {
+        await this.getDriver().executeScript<number>(`arguments[0].scrollTop = ${value}`, this);
+    }
+    async getScrollPosition(): Promise<number> {
+        return await this.getDriver().executeScript<number>('arguments[0].scrollTop', this);
+    }
+
+    protected async getScrollEnd(): Promise<number> {
+        return await this.getDriver().executeScript<number>('arguments[0].scrollHeight', this);
+    }
+
+    async getScrollContainerSize(): Promise<number> {
+        return (await this.getSize()).height;
+    }
+}
+
+export class HTMLHorizontalScroll extends HTMLScroll implements Scroll {
+    scrollTo(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    scrollAfter(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    scrollBefore(node: TheiaElement, parent?: TheiaElement, timeout?: number): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    protected async set(value: number): Promise<void> {
+        await this.getDriver().executeScript<number>(`arguments[0].scrollLeft = ${value}`, this);
+    }
+
+    async getScrollPosition(): Promise<number> {
+        return await this.getDriver().executeScript<number>('arguments[0].scrollLeft', this);
+    }
+
+    protected async getScrollEnd(): Promise<number> {
+        return await this.getDriver().executeScript<number>('arguments[0].scrollWidth', this);
+    }
+
+    async getScrollContainerSize(): Promise<number> {
+        return (await this.getSize()).width;
+    }
+
+    async getScrollSize(): Promise<number> {
+        return await this.getDriver().executeScript<number>('arguments[0].offsetWidth - arguments[0].clientWidth', this);
     }
 }

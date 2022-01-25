@@ -37,8 +37,10 @@ export class InputWidget extends TheiaElement {
             timeout = this.timeoutManager().defaultTimeout(timeout);
             // choose slower approach, multi step input
             await this.safeClear(timeout, 500);
-            clipboardy.writeSync(text);
-            await this.safeSendKeys(timeout, Key.chord(InputWidget.ctlKey, 'v'));
+            // clipboardy.writeSync(text);
+            await this.focus();
+            // await this.safeSendKeys(timeout, Key.chord(InputWidget.ctlKey, 'v'));
+            await this.safeSendKeys(timeout, text);
 
             await repeat(waitCondition.bind(this), {
                 timeout,

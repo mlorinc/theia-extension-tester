@@ -124,7 +124,35 @@ export const locators: TheiaLocators = {
         editorLoadedComponent: {
             locator: By.id('theia-left-right-split-panel')
         },
-        monacoScroll: MonacoScroll
+        monacoScroll: {
+            constructor: {
+                locator: By.className('monaco-scrollable-element')
+            },
+            item: {
+                locator: By.css('[role="treeitem"]'),
+                properties: {
+                    focused: has('class', 'focused'),
+                    selected: attributeEquals('aria-selected', 'true'),
+                    index: getIntegerAttribute('aria-posinset')
+                }
+            },
+            verticalScroll: {
+                constructor: {
+                    locator: By.className('slider')
+                },
+                container: {
+                    locator: By.css('.scrollbar.vertical')
+                }
+            },
+            horizontalScroll: {
+                constructor: {
+                    locator: By.className('slider')
+                },
+                container: {
+                    locator: By.css('.scrollbar.horizontal')
+                }
+            }
+        }
     },
     components: {
         activityBar: {
@@ -194,9 +222,9 @@ export const locators: TheiaLocators = {
         workbench: {
             input: {
                 constructor: {
-                    locator: By.className('monaco-quick-open-widget'),
+                    locator: By.className('quick-input-widget'),
                     properties: {
-                        title: async (element) => (await element.getEnclosingElement().findElement(By.className('theia-quick-title-header'))).getText(),
+                        title: async (element) => (await element.getEnclosingElement().findElement(By.className('quick-input-title'))).getText(),
                         focused: has('class', 'synthetic-focus', By.className('monaco-inputbox'))
                     }
                 },
@@ -206,11 +234,17 @@ export const locators: TheiaLocators = {
                 error: {
                     locator: By.css('.monaco-inputbox.error')
                 },
+                field: {
+                    locator: By.className('input')
+                },
                 message: {
                     locator: By.className('monaco-highlighted-label')
                 },
                 progress: {
-                    locator: By.className('monaco-progress-container')
+                    locator: By.className('monaco-progress-container'),
+                    properties: {
+                        enabled: has('class', 'done')
+                    }
                 },
                 counter: {
                     locator: By.className('quick-open-result-count')

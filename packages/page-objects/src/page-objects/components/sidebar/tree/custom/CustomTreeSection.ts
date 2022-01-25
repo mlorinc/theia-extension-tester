@@ -46,4 +46,7 @@ class CustomTree extends TreeWidget<CustomTreeItem> {
     protected getItems(): Promise<CustomTreeItem[]> {
         throw new Error("Method not implemented.");
     }
+    async hasItems(): Promise<boolean> {
+        return true;
+    }
 }

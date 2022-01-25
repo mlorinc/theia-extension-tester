@@ -2,6 +2,8 @@ import * as path from 'path';
 export { TheiaElement } from './TheiaElement';
 export * from './RepeatAction';
 export * from './locators/TheiaLocators';
+export { By } from 'extension-tester-page-objects';
+
 
 
 export type PlatformType = 'che' | 'codeready' | 'theia';

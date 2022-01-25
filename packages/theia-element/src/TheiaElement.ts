@@ -128,6 +128,13 @@ export class TheiaElement extends AbstractElement {
         throw new Error(`${this.constructor.name} does not have dirty property.`);
     }
 
+    async isDisplayed(): Promise<boolean> {
+        if (this.hasProperty('displayed')) {
+            return await this.getProperty('displayed') as boolean;
+        }
+        return await super.isDisplayed();
+    }
+
     async isExpandable(): Promise<boolean> {
         if (this.hasProperty('expandable')) {
             return await this.getProperty('expandable') as boolean;

@@ -21,6 +21,7 @@ export abstract class LocatorLoader<T> {
         this.version = this.parseVersion(version)
         this.baseVersion = baseVersion;
         this.baseFolder = path.resolve(baseFolder);
+        console.log(`Loading "${baseVersion}" locators.`);
         const temp = require(path.resolve(baseFolder, baseVersion));
         this.locators = temp.locators;
     }
@@ -53,6 +54,7 @@ export abstract class LocatorLoader<T> {
         }
 
         for (let i = 0; i < versions.length; i++) {
+            console.log(`Loading "${versions[i]}" locators.`);
             const diff = require(path.join(this.baseFolder, versions[i])).diff as LocatorDiff<T>;
 
             this.locators = mergeLocators(this.locators, diff);

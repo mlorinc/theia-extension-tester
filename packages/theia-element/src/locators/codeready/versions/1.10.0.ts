@@ -2,8 +2,6 @@ import { By } from "extension-tester-page-objects";
 import { locators as baseLocators } from "../../che/versions/1.10.0";
 import { TheiaLocators } from "../../..";
 
-baseLocators.widgets.editorFrame.locator = By.id('ide-iframe');
-
 baseLocators.dashboard.menu.locator = By.id('chenavbar');
 baseLocators.widgets.list.locator = By.css('md-list');
 baseLocators.widgets.listItem.locator = By.css('md-list-item');

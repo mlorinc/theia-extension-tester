@@ -350,6 +350,10 @@ class DefaultTree extends FileTreeWidget<DefaultTreeItem> {
         super(undefined, parent, root);
     }
 
+    async hasItems(): Promise<boolean> {
+        return true;
+    }
+
     protected async mapTreeNode(node: TheiaElement, parent: TheiaElement): Promise<DefaultTreeItem> {
         return new DefaultTreeItem(node, parent);
     }

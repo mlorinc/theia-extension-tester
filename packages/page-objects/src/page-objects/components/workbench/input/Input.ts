@@ -5,6 +5,7 @@ import {
     IQuickPickItem,
     Key,
     QuickPickScroller,
+    ScrollItemNotFound,
     SeleniumBrowser,
     TheiaElement
 } from '../../../../module';
@@ -22,7 +23,7 @@ export class Input extends InputWidget implements IInputBox {
 
     constructor() {
         const container = new InputContainer();
-        super({ parent: container });
+        super({ element: Input.locators.components.workbench.input.field, parent: container });
         this.container = container;
     }
 
@@ -42,8 +43,21 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async findQuickPick(indexOrText: string | number): Promise<IQuickPickItem> {
-        const scroll = new QuickPickScroller(this);
-        return scroll.findItem(indexOrText, this.timeoutManager().findElementTimeout());
+        return await repeat(async () => {
+            try {
+                const scroll = new QuickPickScroller(this);
+                return await scroll.findItem(indexOrText, this.timeoutManager().findElementTimeout());
+            }
+            catch (e) {
+                if (e instanceof ScrollItemNotFound) {
+                    return undefined;
+                }
+                throw e;
+            }
+        }, {
+            timeout: this.timeoutManager().defaultTimeout(),
+            message: `Could not find quick pick with ${typeof indexOrText === 'number' ? 'index' : 'label'} "${indexOrText}".`
+        }) as IQuickPickItem;
     }
 
     async getTitle(): Promise<string> {
@@ -69,8 +83,12 @@ export class Input extends InputWidget implements IInputBox {
     }
 
     async hasProgress(): Promise<boolean> {
-        const progress = await this.container.findElements(Input.locators.components.workbench.input.progress);
-        return progress.length === 1 && await progress[0].isDisplayed();
+        const progress = await this.container.findElements(Input.locators.components.workbench.input.progress) as TheiaElement[];
+        console.log(progress.length > 0 ? await progress[0].getAttribute('class') : undefined);
+        console.log(progress.length > 0 ? `not(Enabled): ${! await progress[0].isEnabled()}` : undefined);
+        console.log(progress.length > 0 ? `Displayed: ${await progress[0].isDisplayed()}` : undefined);
+        console.log(progress.length);
+        return progress.length === 1 && await progress[0].isDisplayed() && !(await progress[0].isEnabled());
     }
 
     async getQuickPicks(): Promise<IQuickPickItem[]> {
@@ -120,6 +138,11 @@ export class Input extends InputWidget implements IInputBox {
 
     async isFocused(): Promise<boolean> {
         return this.container.isFocused();
+    }
+
+    async getCounter(): Promise<TheiaElement> {
+        const element = await this.container.findElement(QuickPickScroller.locators.components.workbench.input.counter) as TheiaElement;
+        return element;
     }
 
     static async isOpen(): Promise<boolean> {
