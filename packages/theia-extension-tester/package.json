@@ -33,9 +33,12 @@
     "@theia-extension-tester/base-browser": "^1.0.0",
     "@theia-extension-tester/browser-runner": "^1.0.0",
     "@theia-extension-tester/che-browser": "^1.0.0",
+    "@theia-extension-tester/che-factory-runner": "^1.0.0",
+    "@theia-extension-tester/openshift-authenticator": "^1.0.0",
     "@theia-extension-tester/page-objects": "^1.0.0",
     "@theia-extension-tester/theia-browser": "^1.0.0",
     "commander": "^8.2.0",
+    "dotenv": "^10.0.0",
     "fs-extra": "^10.0.0"
   }
 }

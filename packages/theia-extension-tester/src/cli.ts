@@ -2,14 +2,15 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { ITimeouts } from '@theia-extension-tester/base-browser';
+import { BaseBrowser, BrowserOptions, ITimeouts } from '@theia-extension-tester/base-browser';
 import { program } from 'commander';
-import { TheiaBrowser, TheiaBrowserRunner } from './';
+import { CheTheiaBrowser, TheiaBrowser, TheiaBrowserRunner, CheTheiaFactoryRunner, OpenShiftAuthenticator, OpenShiftAuthenticatorMethod } from './';
 import { theia } from '@theia-extension-tester/adapters';
+import { config } from 'dotenv';
 
 const defaultTimeouts: ITimeouts = {
     implicit: 30000,
-    pageLoad: 50000
+    pageLoad: 300000
 };
 const templateCommand = 'use-folder-as-template';
 
@@ -31,6 +32,22 @@ async function main() {
         .option('-m, --mocha <configuration>', 'Mocha configuration. Might be path to mocha file or string with JSON format.', '{}')
         .action(theiaAction);
 
+    program.command('che:run')
+        .description('Run UI test on Eclipse Che.')
+        .argument('<devfile>', 'Url to devfile which will create workspace')
+        .argument('<tests...>', 'Path to test suites which will be executed')
+        .option('-u, --url <url>', 'Eclipse Che url', 'http://localhost:3000/')
+        .option('-b, --browser <path>', 'Path to the Internet browser binary or browser name', 'chrome')
+        .option('-d, --driver <path>', 'Path to Selenium WebDriver binary')
+        .option('-c, --clean', 'Clean session after testing', false)
+        .option('-l, --log <level>', 'Log messages from webdriver with a given level', 'Info')
+        .option('-t, --timeouts <timeouts>', 'Test timeouts. Might be path to file or string with JSON format', JSON.stringify(defaultTimeouts))
+        .option('--devfile-attributes <devfileAttributes>', 'Devfile attributes.')
+        .option('-e, --env <env>', 'Path to .env file with login credentials')
+        .option('-a, --authentication <authentication>', 'Authentication mechanism to use when use is about to log in', 'openshift')
+        .option('-m, --mocha <configuration>', 'Mocha configuration. Might be path to mocha file or string with JSON format.', '{}')
+        .action(cheAction);
+
     program.command('theia-electron:run')
         .description('Run UI test on Eclipse Theia Electron application.')
         .argument('<tests...>', 'Path to test suites which will be executed')
@@ -45,10 +62,8 @@ async function main() {
     program.parse(process.argv);
 }
 
-async function theiaAction(tests: string[], options: any, command: any): Promise<void> {
-    // apply theia adapter just in case if tests are using vscode-extension-tester
-    theia();
-    const browser = new TheiaBrowser(getBrowserName(options.browser), {
+async function createBrowser(options: any, ctor: new (name: string, options: BrowserOptions) => BaseBrowser) {
+    return new ctor(getBrowserName(options.browser), {
         browserLocation: await getBrowserLocation(options.browser),
         cleanSession: options.clean,
         distribution: 'codeready',
@@ -56,7 +71,12 @@ async function theiaAction(tests: string[], options: any, command: any): Promise
         logLevel: options.level,
         timeouts: await parseFileJsonArgument(options.timeouts, true, 'timeouts') as ITimeouts
     });
+}
 
+async function theiaAction(tests: string[], options: any, command: any): Promise<void> {
+    // apply theia adapter just in case if tests are using vscode-extension-tester
+    theia();
+    const browser = await createBrowser(options, TheiaBrowser);
     let folder: string = options.folder;
     if (options[templateCommand]) {
         if (options.folder === undefined) {
@@ -71,6 +91,52 @@ async function theiaAction(tests: string[], options: any, command: any): Promise
         mochaOptions: await parseFileJsonArgument(options.mocha, true, 'mocha') as Mocha.MochaOptions,
         query: await parseFileJsonArgument(options.query, true, 'query') as { [key: string]: string }
     });
+    process.exit(await runner.runTests(tests));
+}
+
+async function cheAction(devfile: string, tests: string[], options: any, command: any): Promise<void> {
+    // apply theia adapter just in case if tests are using vscode-extension-tester
+    theia();
+
+    config({
+        path: options.env
+    });
+
+    const errors = [];
+    
+    if (process.env.CHE_USERNAME === undefined) {
+        errors.push('CHE_USERNAME is not defined');
+    }
+
+    if (process.env.CHE_PASSWORD === undefined) {
+        errors.push('CHE_PASSWORD is not defined');
+    }
+
+    if (errors.length > 0) {
+        throw new Error(errors.join('\n'));
+    }
+
+	const authenticator = new OpenShiftAuthenticator({
+		inputData: [
+			{
+				name: 'username',
+				value: process.env.CHE_USERNAME as string
+			},
+			{
+				name: 'password',
+				value: process.env.CHE_PASSWORD as string
+			}
+		],
+		multiStepForm: true,
+		loginMethod: OpenShiftAuthenticatorMethod.DEVSANDBOX
+	});
+
+    const browser = await createBrowser(options, CheTheiaBrowser);
+    const runner = new CheTheiaFactoryRunner(browser, {
+        cheUrl: options.url,
+        factoryUrl: devfile,
+        factoryAttributes: options.devfileAttributes ? JSON.parse(options.devfileAttributes) : undefined
+    }, authenticator);
     process.exit(await runner.runTests(tests));
 }
 
