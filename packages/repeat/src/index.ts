@@ -14,7 +14,7 @@ export interface RepeatArguments {
 	/**
 	 * Error message when repeat time outs.
 	 */
-	message?: string | (() => string);
+	message?: string | (() => string | PromiseLike<string>);
 
 	// Repeat identification. For log purposes.
 	id?: string;
@@ -46,46 +46,91 @@ export class Threshold {
 	}
 }
 
+export enum LoopStatus {
+	LOOP_DONE, LOOP_UNDONE
+}
+
+export type RepeatLoopResult<T> = {
+	value?: T;
+	loopStatus: LoopStatus;
+	delay?: number;
+}
+
+export class RepeatError extends Error {}
+export class RepeatExitError extends Error {}
+
 export class Repeat<T> {
 	protected timeout?: number;
 	protected id: string;
 	protected threshold: Threshold;
-	private message?: string | (() => string);
-	private plannedTask?: NodeJS.Immediate;
+	private message?: string | (() => string | PromiseLike<string>);
+	private clearTask?: () => void;
 	private resolve!: Resolver<T>;
 	private reject!: Rejecter;
 	private promise!: Promise<T>;
 	private run: boolean = false;
 	private hasStarted: boolean = false;
+	private finishedLoop: boolean = false;
+	private usingExplicitLoopSignaling: boolean = false;
 
-	constructor(protected func: (() => T | PromiseLike<T>), protected options?: RepeatArguments) {
+	constructor(protected func: (() => T | PromiseLike<T> | RepeatLoopResult<T> | PromiseLike<RepeatLoopResult<T>>), protected options?: RepeatArguments) {
 		this.timeout = options?.timeout;
 		this.id = options?.id ?? 'anonymous';
 		this.threshold = new Threshold(options?.threshold ?? 0);
 		this.message = options?.message;
 		this.loop = this.loop.bind(this);
+		this.cleanup = this.cleanup.bind(this);
 	}
 
 	protected async loop(): Promise<void> {
 		// task has been started
-		this.plannedTask = undefined;
+		this.clearTask = undefined;
 
-		if (this.run === false) {
-			this.reject(new Error('Aborted'));
+		if (this.run === false || process.exitCode !== undefined) {
+			this.reject(new RepeatExitError(`Aborted task with id"${this.id}".`));
 		}
 
 		try {
-			const value = await this.func();
+			const functionResult = await this.func();
+
+			let value: T | undefined = undefined;
+			let delay = 0;
+			let simpleForm = true;
+
+			if (functionResult !== undefined && Object.keys(functionResult).includes('delay')) {
+				const status = functionResult as RepeatLoopResult<T>;
+				delay = status.delay ?? 0;
+				simpleForm = false;
+			}
+
+			if (functionResult !== undefined && Object.keys(functionResult).includes('loopStatus')) {
+				const status = functionResult as RepeatLoopResult<T>;
+				this.finishedLoop = this.finishedLoop || status.loopStatus === LoopStatus.LOOP_DONE;
+				this.usingExplicitLoopSignaling = true;
+				simpleForm = false;
+			}
+
+			if (functionResult !== undefined && Object.keys(functionResult).includes('value')) {
+				const status = functionResult as RepeatLoopResult<T>;
+				value = status.value;
+				simpleForm = false;
+			}
+
+			// check if repeat object was returned
+			if (simpleForm) {
+				value = functionResult as T;
+			}
+		
 			if (value && this.threshold.hasFinished()) {
 				this.resolve(value);
 			}
 			else if (value) {
-				this.scheduleNextLoop();
+				this.scheduleNextLoop(delay);
 			}
 			else {
 				this.threshold.reset();
 				if (this.run) {
-					this.scheduleNextLoop();
+					this.scheduleNextLoop(delay);
 				}
 			}
 		}
@@ -96,7 +141,7 @@ export class Repeat<T> {
 
 	async execute(): Promise<T> {
 		if (this.hasStarted) {
-			throw new Error('It is not possible to run Repeat task again. Create new instance.');
+			throw new RepeatError('It is not possible to run Repeat task again. Create new instance.');
 		}
 
 		this.hasStarted = true;
@@ -124,13 +169,13 @@ export class Repeat<T> {
 
 	abort(value: Error | T | undefined): void {
 		if (!this.hasStarted) {
-			throw new Error('Repeat has not been started.');
+			throw new RepeatError('Repeat has not been started.');
 		}
 
 		this.run = false;
 
 		if (typeof (value) === 'undefined') {
-			this.reject(new Error('Aborted'));
+			this.reject(new RepeatError(`Aborted task with id"${this.id}".`));
 		}
 		else if (value instanceof Error) {
 			this.reject(value);
@@ -142,18 +187,31 @@ export class Repeat<T> {
 
 	protected cleanup(): void {
 		this.run = false;
-		if (this.plannedTask) {
-			clearImmediate(this.plannedTask);
-			this.plannedTask = undefined;
+		if (this.clearTask) {
+			this.clearTask();
+			this.clearTask = undefined;
 		}
 	}
 
-	private scheduleNextLoop(): void {
-		if (this.timeout !== 0) {
-			this.plannedTask = setImmediate(this.loop);
+	private scheduleNextLoop(delay: number = 0): void {
+		if (this.timeout !== 0 || (this.usingExplicitLoopSignaling && !this.finishedLoop)) {
+			if (delay === 0) {
+				const handler = setImmediate(this.loop);
+				this.clearTask = () => clearImmediate(handler);
+			}
+			else {
+				const handler = setTimeout(this.loop, delay);
+				this.clearTask = () => clearTimeout(handler);
+			}
+		}
+		else if (this.usingExplicitLoopSignaling === false) {
+			this.reject(new TimeoutError(this.resolve, 'Cannot iterate more than 1 times. Timeout is set to 0.', this.id))
+		}
+		else if(this.finishedLoop) {
+			this.reject(new TimeoutError(this.resolve, 'Cannot perform more than 1 loops. Timeout is set to 0.', this.id))
 		}
 		else {
-			this.reject(new TimeoutError(this.resolve, 'Cannot iterate more than 1 times. Timeout is set to 0.', this.id))
+			throw new RepeatError('Unexpected state.');
 		}
 	}
 }
@@ -164,7 +222,7 @@ export class Repeat<T> {
  * @param func function to repeat
  * @param options repeat options
  */
-export async function repeat<T>(func: (() => T | PromiseLike<T>), options?: RepeatArguments): Promise<T> {
+export async function repeat<T>(func: (() => T | PromiseLike<T> | RepeatLoopResult<T> | PromiseLike<RepeatLoopResult<T>>), options?: RepeatArguments): Promise<T> {
 	return new Repeat(func, options).execute();
 }
 
