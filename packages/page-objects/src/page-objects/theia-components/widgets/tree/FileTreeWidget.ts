@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { PathUtils } from '@theia-extension-tester/path-utils';
 import { repeat } from '@theia-extension-tester/repeat';
 import {
@@ -13,10 +12,14 @@ import {
 import { error } from 'extension-tester-page-objects';
 
 export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<T> {
-    private root: PromiseLike<string> | string;
-    constructor(element: WebElement | undefined, parent: WebElement, root: PromiseLike<string> | string) {
+    private seenExpandedFolder: boolean;
+    private searchLock: boolean;
+
+    constructor(element: WebElement | undefined, parent: WebElement) {
         super(element, parent);
-        this.root = root;
+        this.seenExpandedFolder = false;
+        this.searchLock = false;
+        this.fileComparator = this.fileComparator.bind(this);
     }
 
     protected abstract mapTreeNode(node: TheiaElement, parent: TheiaElement): Promise<T>;
@@ -53,65 +56,62 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
 
     async getVisibleItems(): Promise<T[]> {
         const items = await super.getVisibleItems();
-
+        let backwards = false;
+        
         while (items.length > 0) {
             try {
-                const height = await items[0].getComputedStyleNumber('height');
-                const visibleHeight = (await items[0].getSize()).height;
+                const item = items[(backwards) ? (items.length - 1) : (0)];
+                const height = await item.getComputedStyleNumber('height');
+                const visibleHeight = (await item.getSize()).height;
 
                 // if at least 55% percent of element is visible
                 if (height * 0.55 < visibleHeight) {
-                    break;
+                    if (backwards) {
+                        break;
+                    }
+                    else {
+                        backwards = true;
+                    }
+                }
+                else {
+                    if (backwards) {
+                        items.pop()
+                    }
+                    else {
+                        items.shift();
+                    }
                 }
             }
             catch (e) {
                 // ignore removed files
                 if (e instanceof error.StaleElementReferenceError) {
-                    throw e;
+                    continue;
                 }
+                throw e;
             }
-
-            items.shift();
-        }
-
-        while (items.length > 0) {
-            try {
-                const height = await items[items.length - 1].getComputedStyleNumber('height');
-                const visibleHeight = (await items[items.length - 1].getSize()).height;
-
-                // if at least 55% percent of element is visible
-                if (height * 0.55 < visibleHeight) {
-                    break;
-                }
-            }
-            catch (e) {
-                // ignore removed files
-                if (e instanceof error.StaleElementReferenceError) {
-                    throw e;
-                }
-            }
-            items.pop();
         }
 
         return items;
     }
 
-    private fileComparator(root: string, segments: string[], currentPath: string[], index: number, type: FileType) {
+    private fileComparator(currentPath: string[], type: FileType) {
         return async (item: T) => {
             let itemPath: string = await item.getPath();
+            const itemPathSegments = PathUtils.convertToTreePath(itemPath);
 
-            if (root !== '/') {
-                itemPath = PathUtils.getRelativePath(itemPath, root);
+            console.log(`A: ${itemPathSegments.join(', ')}`);
+            console.log(`B: ${currentPath.join(', ')}\n`);
+            if (PathUtils.isRelativeTo(itemPathSegments, currentPath)) {
+                this.seenExpandedFolder = true;
             }
 
             const isFile = await item.isFile();
-            const currentFileType = index === segments.length ? type : FileType.FOLDER;
 
             // reverse logic in list
             const result = PathUtils.comparePaths(
                 currentPath,
-                PathUtils.convertToTreePath(itemPath),
-                currentFileType === FileType.FILE,
+                itemPathSegments,
+                type === FileType.FILE,
                 isFile
             );
 
@@ -119,60 +119,84 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
         }
     }
 
+    private getSearchFileType(targetType: FileType, pathLength: number, currentPathLength: number): FileType {
+        return (currentPathLength === pathLength) ? (targetType) : (FileType.FOLDER)
+    }
+
+    private transformScrollItemError(e: Error, targetPathSegments: string[]): Error {
+        if (e instanceof ScrollItemNotFound) {
+            return new TreeItemNotFound(targetPathSegments, e.message);
+        }
+        return e;
+    }
+
     async findFile(filePath: string | string[], type: FileType, timeout: number = 0): Promise<T> {
-        const root = await this.root;
-        if (typeof filePath === 'string' && path.isAbsolute(filePath) && root !== '/') {
-            // check if absolute path is relative to root
-            PathUtils.getRelativePath(filePath, root);
+        if (this.searchLock) {
+            throw new Error('This method cannot be called multiple times at once.');
         }
 
-        let segments: string[] = [];
-
+        let targetPathSegments: string[] = [];
         if (typeof filePath === 'string') {
-            segments = PathUtils.convertToTreePath(filePath);
+            targetPathSegments = PathUtils.convertToTreePath(filePath);
         }
         else {
-            segments = filePath;
+            targetPathSegments = filePath;
         }
 
+        if (targetPathSegments.length === 0) {
+            throw new Error('Cannot pass empty path.');
+        }
+
+        this.searchLock = true;
+
+        console.log(`Looking for: ${targetPathSegments.join(', ')}`);
+
         async function loop(this: FileTreeWidget<T>): Promise<T> {
-            for (let index = 1; index <= segments.length; index++) {
-                const currentPath = segments.slice(0, index);
+            for (let index = 1; index <= targetPathSegments.length; index++) {
+                const currentPath = targetPathSegments.slice(0, index);
+                
                 try {
                     const item = await this.findItemWithComparator(
-                        this.fileComparator(root, segments, currentPath, index, type),
+                        this.fileComparator(currentPath, this.getSearchFileType(type, targetPathSegments.length, currentPath.length)),
                         timeout
                     );
 
-                    if (index === segments.length) {
+                    if (index === targetPathSegments.length) {
                         return item;
                     }
                     else if (await item.isExpandable()) {
                         await item.expand();
                     }
                     else {
-                        throw new TreeItemNotFound(segments, `Remaining path ${segments.slice(index).join('/')} does not exist.`);
+                        throw new TreeItemNotFound(targetPathSegments, `Remaining path ${targetPathSegments.slice(index).join('/')} does not exist.`);
                     }
                 }
                 catch (e) {
                     if (e instanceof ScrollItemNotFound || e instanceof TreeItemNotFound) {
-                        if (timeout === 0) {
-                            if (e instanceof ScrollItemNotFound) {
-                                throw new TreeItemNotFound(segments, e.message);
-                            }
-                            else {
-                                throw e;
-                            }
+                        if (this.seenExpandedFolder) {
+                            continue;
                         }
-                        index--;
+
+                        if (timeout === 0) {
+                            throw this.transformScrollItemError(e, targetPathSegments);
+                        }
+                        index = Math.max(1, index - 1);
                         continue;
                     }
                     throw e;
                 }
+                finally {
+                    this.seenExpandedFolder = false;
+                }
             }
-            throw new TreeItemNotFound(segments);
+            throw new TreeItemNotFound(targetPathSegments);
         }
 
-        return await repeat(loop.bind(this), { timeout });
+        try {
+            return await repeat(loop.bind(this), { timeout });
+        }
+        finally {
+            this.searchLock = false;
+        }
     }
 }
