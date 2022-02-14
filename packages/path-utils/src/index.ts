@@ -6,9 +6,6 @@ export module PathUtils {
         let start = 0;
         let end = filePath.length;
 
-        if (filePath.startsWith(path.sep)) {
-            start = 1;
-        }
         if (filePath.endsWith(path.sep)) {
             end = -1;
         }
@@ -17,7 +14,13 @@ export module PathUtils {
     }
 
     export function splitPath(filePath: string): string[] {
-        return trimPath(filePath).split(path.sep);
+        const segments = trimPath(filePath).split(path.sep);
+
+        if (segments[0].length === 0) {
+            segments[0] = '/';
+        }
+        
+        return segments;
     }
 
     export function convertToTreePath(filePath: string): string[] {
@@ -52,6 +55,19 @@ export module PathUtils {
         }
 
         return relativePath;
+    }
+
+    export function isRelativeTo(path: string[], to: string[]) {
+        if (path.length < to.length) {
+            return false;
+        }
+
+        for (let i = 0; i < to.length; i++) {
+            if (path[i] !== to[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     export function normalizePath(filePath: string): string {
