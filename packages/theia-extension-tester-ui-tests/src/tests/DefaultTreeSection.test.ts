@@ -1,22 +1,24 @@
 import { expect } from "chai";
-import { DefaultTreeSection, EditorView, ISideBarView, IViewContent, IViewControl, IWorkbench, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
+import { IDefaultTreeSection, EditorView, IViewControl, IWorkbench, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
 import * as path from "path";
-import { deleteFiles } from "./utils/File";
+import { deleteFiles, getExplorerSection } from "./utils/File";
 
 describe.skip('DefaultTreeSection', function () {
     this.timeout(60000);
     let workbench: IWorkbench;
-    let view: ISideBarView;
-    let content: IViewContent;
     let control: IViewControl;
-    let section: DefaultTreeSection;
+    let section: IDefaultTreeSection;
+
+    const root = 'quarkus-quickstarts';
+    const FILE_TXT = path.join(root, 'file.txt');
+    const FILE_ABSOLUTE_TXT = path.join(root, 'file-absolute.txt');
+    const FOLDER = path.join(root, 'folder');
+    const FOLDER_ABSOLUTE = path.join(root, 'folder-absolute');
 
     before(async function () {
         workbench = new Workbench();
         control = await workbench.getActivityBar().getViewControl('Explorer') as IViewControl;
-        view = await control.openView();
-        content = view.getContent();
-        section = (await content.getSections())[0] as DefaultTreeSection;
+        section = await getExplorerSection();
         await cleanFiles();
         await new EditorView().closeAllEditors();
     });
@@ -32,7 +34,7 @@ describe.skip('DefaultTreeSection', function () {
     });
 
     async function cleanFiles() {
-        await deleteFiles('file.txt', 'file-absolute.txt', 'folder', 'folder-absolute');
+        await deleteFiles(FILE_TXT, FILE_ABSOLUTE_TXT, FOLDER, FOLDER_ABSOLUTE);
     }
 
     it('getVisibleItems', async function () {
@@ -57,13 +59,18 @@ describe.skip('DefaultTreeSection', function () {
         expect(await item?.getLabel()).equals('.theia');
     });
 
+    it('findItemByPath', async function () {
+        const item = await section.findItemByPath('quarkus-quickstarts', 'getting-started', '.gitignore');
+        expect(await item?.getLabel()).equals('.gitignore');
+    });
+
     for (let i = 1; i <= 2; i++) {
         it(`createFolder - level ${i}`, async function() {
-            const folder = path.join(...new Array<string>(i).fill('folder'));
+            const folder = path.join(root, ...new Array<string>(i).fill('folder'));
             await section.createFolder(folder);
             expect(await section.existsFolder(folder)).to.be.true;
     
-            const folderAbsolute = path.join(...new Array<string>(i).fill('folder-absolute'));
+            const folderAbsolute = path.join(root, ...new Array<string>(i).fill('folder-absolute'));
             await section.createFolder(folderAbsolute);
             expect(await section.existsFolder(folderAbsolute)).to.be.true;
         });
@@ -71,38 +78,37 @@ describe.skip('DefaultTreeSection', function () {
 
     for (let i = 1; i <= 2; i++) {
         it(`createFile - level ${i}`, async function() {
-            const file = path.join(...new Array<string>(i-1).fill('folder'), 'file.txt');
+            const file = path.join(root, ...new Array<string>(i-1).fill('folder'), 'file.txt');
             await section.createFile(file);
             expect(await section.existsFile(file)).to.be.true;
     
-            const fileAbsolute = path.join(...new Array<string>(i-1).fill('folder-absolute'), 'file-absolute.txt');
+            const fileAbsolute = path.join(root, ...new Array<string>(i-1).fill('folder-absolute'), 'file-absolute.txt');
             await section.createFile(fileAbsolute);
             expect(await section.existsFile(fileAbsolute)).to.be.true;
         });
     }
 
     it('existsFolder', async function() {
-        expect(await section.existsFolder('folder', this.timeout())).to.be.true;
+        expect(await section.existsFolder(FOLDER, this.timeout())).to.be.true;
         expect(await section.existsFolder(path.join(await workbench.getOpenFolderPath(), 'folder', 'folder'))).to.be.true;
         expect(await section.existsFolder('experiment', 3000)).to.be.false;
         expect(await section.existsFolder('experiment', 0)).to.be.false;
-        expect(await section.existsFolder('folder', this.timeout())).to.be.true;
-        expect(await section.existsFolder('folder/folder', this.timeout())).to.be.true;
+        expect(await section.existsFolder(FOLDER, this.timeout())).to.be.true;
+        expect(await section.existsFolder(path.join(FOLDER, 'folder'), this.timeout())).to.be.true;
     });
 
     it('existsFile', async function() {
-        expect(await section.existsFile('folder/file.txt', this.timeout())).to.be.true;
+        expect(await section.existsFile(path.join(FOLDER, 'file.txt'), this.timeout())).to.be.true;
         expect(await section.existsFile(path.join(await workbench.getOpenFolderPath(), 'folder', 'file.txt'))).to.be.true;
         expect(await section.existsFile('experiment', 3000)).to.be.false;
         expect(await section.existsFile('experiment', 0)).to.be.false;
-        expect(await section.existsFile('file.txt', this.timeout())).to.be.true;
-        expect(await section.existsFile('folder/file.txt', this.timeout())).to.be.true;
+        expect(await section.existsFile(FILE_TXT, this.timeout())).to.be.true;
     });
 
     it('deleteFile', async function() {
-        expect(await section.existsFile('file.txt')).to.be.true;
-        await section.deleteFile('file.txt');
-        expect(await section.existsFile('file.txt', 0)).to.be.false;
+        expect(await section.existsFile(FILE_TXT)).to.be.true;
+        await section.deleteFile(FILE_TXT);
+        expect(await section.existsFile(FILE_TXT, 0)).to.be.false;
 
         const file = path.join(await workbench.getOpenFolderPath(), 'folder', 'file.txt');
         expect(await section.existsFile(file)).to.be.true;
@@ -111,8 +117,8 @@ describe.skip('DefaultTreeSection', function () {
     });
 
     it('deleteFolder', async function() {
-        expect(await section.existsFolder('folder')).to.be.true;
-        await section.deleteFolder('folder');
+        expect(await section.existsFolder(FOLDER)).to.be.true;
+        await section.deleteFolder(FOLDER);
         expect(await section.existsFolder('folder', 0)).to.be.false;
 
         const folder = path.join(await workbench.getOpenFolderPath(), 'folder-absolute', 'folder-absolute');
@@ -122,12 +128,12 @@ describe.skip('DefaultTreeSection', function () {
     });
 
     it('openFile', async function() {
-        const file = 'folder-absolute/file-absolute.txt';
+        const file = path.join(FOLDER_ABSOLUTE, 'file-absolute.txt');
         expect(await section.existsFile(file)).to.be.true;
         let editor = await section.openFile(file) as TextEditor;
         expect(await editor.getFilePath()).equals(path.join(await workbench.getOpenFolderPath(), file));
 
-        const rootFile = 'file-absolute.txt';
+        const rootFile = FILE_ABSOLUTE_TXT;
         expect(await section.existsFile(rootFile)).to.be.true;
         editor = await section.openFile(rootFile) as TextEditor;
         expect(await editor.getFilePath()).equals(path.join(await workbench.getOpenFolderPath(), rootFile));

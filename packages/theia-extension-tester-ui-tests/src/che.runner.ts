@@ -14,6 +14,8 @@ async function main() {
 		process.exit(1);
 	}
 
+	process.env['THEIA_EXPECTED_WORKBENCH_PATH'] = '/projects'
+
 	const authenticator = new OpenShiftAuthenticator({
 		inputData: [
 			{

@@ -52,7 +52,7 @@ export interface BrowserOptions {
 
 export abstract class BaseBrowser extends SeleniumBrowser {
     private static baseVersion = "1.10.0";
-    private static latestVersion = "1.16.0";
+    private static latestVersion = "1.17.0";
     public static BROWSER_NAME = "Theia";
     private _name!: string;
     private _driver: WebDriver | undefined;
@@ -63,13 +63,14 @@ export abstract class BaseBrowser extends SeleniumBrowser {
     constructor(private browserName: string, private options: BrowserOptions) {
         super();
         this._name = BaseBrowser.BROWSER_NAME;
-        this._distribution = options.distribution ?? 'che';
+        this._distribution = options.distribution ?? 'theia';
         SeleniumBrowser.instance = this;
         BaseBrowser.instance = this;
         this._timeouts = {
             findElementTimeout: timeout(options?.timeouts?.implicit || 0),
             defaultTimeout: timeout(() => this.timeouts.findElementTimeout),
-            pageLoadTimeout: timeout(options?.timeouts?.pageLoad || 0)
+            pageLoadTimeout: timeout(options?.timeouts?.pageLoad || 0),
+            clearNotificationsThreshold: timeout(500)
         }
     }
 

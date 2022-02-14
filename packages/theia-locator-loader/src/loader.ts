@@ -21,7 +21,7 @@ export abstract class LocatorLoader<T> {
         this.version = this.parseVersion(version)
         this.baseVersion = baseVersion;
         this.baseFolder = path.resolve(baseFolder);
-        console.log(`Loading "${baseVersion}" locators.`);
+        console.log(`Loading "${path.join(baseFolder)}" locators.`);
         const temp = require(path.resolve(baseFolder, baseVersion));
         this.locators = temp.locators;
     }
@@ -36,6 +36,8 @@ export abstract class LocatorLoader<T> {
         let versions = fs.readdirSync(this.baseFolder)
             .filter((file) => file.endsWith('.js'))
             .map((file) => path.basename(file, '.js'));
+        
+        console.log(`Found following locator versions: ${versions.join(', ')}`);
         
         if (compareVersions(this.baseVersion, this.version) === 0) {
             return this.locators;

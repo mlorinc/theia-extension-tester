@@ -41,7 +41,10 @@ export class TextEditor extends Editor implements ITextEditor {
         await body.safeClick(Button.LEFT, timeout);
     }
 
-    async sendKeys(...var_args: (string | Promise<string>)[]): Promise<void> {
+    async sendKeys(...var_args: (string | Promise<string>)[]): Promise<void> {  
+        if (await (await this.getTab()).isSelected() === false) {
+            throw new Error(`Cannot send keys. Editor "${await this.toString()}" is not opened in the window.`);
+        }
         await this.getDriver().actions().sendKeys(...var_args).perform();
     }
 
@@ -50,13 +53,22 @@ export class TextEditor extends Editor implements ITextEditor {
         return await tab.isDirty();
     }
 
-    async save(): Promise<void> {
+    async save(timeout?: number): Promise<void> {
+        await this.focus();
         await this.sendKeys(Key.chord(TextEditor.ctlKey, 's'));
-        await this.getDriver().wait(async () => await this.isDirty() === false, this.timeoutManager().defaultTimeout(), 'Could not save editor. Dirty flag is visible.');
+        await repeat(async () => await this.isDirty() === false, {
+            timeout: this.timeoutManager().defaultTimeout(timeout),
+            message: `Could not save editor "${await this.toString()}". Dirty flag is visible.`
+        });
     }
 
     async getFileUri(id?: string): Promise<string> {
-        let uri = (id ?? await this.getIdentification()).replace('code-editor-opener:', '');
+        let uri = id ?? await this.getIdentification();
+        let startIndex = uri.indexOf('file://');
+
+        if (startIndex === -1) {
+            throw new Error(`Unexpected tab id "${uri}".`);
+        }
 
         const index = uri.lastIndexOf(':');
         if (index >= 0) {
@@ -67,10 +79,10 @@ export class TextEditor extends Editor implements ITextEditor {
                 return uri;
             }
 
-            return uri.slice(0, index);
+            return uri.slice(startIndex, index);
         }
         else {
-            return uri;
+            return uri.slice(startIndex);
         }
     }
 
@@ -92,7 +104,7 @@ export class TextEditor extends Editor implements ITextEditor {
                 return undefined;
             }, {
                 timeout: this.timeoutManager().findElementTimeout(),
-                message: 'Cloud not toggle content assist.'
+                message: 'Could not toggle content assist.'
             }) as IContentAssist;
         }
         else {
@@ -101,6 +113,7 @@ export class TextEditor extends Editor implements ITextEditor {
             }
         }
     }
+
     async getText(): Promise<string> {
         await this.focus();
         const oldClipboard = clipboardy.readSync();
@@ -125,8 +138,8 @@ export class TextEditor extends Editor implements ITextEditor {
 
     async clearText(): Promise<void> {
         await this.focus();
-        await this.sendKeys(Key.chord(TextEditor.ctlKey, 'a', Key.DELETE));
-        await this.getDriver().wait(async () => (await this.getText()).trim().length === 0, this.timeoutManager().defaultTimeout(), 'Could not clear text.');
+        await this.sendKeys(Key.chord(TextEditor.ctlKey, 'a', Key.DELETE), Key.DELETE, Key.DELETE);
+        await this.getDriver().wait(async () => (await this.getText()).trim().length === 0, this.timeoutManager().defaultTimeout(), `Could not clear text. (Editor "${await this.toString()}")`);
     }
 
     async getTextAtLine(line: number): Promise<string> {
@@ -176,7 +189,10 @@ export class TextEditor extends Editor implements ITextEditor {
     }
     async moveCursor(line: number, column: number): Promise<void> {
         await this.focus();
-        await this.sendKeys(Key.chord(TextEditor.ctlKey, Key.HOME), ...Array<string>(line - 1).fill(Key.ARROW_DOWN), ...Array<string>(column - 1).fill(Key.ARROW_RIGHT));
+        await this.sendKeys(
+            Key.chord(TextEditor.ctlKey, Key.HOME),
+            ...Array<string>(line - 1).fill(Key.ARROW_DOWN),
+            ...Array<string>(column - 1).fill(Key.ARROW_RIGHT));
     }
     async getNumberOfLines(): Promise<number> {
         const lines = await this.findElement(TheiaElement.locators.components.editor.lines) as TheiaElement;
@@ -185,21 +201,42 @@ export class TextEditor extends Editor implements ITextEditor {
     async formatDocument(): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    async getTab(): Promise<IEditorTab> {
-        return this.getEditorTab();
-    }
 
     protected async getCursor(): Promise<TheiaElement> {
         return await this.findElement(TextEditor.locators.components.editor.cursor) as TheiaElement;
     }
 
-    async focus(): Promise<void> {
+    async isFocused(): Promise<boolean> {
+        if (await this.isSelected() === false) {
+            return false;
+        }
         const cursor = await this.getCursor();
-        await cursor.safeClick(Button.LEFT);
+        return await cursor.isDisplayed();
+    }
+
+    async isSelected(): Promise<boolean> {
+        const tab = await this.getTab();
+        return await tab.isSelected();
     }
 
     async openContextMenu(): Promise<IContextMenu> {
         await this.safeClick(Button.RIGHT);
         return new ContextMenu();
+    }
+
+    async undo(): Promise<void> {
+        await this.focus();
+        await this.sendKeys(Key.chord(TextEditor.ctlKey, 'z'));
+    }
+
+    async focus(): Promise<void> {
+        if (await this.isSelected() === false) {
+            throw new Error(`Cannot focus "${await this.toString()}" editor.`);
+        }
+        await this.click();
+    }
+
+    protected async toString(): Promise<string> {
+        return await this.getFilePath();
     }
 }

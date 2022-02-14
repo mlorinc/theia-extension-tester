@@ -1,3 +1,4 @@
+import { error } from 'extension-tester-page-objects';
 import {
     Button,
     ContextMenu,
@@ -42,13 +43,19 @@ export class EditorTab extends TheiaElement implements IEditorTab {
 
         await this.getDriver().wait(async () => {
             try {
-                await button.safeClick();
+                await button.click();
                 return false;
             }
-            catch {
-                return true;
+            catch (e) {
+                if (e instanceof error.StaleElementReferenceError) {
+                    return true;
+                }
+                if (e instanceof error.WebDriverError) {
+                    return false;
+                }
+                throw e;
             }
-        }, this.timeoutManager().defaultTimeout(), `Could not close editor tab with title "${label}".`);
+        }, this.timeoutManager().defaultTimeout(), `Could not close editor tab with title "${await this.getTitle().catch(() => label)}".`);
     }
 
     async getIdentification(): Promise<string> {

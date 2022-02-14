@@ -23,11 +23,10 @@ export class Editor extends TheiaElement implements IEditor {
     }
 
     protected async getEditorTab(): Promise<IEditorTab> {
-        if (this.editorTab) {
-            return this.editorTab;
+        if (this.editorTab === undefined) {
+            throw new Error('Cannot get editor tab. Editor does not have assigned tab.');
         }
 
-        this.editorTab = await this.editorView.getActiveTab();
         return this.editorTab;
     }
 

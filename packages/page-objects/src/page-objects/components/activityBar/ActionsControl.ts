@@ -24,4 +24,18 @@ export class ActionsControl extends TheiaElement implements IActionsControl {
         await this.safeClick();
         return new ContextMenu();
     }
+
+    static async getTitles(): Promise<string[]> {
+        const titles = [];
+        for (const control of await new ActivityBar().getGlobalActions()) {
+            try {
+                const title = await control.getTitle();
+                titles.push(title);
+            }
+            catch {
+                continue;
+            }
+        }
+        return titles;
+    }
 }

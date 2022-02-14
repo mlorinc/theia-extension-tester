@@ -6,7 +6,8 @@ import {
     until,
     WebElement,
     WebElementPromise,
-    SeleniumBrowser
+    SeleniumBrowser,
+    error
 } from 'extension-tester-page-objects';
 import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
 import { ExtestUntil } from '@theia-extension-tester/until';
@@ -143,14 +144,15 @@ export abstract class AbstractElement extends WebElement {
             return element;
         }
         catch (e) {
-            if (e instanceof TimeoutError) {
+            if (e instanceof TimeoutError || e instanceof error.StaleElementReferenceError || e instanceof error.InvalidSelectorError) {
                 throw e;
             }
-            else if ((e instanceof Error) && (e.name === 'StaleElementReferenceError' || e.message.includes('Invalid locator'))) {
-                throw e;
-            }
-            console.error(e);
 
+            if (e instanceof error.NoSuchElementError) {
+                return undefined;
+            }
+
+            console.error(e);
             return undefined;
         }
     }
@@ -212,20 +214,20 @@ export abstract class AbstractElement extends WebElement {
                     return element;
                 }
                 catch (e) {
-                    if (e instanceof Error && e.name === 'StaleElementReferenceError') {
+                    if (e instanceof error.NoSuchElementError) {
+                        return undefined;
+                    }
+                    else if (e instanceof error.StaleElementReferenceError) {
                         if (parent instanceof WebElement) {
                             throw new Error(`StaleElementReferenceError of parent element. Try using locator.\n${e}`);
                         }
                         parentElement = await AbstractElement.findParent(parent, timeout);
                     }
-                    else if (e instanceof Error && e.message.includes('Invalid locator')) {
+                    else if (e instanceof error.InvalidSelectorError) {
                         throw new Error(`Invalid locator: toString(${base.toString()}), class(${base?.constructor?.name}), keys(${Object.keys(base).join(', ')}}).`);
                     }
-                    else if (e instanceof TimeoutError) {
-                        throw e;
-                    }
                     else {
-                        return undefined;
+                        throw e;
                     }
                 }
             }, {

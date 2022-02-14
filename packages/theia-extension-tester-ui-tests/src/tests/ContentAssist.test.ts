@@ -8,15 +8,17 @@ describe('ContentAssist', function () {
     let tree: IDefaultTreeSection;
     let editor: TextEditor;
     let menu: ContentAssist | undefined;
-    const file = "Editor.ts";
+    const fileName = "quarkus-quickstarts/Editor.ts";
+    let filePath: string;
     const validationItems = ['#endregion', '#region', 'for', 'forin', 'forof', 'ctor', 'function', 'get'];
 
     before(async function () {
         editorView = new EditorView();
         tree = await getExplorerSection();
         await editorView.closeAllEditors();
-        await deleteFiles(file);
-        editor = await tree.createFile(file) as TextEditor;
+        await deleteFiles(fileName);
+        editor = await tree.createFile(fileName) as TextEditor;
+        filePath = await editor.getFilePath();
     });
 
     beforeEach(async function () {
@@ -36,7 +38,10 @@ describe('ContentAssist', function () {
     });
 
     after(async function () {
-        await deleteFiles(file);
+        if (filePath) {
+            await editor.save();
+            await deleteFiles(filePath);
+        }
         await menu?.close();
     });
 

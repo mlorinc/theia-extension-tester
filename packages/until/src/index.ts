@@ -44,7 +44,7 @@ export namespace ExtestUntil {
             }
         };
 
-        return new WebElementCondition('for element to be clicked. Make sure the elements is enabled, visible and not covered by other element.', fn);
+        return new WebElementCondition('for element to be clicked. Make sure the element is enabled, visible and not covered by other elements.', fn);
     }
 
     export function safeSendKeys(element: WebElement, ...var_args: (string | number | Promise<string | number>)[]): WebElementCondition {
@@ -58,12 +58,16 @@ export namespace ExtestUntil {
                     return undefined;
                 }
             }
-            catch {
-                return undefined;
+            catch (e) {
+                if (e instanceof error.WebDriverError && e.message.includes('intercepted: Element')) {
+                    console.warn(e.message);
+                    return undefined;
+                }
+                throw e;
             }
         };
 
-        return new WebElementCondition('for element to be clicked. Make sure the elements is enabled, visible and not covered by other element.', fn);
+        return new WebElementCondition('for element to receive key strokes. Make sure the element is enabled, visible and not covered by other elements.', fn);
     }
 }
 

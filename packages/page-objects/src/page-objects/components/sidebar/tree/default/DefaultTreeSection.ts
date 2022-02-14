@@ -322,7 +322,6 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
         
         let finalPath: string[] | undefined;
-        console.log('Tree timeout: ' + timeout);
 
         const item = await repeat(async () => {
             try {

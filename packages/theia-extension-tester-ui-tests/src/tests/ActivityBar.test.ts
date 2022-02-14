@@ -28,7 +28,6 @@ describe('ActivityBar', function () {
         expect(await view.isDisplayed()).to.be.true;
         const titlePart = view.getTitlePart();
         expect(await titlePart.isDisplayed()).to.be.true;
-        console.log(await titlePart.getAttribute('innerHTML'));
         expect(await titlePart.getTitle()).includes('Explorer');
     });
 

@@ -1,10 +1,18 @@
-import { IDefaultTreeSection, Workbench } from "@theia-extension-tester/page-objects";
+import { DefaultTreeSection, IDefaultTreeSection, Workbench } from "@theia-extension-tester/page-objects";
 import * as path from "path";
 
 export async function getExplorerSection(): Promise<IDefaultTreeSection> {
     const control = await new Workbench().getActivityBar().getViewControl('Explorer');
     const sideBar = await control!.openView();
-    return (await sideBar.getContent().getSections())[0] as IDefaultTreeSection;
+
+    for (const section of await sideBar.getContent().getSections()) {
+        const title = (await section.getTitle()).toLowerCase();
+        if (section instanceof DefaultTreeSection && (title.includes('workspace') || title.includes('projects'))) {
+            return section;
+        }
+    }
+
+    throw new Error('Could not find file section.');
 }
 
 export async function deleteFiles(...files: string[]) {
@@ -26,4 +34,14 @@ export async function deleteFiles(...files: string[]) {
             }
         }
     }
+}
+
+export function getProjectPath(): string {
+    const project = process.env['THEIA_EXPECTED_WORKBENCH_PATH'];
+
+    if (project) {
+        return project;
+    }
+
+    throw new Error('THEIA_EXPECTED_WORKBENCH_PATH is undefined');
 }

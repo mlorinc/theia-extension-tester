@@ -23,6 +23,7 @@
     "prepublish": "yarn run clean && yarn run build",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "build": "tsc",
+    "build:starter-module": "tsc",
     "clean": "rimraf lib"
   },
   "peerDependencies": {

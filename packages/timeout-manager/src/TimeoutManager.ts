@@ -17,5 +17,6 @@ export function timeout(defaultValue: number | (() => TimeoutGetter) = 0): Timeo
 export interface TheiaTimeouts {
     defaultTimeout: TimeoutGetter,
     findElementTimeout: TimeoutGetter,
-    pageLoadTimeout: TimeoutGetter
+    pageLoadTimeout: TimeoutGetter,
+    clearNotificationsThreshold: TimeoutGetter
 }

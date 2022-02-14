@@ -92,7 +92,7 @@ export class ContentAssist extends MonacoScrollWidget<ContentAssistItem> impleme
 
             try {
                 // safe send keys does not work well in this scenario
-                await this.editor.sendKeys(Key.ESCAPE);
+                await this.getDriver().actions().sendKeys(Key.ESCAPE).perform();
             }
             catch (e) {
                 if (e instanceof error.StaleElementReferenceError) {

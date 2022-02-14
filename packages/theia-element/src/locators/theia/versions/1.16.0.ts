@@ -1,9 +1,9 @@
 import {
     By,
     TheiaElement,
-    LocatorDiff
+    LocatorDiff,
+    has
 } from '../../..';
-import { has } from '../../TheiaLocators';
 
 export const diff: LocatorDiff = {
     locators: {

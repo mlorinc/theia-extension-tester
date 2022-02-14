@@ -9,50 +9,64 @@ import {
     Workbench
     } from '@theia-extension-tester/page-objects';
 import { expect } from 'chai';
-import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
+import { repeat } from '@theia-extension-tester/repeat';
 
 // File has prefix 01, so it is not influenced by others tests (Copy Path command does not work if any file has been opened.).
 describe('Notifications', function () {
     this.timeout(40000);
+    let center: INotificationsCenter;
 
     beforeEach(async function () {
         await new EditorView().closeAllEditors();
     });
 
     describe('NotificationsCenter', function () {
+        beforeEach(async function() {
+            center = await new Workbench().openNotificationsCenter();
+            await center.wait(this.timeout() - 2000);
+        });
+
         afterEach(async function () {
             const center = await new Workbench().openNotificationsCenter();
+            await center.wait(this.timeout() - 2000);
             await center.close();
         });
 
         it('close', async function () {
-            const center = await new Workbench().openNotificationsCenter();
             expect(await center!.isDisplayed()).to.be.true;
             await center.close();
             expect(await center!.isDisplayed()).to.be.false;
         });
 
         it('clearAllNotifications', async function () {
+            expect(await center!.isDisplayed()).to.be.true;
             await createNotifications(true);
-            let center = await new Workbench().openNotificationsCenter();
-            await center.clearAllNotifications();
-            center = await new Workbench().openNotificationsCenter();
-            try {
-                await repeat(async () => (await center.getNotifications(NotificationType.Any)).length === 0, { timeout: 5000 });
-            }
-            catch (e) {
-                console.error(e);
-                if (e instanceof TimeoutError) {
-                    expect(await center.getNotifications(NotificationType.Any)).to.be.empty;
+
+            await repeat(async() => {
+                center = await new Workbench().openNotificationsCenter();
+                await center.clearAllNotifications();
+                center = await new Workbench().openNotificationsCenter();
+
+                if ((await center.getNotifications(NotificationType.Any)).length === 0) {
+                    return {
+                        value: true
+                    };
                 }
                 else {
-                    throw e;
+                    return {
+                        value: false,
+                        delay: 1000
+                    };
                 }
-            }
+            }, {
+                timeout: this.timeout() - 2000,
+                message: async () => 
+                    (center) ? (expect(await center.getNotifications(NotificationType.Any)).to.be.empty, 'string hack') : ('Could not find notification center')
+            });
         });
 
         it('getNotifications', async function () {
-            const center = await new Workbench().openNotificationsCenter();
+            expect(await center!.isDisplayed()).to.be.true;
             await createNotifications(true);
             expect((await center.getNotifications(NotificationType.Any)).length).least(2);
         });
@@ -80,6 +94,7 @@ describe('Notifications', function () {
 
             beforeEach(async function () {
                 const center = await new Workbench().openNotificationsCenter();
+                await center.wait(this.timeout() - 2000);
                 await center.clearAllNotifications();
                 await createNotifications(type);
             });

@@ -8,6 +8,7 @@ import {
 } from '../../../module';
 
 import { repeat } from "@theia-extension-tester/repeat";
+import { error } from 'extension-tester-page-objects';
 
 export class NotificationCenter extends TheiaElement implements INotificationsCenter {
     constructor() {
@@ -26,7 +27,7 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
                 await close.click();
             }
             catch (e) {
-                if (e instanceof Error && (e.message.includes('element not interactable') || e.message.includes('element click intercepted'))) {
+                if (e instanceof error.WebDriverError && (e.message.includes('element not interactable') || e.message.includes('element click intercepted'))) {
                     return false;
                 }
                 throw e;
@@ -45,13 +46,9 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
         }
 
         const clearAll = await this.findElement(NotificationCenter.locators.components.workbench.notification.center.clearAll) as TheiaElement;
-        
-        await repeat(async () => {
-            if (await NotificationCenter.isOpen() === false) {
-                return true;
-            }
 
-            if (await clearAll.isEnabled() === false) {
+        await repeat(async () => {
+            if ((await NotificationCenter.isOpen() === false || await clearAll.isEnabled() === false)) {
                 return true;
             }
 
@@ -59,7 +56,8 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
                 await clearAll.click();
             }
             catch (e) {
-                if (e instanceof Error && (e.message.includes('element not interactable') || e.message.includes('element click intercepted'))) {
+                if (e instanceof error.WebDriverError &&
+                    (e.message.includes('element not interactable') || e.message.includes('element click intercepted'))) {
                     return false;
                 }
                 throw e;
@@ -68,6 +66,7 @@ export class NotificationCenter extends TheiaElement implements INotificationsCe
             return false;
         }, {
             timeout: this.timeoutManager().defaultTimeout(),
+            threshold: this.timeoutManager().clearNotificationsThreshold(),
             message: 'Could not clear notification center'
         });
     }

@@ -19,7 +19,7 @@ export class ViewControl extends TheiaElement implements IViewControl {
     }
 
     async openView(): Promise<ISideBarView> {
-        const action = new ElementRepeatAction(this, 500);
+        const action = new ElementRepeatAction(this, 2000);
         return await repeat(async () => {
             const sideBarView = new SideBarView();
             if (await this.isOpen(sideBarView) === true) {
@@ -34,7 +34,7 @@ export class ViewControl extends TheiaElement implements IViewControl {
     }
 
     async closeView(): Promise<void> {
-        const action = new ElementRepeatAction(this, 500);
+        const action = new ElementRepeatAction(this, 2000);
         await repeat(async () => {
             if (await this.isOpen() === false) {
                 return true;
@@ -67,5 +67,19 @@ export class ViewControl extends TheiaElement implements IViewControl {
 
     protected async isOpen(sideBarView: ISideBarView = new SideBarView()): Promise<boolean> {
         return await this.isSelected() && await sideBarView.isDisplayed();
+    }
+
+    static async getTitles(): Promise<string[]> {
+        const titles = [];
+        for (const control of await new ActivityBar().getViewControls()) {
+            try {
+                const title = await control.getTitle();
+                titles.push(title);
+            }
+            catch {
+                continue;
+            }
+        }
+        return titles;
     }
 }

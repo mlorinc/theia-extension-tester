@@ -1,10 +1,11 @@
 import { expect } from "chai";
-import { ContentAssist, ContextMenu, EditorView, IDefaultTreeSection, TextEditor, Workbench } from "@theia-extension-tester/page-objects";
-import { deleteFiles, getExplorerSection } from "./utils/File";
+import { ContentAssist, ContextMenu, EditorView, IDefaultTreeSection, TextEditor } from "@theia-extension-tester/page-objects";
+import { deleteFiles, getExplorerSection, getProjectPath } from "./utils/File";
 import * as path from "path";
+import { repeat } from "@theia-extension-tester/repeat";
 
-const lorem = 
-`Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+const lorem =
+    `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
 ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
 laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
 voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
@@ -17,41 +18,42 @@ describe('TextEditor', function () {
     let tree: IDefaultTreeSection;
     let editor: TextEditor;
     let menu: ContentAssist | ContextMenu | undefined;
-    const file = "Editor.ts";
+    const FILE = "quarkus-quickstarts/Editor.ts";
     let filePath: string;
 
     before(async function () {
         editorView = new EditorView();
         tree = await getExplorerSection();
         await editorView.closeAllEditors();
-        await deleteFiles(file);
-        editor = await tree.createFile(file) as TextEditor;
-        filePath = path.join(await new Workbench().getOpenFolderPath(), file);
+        await deleteFiles(FILE);
+        editor = await tree.createFile(FILE) as TextEditor;
+        filePath = path.join(getProjectPath(), FILE);
     });
 
     beforeEach(async function () {
         await editor.clearText();
     });
 
-    afterEach(async function() {
+    afterEach(async function () {
         await menu?.close();
         menu = undefined;
     });
 
     after(async function () {
-        await deleteFiles(file);
+        await editor.save();
+        await deleteFiles(FILE);
         await editorView.closeAllEditors();
     });
 
-    it('getTitle', async function() {
-        expect(await editor.getTitle()).equals(file);
+    it('getTitle', async function () {
+        expect(await editor.getTitle()).equals(path.basename(FILE));
     });
 
-    it('getTab', async function() {
-        expect(await (await editor.getTab()).getTitle()).equals(file);
+    it('getTab', async function () {
+        expect(await (await editor.getTab()).getTitle()).equals(path.basename(FILE));
     });
 
-    it('openContextMenu', async function() {
+    it('openContextMenu', async function () {
         menu = await editor.openContextMenu() as ContextMenu;
         const titles = await Promise.all((await menu.getItems()).map((item) => item.getLabel()));
         expect(titles).to.include.members(['Call Hierarchy', 'Peek', 'Change All Occurrences', 'Redo', 'Copy']);
@@ -61,14 +63,16 @@ describe('TextEditor', function () {
     it('isDirty', async function () {
         expect(await editor.isDirty()).to.be.false;
         await editor.setTextAtLine(1, 'Hello world');
-        expect(await editor.isDirty()).to.be.true;
+        await repeat(() => editor.isDirty(), { timeout: this.timeout() - 2000, message: 'Expected editor to be dirty.' });
     });
 
     it('save', async function () {
+        this.timeout(100000);
+        await repeat(async () => await editor.isDirty() === false, { timeout: this.timeout() - 2000, message: 'Expected editor not to be dirty. #1' });
         await editor.setTextAtLine(1, 'Hello world');
-        expect(await editor.isDirty()).to.be.true;
-        await editor.save();
-        expect(await editor.isDirty()).to.be.false;
+        await repeat(() => editor.isDirty(), { timeout: this.timeout() - 2000, message: 'Expected editor to be dirty.' });
+        await editor.save(90000);
+        await repeat(async () => await editor.isDirty() === false, { timeout: this.timeout() - 2000, message: 'Expected editor not to be dirty. #2' });
     });
 
     it('getFileUri', async function () {
@@ -160,9 +164,8 @@ describe('TextEditor', function () {
             await editor.typeText(i + 1, 1, 'start');
             await editor.typeText(i + 1, median + 1, 'middle');
             await editor.typeText(i + 1, editorLine.length + startPhrase.length + middlePhrase.length + 1, 'end');
-            
+
             const finalLine = await editor.getTextAtLine(i + 1);
-            console.log(`Final line: "${finalLine}"`);
             expect(finalLine.slice(0, startPhrase.length)).equals(startPhrase);
             expect(finalLine.substr(median, middlePhrase.length)).equals(middlePhrase);
             expect(finalLine.slice(-endPhrase.length)).equals(endPhrase);

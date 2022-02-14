@@ -6,7 +6,7 @@ type Executor<T> = (resolve: Resolver<T>, reject: Rejecter) => void;
 
 export interface TimeoutPromiseOptions {
 	onTimeout?: () => any;
-	message?: string | (() => string);
+	message?: string | (() => string | PromiseLike<string>);
 	id?: string;
 	callStack?: any;
 }
@@ -31,7 +31,7 @@ export class TimeoutError extends Error {
 
 	constructor(owner: object, message?: string, callStack?: string | object, id?: string) {
 		if (message) {
-			super(message + `\r\n\r\n${callStack}`);
+			super(`Promise(id=${id}) ${message}\r\n\r\n${callStack}`);
 		}
 		else {
 			super(`Promise(id=${id}) timed out after 1 cycle (zero timeout).\r\n\r\n$${callStack}`)
@@ -98,10 +98,10 @@ class TimeoutPromise<T> extends Promise<T> {
 			if (timeout !== undefined) {
 				const start = Date.now();
 
-				timer = setTimeout(() => {
+				timer = setTimeout(async () => {
 					let message = `Promise(id=${id}) timed out after ${Date.now() - start}ms.`;
 					if (options?.message) {
-						message += ` Reason: ${options.message instanceof Function ? options.message() : options.message}`;
+						message += ` Reason: ${options.message instanceof Function ? await options.message() : options.message}`;
 					}
 
 					reject(new TimeoutError(resolve, message, callStack, id));

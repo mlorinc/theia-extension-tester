@@ -1,8 +1,9 @@
 import { expect } from "chai";
 import { ContextMenu, EditorView, IDefaultTreeSection, IMenu, Key, TextEditor, TitleBar } from "@theia-extension-tester/page-objects";
 import { deleteFiles, getExplorerSection } from "./utils/File";
+import * as path from "path";
 
-const FILE = 'Alternative.txt';
+const FILE = 'quarkus-quickstarts/Alternative.txt';
 
 describe('ContextMenu', function () {
     this.timeout(40000);
@@ -15,7 +16,7 @@ describe('ContextMenu', function () {
 
         tree = await getExplorerSection();
         editor = await tree.createFile(FILE) as TextEditor;
-        expect(await editor.getTitle()).equals(FILE);
+        expect(await editor.getTitle()).equals(path.basename(FILE));
         await editor.setTextAtLine(1, 'Hello world');
         await editor.sendKeys(Key.ENTER)
         await editor.sendKeys('Hello world 2');
@@ -29,7 +30,9 @@ describe('ContextMenu', function () {
     });
 
     after(async function () {
+        await editor.save();
         await new EditorView().closeAllEditors();
+        await deleteFiles(FILE);
     });
 
     it('getItem', async function () {

@@ -1,6 +1,12 @@
-import { BaseBrowser } from "@theia-extension-tester/base-browser";
+import { BaseBrowser, BrowserOptions } from "@theia-extension-tester/base-browser";
 
 export class TheiaBrowser extends BaseBrowser {
+
+    constructor(browserName: string, options: BrowserOptions) {
+        options.distribution = options.distribution ?? 'theia';
+        super(browserName, options);
+    }
+
     async closeCurrentBrowserTab(timeout?: number): Promise<string> {
         const currentHandle = await this.driver.getWindowHandle();
         const windowHandles = await this.driver.getAllWindowHandles();

@@ -74,8 +74,8 @@ export class ViewContent extends TheiaElement implements IViewContent {
 
     protected async getActiveView(): Promise<TheiaElement> {
         return await repeat(async () => {
-            if (await this.isDisplayed().catch(() => false) === false) {
-                throw new Error('ViewContent must be displayed.');
+            if (await this.isDisplayed() === false) {
+                return false;
             }
 
             const views = await this.findElements(ViewContent.locators.components.sideBar.sections.constructor);

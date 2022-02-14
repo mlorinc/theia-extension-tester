@@ -3,7 +3,7 @@ import { TheiaElement } from "..";
 import { DeepPartial } from "ts-essentials";
 
 export interface TheiaLocator {
-    locator: By;
+    locator: Locator;
     class?: Object;
     dependency?: (locators: TheiaLocators) => TheiaLocator;
     properties?: TheiaLocatorProperties

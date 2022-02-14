@@ -95,7 +95,7 @@ describe('Input', function() {
         await input.getDriver().wait(until.elementIsNotVisible(input), this.timeout() - 2000);
     });
 
-    it('Input.getTitle', async function() {
+    it.skip('Input.getTitle', async function() {
         // Java extension is taking way too long to activate.
         this.timeout(120000);
         await new Workbench().executeCommand('Quarkus: Generate a Quarkus project');
@@ -129,7 +129,7 @@ describe('Input', function() {
         await input.getDriver().wait(async () => await input.hasError(), this.timeout() - 2000);
     });
 
-    it('Input.getMessage', async function() {
+    it.skip('Input.getMessage', async function() {
         this.timeout(80000);
         await new Workbench().executeCommand('Quarkus: Generate a Quarkus project');
         await input.getDriver().wait(async () => await input.getPlaceHolder() === 'Pick build tool', this.timeout() - 2000);

@@ -99,8 +99,6 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
             let itemPath: string = await item.getPath();
             const itemPathSegments = PathUtils.convertToTreePath(itemPath);
 
-            console.log(`A: ${itemPathSegments.join(', ')}`);
-            console.log(`B: ${currentPath.join(', ')}\n`);
             if (PathUtils.isRelativeTo(itemPathSegments, currentPath)) {
                 this.seenExpandedFolder = true;
             }
@@ -148,8 +146,6 @@ export abstract class FileTreeWidget<T extends FileTreeNode> extends TreeWidget<
         }
 
         this.searchLock = true;
-
-        console.log(`Looking for: ${targetPathSegments.join(', ')}`);
 
         async function loop(this: FileTreeWidget<T>): Promise<T> {
             for (let index = 1; index <= targetPathSegments.length; index++) {

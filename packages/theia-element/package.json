@@ -19,7 +19,9 @@
     "prepublish": "yarn run clean && yarn run build",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "build": "tsc",
-    "clean": "rimraf lib"
+    "build:locators": "yarn run build",
+    "clean": "rimraf lib",
+    "clean:locators": "yarn run clean"
   },
   "dependencies": {
     "@theia-extension-tester/abstract-element": "^1.0.0",

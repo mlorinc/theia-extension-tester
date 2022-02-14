@@ -25,7 +25,8 @@
   "dependencies": {
     "@theia-extension-tester/base-browser": "^1.0.0",
     "@theia-extension-tester/locator-loader": "^1.0.0",
-    "@theia-extension-tester/theia-element": "^1.0.0"
+    "@theia-extension-tester/theia-element": "^1.0.0",
+    "@theia-extension-tester/repeat": "^1.0.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "^1.0.0",
