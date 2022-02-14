@@ -84,10 +84,6 @@ export class Input extends InputWidget implements IInputBox {
 
     async hasProgress(): Promise<boolean> {
         const progress = await this.container.findElements(Input.locators.components.workbench.input.progress) as TheiaElement[];
-        console.log(progress.length > 0 ? await progress[0].getAttribute('class') : undefined);
-        console.log(progress.length > 0 ? `not(Enabled): ${! await progress[0].isEnabled()}` : undefined);
-        console.log(progress.length > 0 ? `Displayed: ${await progress[0].isDisplayed()}` : undefined);
-        console.log(progress.length);
         return progress.length === 1 && await progress[0].isDisplayed() && !(await progress[0].isEnabled());
     }
 

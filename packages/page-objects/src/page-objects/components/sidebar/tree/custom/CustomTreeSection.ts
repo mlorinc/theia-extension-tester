@@ -2,7 +2,6 @@ import {
     CustomTreeItem,
     ICustomTreeItem,
     ICustomTreeSection,
-    ScrollDirection,
     TreeWidget,
     ViewContent,
     ViewSection,
@@ -18,10 +17,7 @@ export class CustomTreeSection extends ViewSection implements ICustomTreeSection
     }
 
     async findItemByPath(...path: string[]): Promise<ICustomTreeItem> {
-        const node = await this.tree.findNodeByPath({
-            direction: ScrollDirection.NEXT,
-            path
-        });
+        const node = await this.tree.findItemByPath(path);
         return new CustomTreeItem(node, this);
     }
 
@@ -31,9 +27,7 @@ export class CustomTreeSection extends ViewSection implements ICustomTreeSection
 
     async openItem(...path: string[]): Promise<ICustomTreeItem[]> {
         const node = await this.findItemByPath(...path);
-        console.log('Created last node');
         await node.select();
-        console.log('Clicked last node');
         return [];
     }
 

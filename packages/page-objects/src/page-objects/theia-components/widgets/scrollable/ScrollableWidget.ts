@@ -5,7 +5,7 @@ import {
     TheiaLocator,
     WebElement
 } from '../../../../module';
-import { repeat } from '@theia-extension-tester/repeat';
+import { LoopStatus, repeat } from '@theia-extension-tester/repeat';
 import { Scroll } from './Scroll';
 
 export enum ScrollDirection {
@@ -112,7 +112,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             return false;
         }
 
-        const scroll = await this.getVerticalScroll();
+        const scroll = await this.getVerticalScroll();  
 
         if (direction === ScrollDirection.NEXT) {
             return await scroll.isScrollOnEnd() === false;
@@ -148,7 +148,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
      * @param timeout 
      * @returns visible items on another page.
      */
-    async movePage(direction: ScrollDirection, lastActiveItem: T, timeout?: number): Promise<T[]> {
+    async movePage(direction: ScrollDirection, timeout?: number): Promise<void> {
         let directionWord: string;
 
         if (direction === ScrollDirection.NEXT) {
@@ -165,32 +165,48 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
             throw new Error(`Cannot get ${directionWord} page.`);
         }
 
-        if (await this.hasAnotherPage(direction) === false) {
-            throw new Error(`Cannot get ${directionWord} page.`);
-        }
-
         const scroll = await this.getVerticalScroll();
+        const items = await repeat(async () => {
+            if (await this.hasAnotherPage(direction) === false) {
+                throw new Error(`Cannot get ${directionWord} page.`);
+            }
 
-        if (direction === ScrollDirection.NEXT) {
-            if (this.usePageKeys === false) {
-                await scroll.scrollAfter(lastActiveItem, this, timeout);
-            }
-            else {
-                const element = await this.getControllerElement();
-                await element.safeSendKeys(timeout, Key.PAGE_DOWN);
-            }
-        }
-        else if (direction === ScrollDirection.PREVIOUS) {
-            if (this.usePageKeys === false) {
-                await scroll.scroll(Math.ceil(-await scroll.getScrollSize() / 2), timeout);
-            }
-            else {
-                const element = await this.getControllerElement();
-                await element.safeSendKeys(timeout, Key.PAGE_UP);
-            }
-        }
+            const items = await this.getVisibleItems();
+            return (items.length > 0) ? (items) : (undefined);
+        }, {
+            timeout,
+            message: 'Could not get visible items while performing move page.'
+        }) as T[];
 
-        return await this.getVisibleItems();
+        if (this.usePageKeys) {
+            const controlElement = await this.getControllerElement();
+            await controlElement.safeSendKeys(timeout, (direction === ScrollDirection.NEXT) ? (Key.PAGE_DOWN) : (Key.PAGE_UP));
+        }
+        else {
+            const sign = (direction === ScrollDirection.NEXT) ? (1) : (-1);
+
+            await repeat(async () => {
+                const item = (direction === ScrollDirection.NEXT) ? (items[items.length - 1]) : (items[0]);
+                try {
+                    if (!await item.isDisplayed()) {
+                        return true;
+                    }
+                }
+                catch (e) {
+                    if (e instanceof error.StaleElementReferenceError) {
+                        // Item was destructed. Might be caused by unstable state but there is no way to know.
+                        return true;
+                    }
+                    throw e;
+                }
+
+                await scroll.scroll(sign * 5, timeout);
+                return false;
+            }, {
+                timeout,
+                message: 'Could not move page.'
+            });
+        }
     }
 
     /**
@@ -199,12 +215,13 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
      * @param timeout 
      * @returns visible items on next page
      */
-    async nextPage(lastItem: T, timeout?: number): Promise<T[]> {
+    async nextPage(timeout?: number): Promise<T[]> {
         if (await this.hasNextPage() === false) {
             throw new Error('Could not get next page.');
         }
 
-        return await this.movePage(ScrollDirection.NEXT, lastItem, timeout);
+        await this.movePage(ScrollDirection.NEXT, timeout);
+        return await this.getVisibleItems();
     }
 
     /**
@@ -213,33 +230,39 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
      * @param timeout 
      * @returns visible items on previous page
      */
-    async previousPage(firstItem: T, timeout?: number): Promise<T[]> {
+    async previousPage(timeout?: number): Promise<T[]> {
         if (await this.hasPreviousPage() === false) {
             throw new Error('Could not get previous page.');
         }
-        return await this.movePage(ScrollDirection.PREVIOUS, firstItem, timeout);
+        await this.movePage(ScrollDirection.PREVIOUS, timeout);
+        return await this.getVisibleItems();
     }
 
     async getVisibleItems(): Promise<T[]> {
-        return await repeat (async () => {
+        return await repeat(async () => {
             if (await this.hasItems() === false) {
                 return [];
             }
 
             const items: T[] = [];
-    
             for (const item of await this.getItems()) {
-                const displayed = await item.isDisplayed().catch(() => false);
-    
-                if (!displayed) {
-                    continue;
-                }
-                items.push(item);
-            }
+                try {
+                    const displayed = await item.isDisplayed();
 
-            // Assuming clear pages are not part of program.
-            if (items.length === 0) {
-                return undefined;
+                    if (!displayed) {
+                        continue;
+                    }
+                    items.push(item);
+                }
+                catch (e) {
+                    if (e instanceof error.StaleElementReferenceError) {
+                        // unstable state, repeat
+                        return {
+                            loopStatus: LoopStatus.LOOP_UNDONE
+                        };
+                    }
+                    throw e;
+                }
             }
 
             return items;
@@ -271,7 +294,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
         let items = await this.getVisibleItems();
 
         await repeat(async () => {
-            for (const item of items) {                
+            for (const item of items) {
                 const value = await callback(item);
 
                 if (value === false) {
@@ -280,7 +303,7 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
                 }
             }
             if (await this.hasNextPage() && items.length > 0) {
-                items = await this.nextPage(items[items.length - 1], timeout);
+                items = await this.nextPage(timeout);
                 return false;
             }
             else {
@@ -354,14 +377,14 @@ export abstract class ScrollableWidget<T extends TheiaElement> extends TheiaElem
                 // comparator value = searching element - currentElement
                 if (firstItemCompareResult < 0 && lastItemCompareResult < 0) {
                     if (await this.hasPreviousPage()) {
-                        items = await this.previousPage(items[0], timeout);
+                        items = await this.previousPage(timeout);
                         return undefined;
                     }
                     throw new ScrollItemNotFound('There are not previous pages available.');
                 }
                 else if (firstItemCompareResult > 0 && lastItemCompareResult > 0) {
                     if (await this.hasNextPage()) {
-                        items = await this.nextPage(items[items.length - 1], timeout);
+                        items = await this.nextPage(timeout);
                         return undefined;
                     }
 

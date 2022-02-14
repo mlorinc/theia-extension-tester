@@ -1,4 +1,5 @@
 import { repeat } from '@theia-extension-tester/repeat';
+import assert = require('assert');
 import { TheiaElement, WebElement } from '../../../../module';
 
 export interface Scroll extends TheiaElement {
@@ -72,7 +73,6 @@ export abstract class ScrollWidget extends TheiaElement implements Scroll {
         const position = await this.getScrollPosition();
         const size = await this.getScrollSize();
         const containerSize = await this.getScrollContainerSize();
-        console.log(`position + size ==== containerSize <=> ${position} + ${size} === ${containerSize}`);
         return (position + size) === containerSize;
     }
 
@@ -185,7 +185,8 @@ export abstract class HTMLScroll extends TheiaElement implements Scroll {
         const position = await this.getScrollPosition();
         const clientHeight = await this.getScrollContainerSize();
         const scrollHeight = await this.getScrollEnd();
-
+        console.log(`${clientHeight} >= ${scrollHeight} - ${position}`);
+        
         return clientHeight >= scrollHeight - position;
     }
 
@@ -206,6 +207,16 @@ export abstract class HTMLScroll extends TheiaElement implements Scroll {
 }
 
 export class HTMLVerticalScroll extends HTMLScroll implements Scroll {
+    async isDisplayed(): Promise<boolean> {
+        const result = await super.isDisplayed();
+
+        if (!result) {
+            return false;
+        }
+
+        return await this.getDriver().executeScript<number>('arguments[0].scrollTop', this) !== null;
+    }
+
     getScrollSize(): Promise<number> {
         throw new Error('Vertical scroll bar size cannot be calculated.');
     }
@@ -222,15 +233,20 @@ export class HTMLVerticalScroll extends HTMLScroll implements Scroll {
         await this.getDriver().executeScript<number>(`arguments[0].scrollTop = ${value}`, this);
     }
     async getScrollPosition(): Promise<number> {
-        return await this.getDriver().executeScript<number>('arguments[0].scrollTop', this);
+        const result = await this.getDriver().executeScript<number>('arguments[0].scrollTop', this);
+        assert(result, 'arguments[0].scrollTop is null')
+        return result;
     }
 
     protected async getScrollEnd(): Promise<number> {
-        return await this.getDriver().executeScript<number>('arguments[0].scrollHeight', this);
+        const result = await this.getDriver().executeScript<number>('arguments[0].scrollHeight', this);
+        assert(result, 'arguments[0].scrollHeight is null')
+        return result;
     }
 
     async getScrollContainerSize(): Promise<number> {
-        return (await this.getSize()).height;
+        const result = (await this.getSize()).height;
+        return result;
     }
 }
 
@@ -249,11 +265,15 @@ export class HTMLHorizontalScroll extends HTMLScroll implements Scroll {
     }
 
     async getScrollPosition(): Promise<number> {
-        return await this.getDriver().executeScript<number>('arguments[0].scrollLeft', this);
+        const result =  await this.getDriver().executeScript<number>('arguments[0].scrollLeft', this);
+        assert(result, 'arguments[0].scrollLeft is null');
+        return result;
     }
 
     protected async getScrollEnd(): Promise<number> {
-        return await this.getDriver().executeScript<number>('arguments[0].scrollWidth', this);
+        const result =  await this.getDriver().executeScript<number>('arguments[0].scrollWidth', this);
+        assert(result, 'arguments[0].scrollWidth is null');
+        return result;
     }
 
     async getScrollContainerSize(): Promise<number> {
@@ -261,6 +281,18 @@ export class HTMLHorizontalScroll extends HTMLScroll implements Scroll {
     }
 
     async getScrollSize(): Promise<number> {
-        return await this.getDriver().executeScript<number>('arguments[0].offsetWidth - arguments[0].clientWidth', this);
+        const result =  await this.getDriver().executeScript<number>('arguments[0].offsetWidth - arguments[0].clientWidth', this);
+        assert(result, 'arguments[0].offsetWidth - arguments[0].clientWidth is null');
+        return result;
+    }
+
+    async isDisplayed(): Promise<boolean> {
+        const result = await super.isDisplayed();
+
+        if (!result) {
+            return false;
+        }
+
+        return await this.getDriver().executeScript<number>('arguments[0].scrollLeft', this) !== null;
     }
 }
