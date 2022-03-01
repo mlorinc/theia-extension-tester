@@ -52,7 +52,7 @@ export interface BrowserOptions {
 
 export abstract class BaseBrowser extends SeleniumBrowser {
     private static baseVersion = "1.10.0";
-    private static latestVersion = "1.17.0";
+    private static latestVersion = "1.18.0";
     public static BROWSER_NAME = "Theia";
     private _name!: string;
     private _driver: WebDriver | undefined;

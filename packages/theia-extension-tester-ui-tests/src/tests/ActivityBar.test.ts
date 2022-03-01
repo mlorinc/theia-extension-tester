@@ -34,7 +34,7 @@ describe('ActivityBar', function () {
     it('getViewControls', async function () {
         const controls = await bar.getViewControls();
         const titles = await Promise.all(controls.map((control => control.getTitle())));
-        expect(titles).to.include.members(['Search', 'Debug']);
+        expect(titles).to.include.members(['Search: Search', 'Debug']);
     });
 
     it('getGlobalAction', async function () {
