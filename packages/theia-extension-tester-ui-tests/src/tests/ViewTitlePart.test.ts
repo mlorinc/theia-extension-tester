@@ -7,7 +7,7 @@ describe('ViewTitlePart', function() {
     let view: ISideBarView;
     let control: IViewControl;
     let titlePart: IViewTitlePart;
-    const title = 'Search';
+    const title = 'Search: Search';
 
     before(async function() {
         workbench = new Workbench();

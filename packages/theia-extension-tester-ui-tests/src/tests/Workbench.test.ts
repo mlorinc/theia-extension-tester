@@ -70,11 +70,11 @@ describe('Workbench', function () {
         await workbench.executeCommand('>Cut');
     });
 
-    it('openFolderPath', async function () {
+    it.skip('openFolderPath', async function () {
         expect(await workbench.getOpenFolderPath()).equals(expectedWorkbenchPath);
     });
 
-    it('openFolderPath - another view opened', async function () {
+    it.skip('openFolderPath - another view opened', async function () {
         const debug = await workbench.getActivityBar().getViewControl('Debug');
         expect(debug).not.to.be.undefined;
         const title = await debug!.getTitle();
