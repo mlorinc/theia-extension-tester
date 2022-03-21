@@ -1,16 +1,16 @@
 import {
     Button,
     By,
+    error,
     Key,
     Locator,
-    SeleniumBrowser,
-    until
+    SeleniumBrowser
 } from 'extension-tester-page-objects';
 
 import { TheiaElement } from "@theia-extension-tester/theia-element";
 import { Authenticator } from "@theia-extension-tester/base-authenticator";
 import { BaseBrowser } from "@theia-extension-tester/base-browser";
-import { repeat, TimeoutError } from "@theia-extension-tester/repeat";
+import { LoopStatus, repeat, TimeoutError } from "@theia-extension-tester/repeat";
 
 export module OpenShiftAuthenticatorMethod {
     export const HTPASSWD_PROVIDER = 'htpasswd_provider';
@@ -49,73 +49,125 @@ export class OpenShiftAuthenticator implements Authenticator {
         const browser = SeleniumBrowser.instance as BaseBrowser;
         const timeout = browser.timeouts.pageLoadTimeout(this.options.timeout) - 5000;
 
-        let counter = 0;
-        for (const pair of this.options.inputData) {
-            const input = await getInput(By.css('form'), By.name(pair.name), timeout, `Could not find "${pair.name}" input.`);
-            console.log(`Filling out "${pair.name}". Visible: ${await input.isDisplayed()}, Enabled: ${await input.isEnabled()}`);
-            await input.safeSendKeys(timeout, pair.value);
-            console.log(`Filled out "${pair.name}".`);
-            counter += 1;
+        const inputIterator = this.options.inputData.entries();
+        let currentEntry: IteratorResult<[number, OpenShiftInputPair], any> | undefined = undefined;
 
-            if (this.options.multiStepForm && counter !== this.options.inputData.length) {
-                console.log('Next step.');
-                await input.safeSendKeys(timeout, Key.ENTER);
+        let loginButtonClicked = this.options.loginMethod === undefined;
+        let inputFilledIn = false;
+        let sentSubmit = false;
+
+        await repeat(async () => {
+            if (loginButtonClicked && inputFilledIn && sentSubmit) {
+                return true;
             }
-        }
 
-        console.log('Looking for submit.');
-        const submitButton = await getInput(By.css('form'), By.xpath('.//*[@type="submit"]'), timeout, `Could not find submit button.`);
-        console.log('Found submit.');
-        await submitButton.safeClick(Button.LEFT, timeout);
-        console.log('Logged in user.');
-
-        if (this.options.loginMethod) {
-            const rawLink = await browser.driver.wait(
-                until.elementLocated(By.xpath(`//a[text()="${this.options.loginMethod}"]`)),
-                browser.timeouts.pageLoadTimeout(this.options.timeout)
-            );
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-            const loginLink = new TheiaElement(rawLink);
-            await loginLink.safeClick();
-            console.log(`Clicked on login method: "${this.options.loginMethod}".`);
-        }
-    };
-}
-
-async function getInput(formLocator: Locator, locator: Locator, timeout: number, errorMessage: string = 'Could not get input.', interval: number = 500): Promise<TheiaElement> {
-    return await repeat(async () => {
-        try {
-            const forms = await BaseBrowser.findElements(formLocator, interval);
-
-            for (const form of forms) {
-                if (await form.isDisplayed().catch(() => false)) {
+            if (!inputFilledIn) {
+                currentEntry = currentEntry ?? inputIterator.next();
+                if (currentEntry.done) {
+                    inputFilledIn = true;
+                }
+                else {
+                    const [_, pair] = currentEntry.value;
                     try {
-                        const input = form.findElement(locator);
-                        if (await input.isDisplayed()) {
-                            return input;
+                        const input = await this.handleInput(pair, 0);
+                        const done: boolean | undefined = currentEntry.done;
+                        currentEntry = undefined;
+
+                        if (this.options.multiStepForm && (done === undefined || done === false)) {
+                            console.log('Next step.');
+                            await input.safeSendKeys(timeout, Key.ENTER);
                         }
                     }
                     catch (e) {
-                        if (e instanceof TimeoutError) {
-                            continue;
+                        if ((e instanceof TimeoutError) === false) {
+                            throw e;
                         }
+                    }
+                }
+            }
+
+            if (inputFilledIn && !sentSubmit) {
+                console.log('Looking for submit.');
+                const submitButton = await getInput(By.css('form'), By.xpath('.//*[@type="submit"]'), timeout, `Could not find submit button.`);
+                console.log('Found submit.');
+                await submitButton.safeClick(Button.LEFT, timeout);
+                console.log('Logged in user.');
+                sentSubmit = true;
+            }
+
+            if (!loginButtonClicked) {
+                try {
+                    await this.clickLoginButton(browser, 0);
+                    loginButtonClicked = true;
+                }
+                catch (e) {
+                    if ((e instanceof TimeoutError) === false) {
                         throw e;
+                    }
+                }
+            }
+
+            return false;
+        }, {
+            timeout: browser.timeouts.pageLoadTimeout(timeout),
+            message: 'Could not log in to Eclipse Che.'
+        });
+    };
+
+    private async clickLoginButton(browser: BaseBrowser, timeout: number) {
+        const loginLink = await new TheiaElement(
+            By.xpath(`//a[text()="${this.options.loginMethod}"]`),
+            undefined,
+            undefined,
+            browser.timeouts.pageLoadTimeout(timeout)
+        ).wait();
+
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await loginLink.safeClick();
+        console.log(`Clicked on login method: "${this.options.loginMethod}".`);
+    }
+
+    private async handleInput(pair: OpenShiftInputPair, timeout: number) {
+        const input = await getInput(By.css('form'), By.name(pair.name), timeout, `Could not find "${pair.name}" input.`);
+        console.log(`Filling out "${pair.name}". Visible: ${await input.isDisplayed()}, Enabled: ${await input.isEnabled()}`);
+        await input.safeSendKeys(timeout, pair.value);
+        console.log(`Filled out "${pair.name}".`);
+        return input;
+    }
+}
+
+async function getInput(formLocator: Locator, locator: Locator, timeout: number, errorMessage: string = 'Could not get input.'): Promise<TheiaElement> {
+    return await repeat(async () => {
+        try {
+            const forms = await BaseBrowser.findElements(formLocator);
+
+            for (const form of forms) {
+                if (await form.isDisplayed().catch(() => false)) {
+                    const inputs = await form.findElements(locator);
+
+                    if (inputs.length > 1) {
+                        console.warn(`[WARNING] Form with id "${await form.getAttribute('id')}" contains multiple inputs with locator "${locator.toString()}".`);
+                    }
+
+                    if (inputs.length > 0 && await inputs[0].isDisplayed()) {
+                        return inputs[0];
                     }
                 }
             }
         }
         catch (e) {
-            if (e instanceof TimeoutError) {
-                return undefined;
-            }
-            if ((e instanceof Error) && e.name === 'StaleElementReferenceError') {
-                return undefined;
+            if (e instanceof error.StaleElementReferenceError) {
+                return {
+                    loopStatus: LoopStatus.LOOP_UNDONE
+                };
             }
 
             throw e;
         }
 
-        return undefined;
+        return {
+            loopStatus: LoopStatus.LOOP_DONE
+        };
     }, {
         timeout,
         message: errorMessage
