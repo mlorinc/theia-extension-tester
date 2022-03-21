@@ -11,7 +11,8 @@
     "experimentalDecorators": true,
     "removeComments": true, 
     "resolveJsonModule": true,
-    "declaration": true
+    "declaration": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules",

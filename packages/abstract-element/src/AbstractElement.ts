@@ -186,20 +186,33 @@ export abstract class AbstractElement extends WebElement {
         const driver = SeleniumBrowser.instance.driver;
         timeout = AbstractElement.getTimeout(timeout);
 
-        if (element instanceof WebElement) {
-            return element;
-        }
-        else if (element === undefined) {
-            if (timeout > 0) {
-                return driver.wait(until.elementLocated(By.css('html')), timeout);
+        try {
+            if (element === undefined) {
+                if (timeout > 0) {
+                    return driver.wait(until.elementLocated(By.css('html')), timeout);
+                }
+                return driver.findElement(By.css('html'));
             }
-            return driver.findElement(By.css('html'));
-        }
-        else {
-            if (timeout > 0) {
-                return driver.wait(until.elementLocated(element), timeout);
+            else if (element instanceof WebElement) {
+                return element;
             }
-            return driver.findElement(element);
+            else {
+                if (timeout > 0) {
+                    return driver.wait(until.elementLocated(element), timeout);
+                }
+                return driver.findElement(element);
+            }
+        }
+        catch (e) {
+            if (e instanceof error.InvalidSelectorError && element instanceof By) {
+                throw createInvalidLocatorError(element);
+            }
+            else if (e instanceof TypeError && e.message.includes('Invalid locator')) {
+                throw new TypeError(e.message + ` Element: ${element?.toString()}. Type: ${typeof element}`);
+            }
+            else {
+                throw e;
+            }
         }
     }
 
@@ -224,7 +237,7 @@ export abstract class AbstractElement extends WebElement {
                         parentElement = await AbstractElement.findParent(parent, timeout);
                     }
                     else if (e instanceof error.InvalidSelectorError) {
-                        throw new Error(`Invalid locator: toString(${base.toString()}), class(${base?.constructor?.name}), keys(${Object.keys(base).join(', ')}}).`);
+                        throw createInvalidLocatorError(base);
                     }
                     else {
                         throw e;
@@ -251,6 +264,9 @@ export abstract class AbstractElement extends WebElement {
     }
 }
 
+function createInvalidLocatorError(locator: Locator): Error {
+    return new Error(`Invalid locator: toString(${locator.toString()}), class(${locator?.constructor?.name}), keys(${Object.keys(locator).join(', ')}}).`);
+}
 
 function errorHelper(e: Error | string, base: WebElement | Locator, enclosingItem: WebElement | Locator | undefined): string {
     const message = e instanceof Error ? e.message : e;
