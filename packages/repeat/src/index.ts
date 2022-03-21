@@ -18,6 +18,12 @@ export interface RepeatArguments {
 
 	// Repeat identification. For log purposes.
 	id?: string;
+
+	/**
+	 * In case of timeout = 0 and unsuccessful repeat operation the promise will be resolved
+	 * to undefined instead of throwing RepeatUnsuccessfulException.
+	 */
+	ignoreLoopError?: boolean;
 }
 
 export class Threshold {
@@ -58,6 +64,7 @@ export type RepeatLoopResult<T> = {
 
 export class RepeatError extends Error {}
 export class RepeatExitError extends Error {}
+export class RepeatUnsuccessfulException extends TimeoutError {}
 
 export class Repeat<T> {
 	protected timeout?: number;
@@ -204,11 +211,15 @@ export class Repeat<T> {
 				this.clearTask = () => clearTimeout(handler);
 			}
 		}
-		else if (this.usingExplicitLoopSignaling === false) {
-			this.reject(new TimeoutError(this.resolve, 'Cannot iterate more than 1 times. Timeout is set to 0.', this.id))
-		}
-		else if(this.finishedLoop) {
-			this.reject(new TimeoutError(this.resolve, 'Cannot perform more than 1 loops. Timeout is set to 0.', this.id))
+		else if (this.usingExplicitLoopSignaling === false || this.finishedLoop) {
+			if (this.options?.ignoreLoopError) {
+				// @ts-expect-error
+				// output will be ignored
+				this.resolve(undefined);
+			}
+			else {
+				this.reject(new RepeatUnsuccessfulException(this.resolve, 'Cannot iterate more than 1 times. Timeout is set to 0.', this.id))
+			}
 		}
 		else {
 			throw new RepeatError('Unexpected state.');
