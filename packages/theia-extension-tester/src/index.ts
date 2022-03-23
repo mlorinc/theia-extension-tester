@@ -4,3 +4,4 @@ export * from '@theia-extension-tester/page-objects';
 export * from '@theia-extension-tester/theia-browser';
 export * from '@theia-extension-tester/che-factory-runner';
 export * from '@theia-extension-tester/openshift-authenticator';
+export { CheExTester, TheiaExTester } from './api';
