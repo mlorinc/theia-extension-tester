@@ -8,8 +8,8 @@
     "prepublish": "yarn run clean && yarn run build",
     "build": "tsc",
     "clean": "rimraf out",
-    "che:test": "node -r dotenv/config out/che.runner.js out/tests/*.test.js",
-    "theia-browser:test": "node out/theia.runner.js out/tests/*.test.js"
+    "che-api:test": "node -r dotenv/config out/che.runner.api.js out/tests/TextEditor.test.js",
+    "theia-browser-api:test": "node out/theia.runner.api.js out/tests/*.test.js"
   },
   "keywords": [],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
@@ -19,6 +19,7 @@
     "dotenv": "^8.2.0",
     "fs-extra": "^9.1.0",
     "mocha": "^8.3.0",
+    "theia-extension-tester": "^1.0.0",
     "@theia-extension-tester/browser-runner": "^1.0.0",
     "@theia-extension-tester/che-browser": "^1.0.0",
     "@theia-extension-tester/che-factory-runner": "^1.0.0",
