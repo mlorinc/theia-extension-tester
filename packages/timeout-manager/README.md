@@ -1,11 +1,13 @@
-# `theia-base-browser`
+# `timeout-manager`
 
-> TODO: description
+Manage timeouts in [theia-extension-tester](https://www.npmjs.com/package/theia-extension-tester).
 
 ## Usage
 
-```
-const theiaBaseBrowser = require('theia-base-browser');
+Install via npm
 
-// TODO: DEMONSTRATE API
-```
+`npm install @theia-extension-tester/timeout-manager`
+
+Install via yarn
+
+`yarn add @theia-extension-tester/timeout-manager`
