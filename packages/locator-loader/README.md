@@ -1,6 +1,6 @@
 # `theia-locator-loader`
 
-> TODO: description
+TODO: description
 
 ## Usage
 

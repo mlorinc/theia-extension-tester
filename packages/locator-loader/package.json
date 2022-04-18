@@ -1,0 +1,40 @@
+{
+  "name": "@theia-extension-tester/locator-loader",
+  "version": "0.1.0",
+  "description": "Load objects from JavaScript files and apply release changes.",
+  "keywords": [
+    "testing",
+    "theia-extension-tester"
+  ],
+  "author": "Marian Lorinc <mlorinc@redhat.com>",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/locator-loader",
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.com/"
+  },
+  "scripts": {
+    "prepublish": "yarn run clean && yarn run build",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "tsc",
+    "clean": "rimraf lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/theia-locator-loader"
+  },
+  "dependencies": {
+    "clone-deep": "4.0.1",
+    "compare-versions": "3.6.0",
+    "fs-extra": "10.0.0",
+    "ts-essentials": "7.0.1"
+  }
+}

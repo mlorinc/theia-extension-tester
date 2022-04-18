@@ -1,3 +1,7 @@
+// The following algorithm was taken from https://www.npmjs.com/package/vscode-extension-tester
+// authored by Jan Richter.
+// Several changes were made including logging and generic locator data type.
+
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import clone = require('clone-deep');
@@ -36,20 +40,20 @@ export abstract class LocatorLoader<T> {
         let versions = fs.readdirSync(this.baseFolder)
             .filter((file) => file.endsWith('.js'))
             .map((file) => path.basename(file, '.js'));
-        
+
         console.log(`Found following locator versions: ${versions.join(', ')}`);
-        
+
         if (compareVersions(this.baseVersion, this.version) === 0) {
             return this.locators;
         }
 
         if (compareVersions(this.baseVersion, this.version) < 0) {
-            versions = versions.filter((ver) => 
+            versions = versions.filter((ver) =>
                     compareVersions(this.baseVersion, ver) < 0 &&
                     compareVersions(ver, this.version) <= 0)
                 .sort(compareVersions);
         } else {
-            versions = versions.filter((ver) => 
+            versions = versions.filter((ver) =>
                 compareVersions(this.baseVersion, ver) > 0 &&
                 compareVersions(ver, this.version) >= 0)
             .sort(compareVersions).reverse();
