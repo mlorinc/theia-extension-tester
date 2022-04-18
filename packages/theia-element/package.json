@@ -1,11 +1,22 @@
 {
   "name": "@theia-extension-tester/theia-element",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Abstract element implementation for Eclipse Theia based editors.",
+  "keywords": [
+    "che",
+    "Eclipse Che",
+    "Eclipse Theia",
+    "selenium",
+    "testing",
+    "theia",
+    "theia-extension-tester",
+    "webdriver"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/theia-element",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
     "lib": "lib"
   },
@@ -23,13 +34,20 @@
     "clean": "rimraf lib",
     "clean:locators": "yarn run clean"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/theia-element"
+  },
   "dependencies": {
-    "@theia-extension-tester/abstract-element": "^1.0.0",
-    "@theia-extension-tester/repeat": "^1.0.0",
-    "@theia-extension-tester/timeout-manager": "^1.0.0",
-    "ts-essentials": "^9.0.0"
+    "@theia-extension-tester/abstract-element": "0.1.0",
+    "@theia-extension-tester/repeat": "0.1.0",
+    "@theia-extension-tester/timeout-manager": "0.1.0"
+  },
+  "devDependencies": {
+    "ts-essentials": "7.0.1"
   },
   "peerDependencies": {
-    "extension-tester-page-objects": "^1.0.0"
+    "extension-tester-page-objects": "0.1.1"
   }
 }

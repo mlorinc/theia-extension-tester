@@ -1,14 +1,15 @@
 {
   "name": "@theia-extension-tester/base-authenticator",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Authentication protocol for theia-extension-tester.",
+  "keywords": ["theia-extension-tester"],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/authenticator-base",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "files": [
     "lib"
@@ -19,7 +20,12 @@
   "scripts": {
     "prepublish": "yarn run clean && yarn run build",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "tsc", 
+    "build": "tsc",
     "clean": "rimraf lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/authenticator-base"
   }
 }

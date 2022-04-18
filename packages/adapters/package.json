@@ -1,14 +1,19 @@
 {
   "name": "@theia-extension-tester/adapters",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Run vscode-extension-tester UI tests in Eclipse Theia based editors.",
+  "keywords": [
+    "vscode-extension-tester",
+    "theia-extension-tester",
+    "testing"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/adapters",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "files": [
     "lib"
@@ -30,10 +35,12 @@
     "build": "tsc",
     "clean": "rimraf lib"
   },
-  "peerDependencies": {
-    "extension-tester-page-objects": "^1.0.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/adapters"
   },
   "dependencies": {
-    "tsconfig-paths": "^3.11.0"
+    "tsconfig-paths": "3.11.0"
   }
 }

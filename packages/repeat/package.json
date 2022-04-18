@@ -1,14 +1,19 @@
 {
   "name": "@theia-extension-tester/repeat",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Repeat function until it returns truthful value.",
+  "keywords": [
+      "repeat",
+      "repeater",
+      "theia-extension-tester"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/repeat",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "files": [
     "lib"
@@ -22,7 +27,12 @@
     "build": "tsc",
     "clean": "rimraf lib"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/repeat"
+  },
   "dependencies": {
-    "@theia-extension-tester/timeout-promise": "^1.0.0"
+    "@theia-extension-tester/timeout-promise": "0.1.0"
   }
 }

@@ -1,14 +1,20 @@
 {
   "name": "@theia-extension-tester/che-browser",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Eclipse Che browser helper implementation.",
+  "keywords": [
+    "selenium",
+    "testing",
+    "theia-extension-tester",
+    "webdriver"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/browser-che",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "files": [
     "lib"
@@ -19,13 +25,19 @@
   "scripts": {
     "prepublish": "yarn run clean && yarn run build",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "tsc", "clean": "rimraf lib"
+    "build": "tsc",
+    "clean": "rimraf lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/browser-che"
   },
   "dependencies": {
-    "@theia-extension-tester/theia-browser": "^1.0.0",
-    "@theia-extension-tester/until": "^1.0.0"
+    "@theia-extension-tester/theia-browser": "0.1.0",
+    "@theia-extension-tester/until": "0.1.0"
   },
   "peerDependencies": {
-    "extension-tester-page-objects": "^1.0.0"
+    "extension-tester-page-objects": "0.1.1"
   }
 }
