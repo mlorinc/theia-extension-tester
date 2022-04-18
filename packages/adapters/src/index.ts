@@ -1,4 +1,5 @@
 import { load as vscode } from "./vscode";
 import { load as theia } from "./theia";
+import { AdapterModuleNotFound } from "./common";
 
-export { vscode, theia };
+export { AdapterModuleNotFound, vscode, theia };

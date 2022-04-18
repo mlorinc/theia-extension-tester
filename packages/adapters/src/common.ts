@@ -1,13 +1,22 @@
-import * as tsPaths from "tsconfig-paths";
-import * as fs from "fs";
-import * as path from "path";
+import * as tsPaths from 'tsconfig-paths';
+import * as fs from 'fs';
+import * as path from 'path';
+
+export class AdapterModuleNotFound extends Error {}
 
 export function load(moduleMainFilePath: string, alias: string, tsConfigPath?: string): (() => void) {
-    const tsConfig = JSON.parse(fs.readFileSync(tsConfigPath ?? "tsconfig.json", {
-        encoding: "utf-8"
-    }));
+    let baseUrl: string | undefined;
 
-    const baseUrl = tsConfig.compilerOptions.baseUrl ?? ".";
+    try {
+        const tsConfig = JSON.parse(fs.readFileSync(tsConfigPath ?? 'tsconfig.json', {
+            encoding: 'utf-8'
+        }));
+
+        baseUrl = tsConfig.compilerOptions.baseUrl ?? '.';
+    }
+    catch {
+        baseUrl = '.';
+    }
 
     if (baseUrl !== '.') {
         throw new Error('tsConfig.compilerOptions.baseUrl is not supported at this moment.');
@@ -17,7 +26,7 @@ export function load(moduleMainFilePath: string, alias: string, tsConfigPath?: s
 
     if (path.isAbsolute(moduleMainFilePath)) {
         if (!fs.existsSync(moduleMainFilePath)) {
-            throw new Error(`Absolute path "${moduleMainFilePath}" does not exist.`);
+            throw new Error(`Absolute path '${moduleMainFilePath}' does not exist.`);
         }
 
         mainFile = sanitizeModuleMainFilePath(moduleMainFilePath);
@@ -31,7 +40,7 @@ export function load(moduleMainFilePath: string, alias: string, tsConfigPath?: s
             }
         }
         if (mainFile === undefined) {
-            throw new Error(`Could not find "${moduleMainFilePath}" in following node_modules:\n${module.paths.join('\n')}`);
+            throw new AdapterModuleNotFound(`Could not find "${moduleMainFilePath}" in following node_modules:\n${module.paths.join('\n')}`);
         }
     }
 
