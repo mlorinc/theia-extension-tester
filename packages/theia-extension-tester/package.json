@@ -1,6 +1,6 @@
 {
   "name": "theia-extension-tester",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "A testing library built on Selenium to test Eclipse Theia extensions / plugins. Eclipse Che is supported as well.",
   "keywords": [
     "che",

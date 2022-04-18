@@ -53,7 +53,7 @@ const FALSE_STRINGS = ['false', '0', 'no', 'n'];
  * The class have 2 generic types. The first one is for object
  * created by user. The object might contain undefined values
  * because some values may be replaced by default values.
- * 
+ *
  * The second type is for object handled by ExTester object author
  * in function {@link ExTester.getBackendOptions}. This object
  * is supposed to be clean of user errors and default values
@@ -154,12 +154,12 @@ export class TheiaExTester extends ExTester<TheiaOptions, TheiaStrictOptions> {
         const runner = new TheiaBrowserRunner(browser, {
             theiaUrl: this.backendOptions[URL_OPTION],
             openFolder: folder,
-            mochaOptions: parseObjectJsonArgument<Mocha.MochaOptions>({
+            mochaOptions: await parseObjectJsonArgument<Mocha.MochaOptions>({
                 object: this.backendOptions[MOCHA_OPTION],
                 optional: true,
                 name: MOCHA_OPTION
             }),
-            query: parseObjectJsonArgument({
+            query: await parseObjectJsonArgument({
                 object: this.backendOptions[QUERY_OPTION],
                 optional: true,
                 name: QUERY_OPTION,
@@ -203,12 +203,12 @@ export class CheExTester extends ExTester<CheOptions, CheStrictOptions> {
         const runner = new CheTheiaFactoryRunner(browser, {
             cheUrl: this.backendOptions[URL_OPTION],
             factoryUrl: this.backendOptions[DEVFILE_ARGUMENT],
-            mochaOptions: parseObjectJsonArgument<Mocha.MochaOptions>({
+            mochaOptions: await parseObjectJsonArgument<Mocha.MochaOptions>({
                 object: this.backendOptions[MOCHA_OPTION],
                 optional: true,
                 name: MOCHA_OPTION
             }),
-            factoryAttributes: parseObjectJsonArgument<StringDictionary>({
+            factoryAttributes: await parseObjectJsonArgument<StringDictionary>({
                 object: this.backendOptions[DEVFILE_ATTRIBUTES_OPTIONS],
                 optional: true,
                 name: DEVFILE_ATTRIBUTES_OPTIONS
@@ -230,7 +230,7 @@ async function createBrowser(options: BaseStrictOptions, ctor: new (name: string
         cleanSession: options[CLEAN_OPTION],
         driverLocation: options[DRIVER_OPTION],
         logLevel: options[LOG_OPTION],
-        timeouts: parseObjectJsonArgument({
+        timeouts: await parseObjectJsonArgument({
             object: options.timeouts,
             optional: true,
             name: 'timeouts'
@@ -257,13 +257,13 @@ function createAuthenticator(options: CheStrictOptions) {
 /**
  * Create new {@link OpenShiftAuthenticator}. This function requires environmental
  * variables such as *CHE_USERNAME* and *CHE_PASSWORD* to be defined.
- * 
+ *
  * Optional environmental arguments:
- * 
+ *
  *  - **CHE_MULTI_STEP_FORM**: treat login form as multi step (each field needs to be confirmed
  *  by ENTER key). Supported values can be found in {@link TRUE_STRINGS} and {@link FALSE_STRINGS}
  *  - **CHE_LOGIN_METHOD**: text of button to be clicked when logging in (eg. *my_htpasswd_provider*).
- * 
+ *
  * @returns new {@link OpenShiftAuthenticator} object
  * @throws **Error** :: *CHE_USERNAME* or *CHE_PASSWORD* are not defined in environment variables.
  */

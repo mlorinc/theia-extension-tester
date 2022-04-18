@@ -48,7 +48,7 @@ export async function getBrowserLocation(browser: string): Promise<string | unde
  * @param optional allow {@link fileOrJson} to be undefined. True by default.
  * @param name name used solely for debugging purposes and error reports.
  * @returns JavaScript object
- * @throws 
+ * @throws
  *  - **Error** :: {@link optional} is set to false and {@link fileOrJson} is undefined
  *  - **Error** :: {@link fileOrJson} is invalid string json
  *  - **Error** :: {@link fileOrJson} file path does not exist
@@ -144,9 +144,9 @@ export interface ObjectJsonArgumentParseOptions extends ComplexParseOptions {
  * @param options transformation options. See {@link ObjectJsonArgumentParseOptions} for more details.
  * @returns transformed object
  */
-export function parseObjectJsonArgument<T>(options: ObjectJsonArgumentParseOptions): T {
+export async function parseObjectJsonArgument<T>(options: ObjectJsonArgumentParseOptions): Promise<T> {
     return complexParse({
-        'string': (value: string) => parseFileJsonArgument(value, options.optional, options.name),
+        'string': async (value: string) => await parseFileJsonArgument(value, options.optional, options.name),
         'object': (value: object) => options.stringifyObject ? JSON.stringify(value) : value
     }, options) as T;
 }
