@@ -1,2 +1,2 @@
 export * from './CheTheiaBrowser';
-export { PlatformType } from '@theia-extension-tester/base-browser';
+export { BrowserOptions, ITimeouts, PlatformType } from '@theia-extension-tester/base-browser';

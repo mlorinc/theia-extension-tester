@@ -55,6 +55,10 @@ export class ModalDialog extends TheiaElement implements IModalDialog {
         }, this.timeoutManager().findElementTimeout(), `Could not find main button.`) as TheiaElement;
     }
 
+    async getCloseButton(): Promise<TheiaElement> {
+        return await this.findElement(ModalDialog.locators.components.dialog.close) as TheiaElement;
+    }
+
     async getSecondaryButton(): Promise<TheiaElement> {
         return await this.getDriver().wait(async () => {
             const buttons = await this.getButtons() as TheiaElement[];
@@ -68,15 +72,21 @@ export class ModalDialog extends TheiaElement implements IModalDialog {
     }
 
     async close(): Promise<void> {
-        const closeButton = await this.findElement(ModalDialog.locators.components.dialog.close) as TheiaElement;
+        const closeButton = await this.getCloseButton();
         await closeButton.safeClick();
         await closeButton.getDriver().wait(until.stalenessOf(this), this.timeoutManager().defaultTimeout());
     }
 
     async confirm(): Promise<void> {
         const button = await this.getMainButton();
-        await button.safeClick();
-        await this.getDriver().wait(until.stalenessOf(this), this.timeoutManager().defaultTimeout());
+        try {
+            await button.safeClick();
+            await this.getDriver().wait(until.stalenessOf(this), this.timeoutManager().defaultTimeout());
+        }
+        catch (e) {
+            await this.close();
+            throw e;
+        }
     }
 
     async cancel(): Promise<void> {

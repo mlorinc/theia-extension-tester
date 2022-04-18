@@ -27,7 +27,7 @@ export class MochaRunner implements TestRunner {
         process.on('uncaughtException', (e) => {
             // all tasks on end are aborted, ignore abort errors
             if (e instanceof RepeatExitError) {
-                return; 
+                return;
             }
             process.exitCode = (process.exitCode !== undefined) ? (process.exitCode) : (1);
             console.error(e);
@@ -72,7 +72,7 @@ export class MochaRunner implements TestRunner {
         mochaRunner.files = files;
         mochaRunner.fullTrace();
         mochaRunner.slow(5000);
-        
+
         return new Promise(async (resolve) => {
             mochaRunner.suite.beforeAll(async function () {
                 await runner.beforeAll.call(runner, this);

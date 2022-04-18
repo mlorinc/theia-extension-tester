@@ -204,7 +204,6 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
 
     private async handleDialog(text?: string): Promise<void> {
         const dialog = new ModalDialog();
-        await dialog.isDisplayed();
 
         if (text !== undefined) {
             const input = new InputWidget({

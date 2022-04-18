@@ -15,13 +15,13 @@ export interface CheTheiaFactoryRunnerOptions {
      */
     factoryAttributes?: { [key: string]: string };
     /**
-     * URL to Eclipse Che instance. 
+     * URL to Eclipse Che instance.
      */
     cheUrl: string;
 }
 
 /**
- * Runner which will create Eclipse Che workspace. Workspace must be delete manually after each run.
+ * Runner which will create Eclipse Che workspace. Workspace must be deleted manually after each run.
  */
 export class CheTheiaFactoryRunner extends MochaRunner {
     constructor(browser: BaseBrowser, protected options: CheTheiaFactoryRunnerOptions, private authenticator?: Authenticator) {
@@ -40,7 +40,7 @@ export class CheTheiaFactoryRunner extends MochaRunner {
             }
         }
 
-        await this.browser.driver.get(root.toString());
+        await this.browser.driver.navigate().to(root.toString());
         await this.authenticator?.authenticate();
         await this.browser.waitForWorkbench();
     }
