@@ -15,8 +15,9 @@ const tester = new CheExTester({
     },
     timeouts: {
         implicit: 15000,
-        pageLoad: 250000
-    }
+        pageLoad: 240000
+    },
+    clean: true
 });
 
 tester.runTests().then((code) => process.exitCode = code);
