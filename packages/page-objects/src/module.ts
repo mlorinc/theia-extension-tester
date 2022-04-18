@@ -2,7 +2,6 @@ export * from 'extension-tester-page-objects';
 
 /** Theia widgets */
 
-export { TheiaLocatorLoader } from '@theia-extension-tester/locator-loader';
 export * from '@theia-extension-tester/theia-element';
 
 export * from './page-objects/theia-components/widgets/input/InputWidget';

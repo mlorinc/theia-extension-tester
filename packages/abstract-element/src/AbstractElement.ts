@@ -18,20 +18,44 @@ import { TimeoutPromise } from '@theia-extension-tester/timeout-promise';
  */
 export abstract class AbstractElement extends WebElement {
 
+    /**
+     * CTRL key constant. Platform independent.
+     */
     public static ctlKey = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
+
+    /**
+     * Loaded page object locators.
+     */
     protected static locators: Object;
+
+    /**
+     * Parent WebElement. Might be saved as promise.
+     */
     protected enclosingItem!: Promise<WebElement> | WebElement;
+
+    /**
+     * A ready promise which will be resolved when element with parent are ready to be used.
+     */
     protected readyPromise!: Promise<any>;
-    protected abortSearch?: boolean;
+
+    /**
+     * Timeout to be used when searching for elements and performing other time consuming operations.
+     */
     protected timeout: number;
+
+    /**
+     * Default find element timeout.
+     */
     private static findElementTimeout: number = 0;
 
     /**
-     * Constructs a new element from a Locator or an existing WebElement
+     * Constructs a new element from a Locator or an existing WebElement.
      * @param base WebDriver compatible Locator for the given element or a reference to an existing WebElement
-     * @param enclosingItem Locator or a WebElement reference to an element containing the element being constructed
-     * @param timeout timeout used when looking for elements
-     * this will be used to narrow down the search for the underlying DOM element
+     * @param enclosingItem Locator or a WebElement reference to an element containing the element being constructed. 
+     * This will be used to narrow down the search for the underlying DOM element.
+     * @param timeout timeout used when looking for elements.
+     * @param transformParent transform found parent WebElement into different WebElement (e.g. custom WebElement implementation)
+     * this will be used to narrow down the search for the underlying DOM element.
      */
     constructor(base: Locator | WebElement, enclosingItem?: WebElement | Locator,
         timeout?: number, transformParent?: ((transform: WebElement) => WebElement | PromiseLike<WebElement> | AbstractElement)) {
@@ -86,10 +110,19 @@ export abstract class AbstractElement extends WebElement {
         }
     }
 
+    /**
+     * Set default find element timeout.
+     * @param value new default timeout.
+     */
     public static setDefaultFindElementTimeout(value: number): void {
         AbstractElement.findElementTimeout = value;
     }
 
+    /**
+     * Wait until element is ready to be used.
+     * @param timeout maximum allowed time to wait.
+     * @returns self reference.
+     */
     async waitReady(timeout?: number): Promise<this> {
         if (this.readyPromise === undefined) {
             throw new Error('Unexpected error. AbstractElement.readyPromise is undefined.');
@@ -105,30 +138,56 @@ export abstract class AbstractElement extends WebElement {
     }
 
     /**
-     * Wait for the element to become visible
-     * @param timeout custom timeout for the wait
-     * @returns thenable self reference
+     * Wait for the element to become visible.
+     * @param timeout custom timeout for the wait.
+     * @returns self reference.
      */
     async wait(timeout?: number): Promise<this> {
         await this.getDriver().wait(until.elementIsVisible(this), AbstractElement.getTimeout(timeout));
         return this;
     }
 
+    /**
+     * Wait for the element to become interactive.
+     * @param timeout custom timeout for the interactivity check.
+     * @returns self reference.
+     */
+    async waitInteractive(timeout?: number): Promise<this> {
+        await this.getDriver().wait(ExtestUntil.elementInteractive(this), AbstractElement.getTimeout(timeout));
+        return this;
+    }
+
+    /**
+     * Perform click when element is interactive. This methods is also able to deal with intercepted clicks.
+     * @param button button to be clicked.
+     * @param timeout maximum allowed time to click.
+     */
     async safeClick(button: string = Button.LEFT, timeout?: number): Promise<void> {
         await this.getDriver().wait(ExtestUntil.safeClick(this, button), AbstractElement.getTimeout(timeout), `Could not perform safe click(${button}). Enabled: ${await this.isEnabled()}, Visible: ${await this.isDisplayed()}.`);
     }
 
+    /**
+     * Perform double click when element is interactive. This methods is also able to deal with intercepted clicks.
+     * @param button button to be clicked.
+     * @param timeout maximum allowed time to click.
+     */
     async safeDoubleClick(button: string = Button.LEFT, timeout?: number): Promise<void> {
-        await this.getDriver().wait(ExtestUntil.elementInteractive(this), AbstractElement.getTimeout(timeout));
+        await this.getDriver().wait(this.waitInteractive(timeout), AbstractElement.getTimeout(timeout));
         await this.getDriver().actions().doubleClick(this, button).perform();
     }
 
+    /**
+     * Perform send keys when element is interactive. This methods is also able to deal with intercepted clicks.
+     * @param timeout maximum allowed time to send keys.
+     * @param var_args keys to be sent.
+     */
     async safeSendKeys(timeout?: number, ...var_args: (string | number | Promise<string | number>)[]): Promise<void> {
         await this.getDriver().wait(ExtestUntil.safeSendKeys(this, ...var_args), AbstractElement.getTimeout(timeout));
     }
 
     /**
-     * Return a reference to the WebElement containing this element
+     * Return a reference to the WebElement containing this element.
+     * @returns parent WebElement.
      */
     getEnclosingElement(): WebElement {
         if (this.enclosingItem instanceof WebElement) {
@@ -140,6 +199,7 @@ export abstract class AbstractElement extends WebElement {
 
     private async findElementHelper(locator: Locator): Promise<WebElement | undefined> {
         try {
+            // Call super.findElement but avoid getting into recursion by doing it this way.
             const element = await WebElement.prototype.findElement.call(this, locator);
             return element;
         }
@@ -158,8 +218,11 @@ export abstract class AbstractElement extends WebElement {
     }
 
     findElement(locator: Locator): WebElementPromise {
-        const elementPromise = this.waitReady()
+        const elementPromise = 
+            // Wait for element to be ready for use.
+            this.waitReady()
             .then(async () => {
+                // Repetitively try to find element using locator.
                 const element = await repeat(this.findElementHelper.bind(this, locator),
                     {
                         id: 'AbstractElement.findElement(class method)',
@@ -178,15 +241,26 @@ export abstract class AbstractElement extends WebElement {
         return super.findElements(locator);
     }
 
+    /**
+     * Store locators for future Abstract Elements.
+     * @param locators loaded locators.
+     */
     static init(locators: Object) {
         AbstractElement.locators = locators;
     }
 
+    /**
+     * Find enclosing element.
+     * @param element locator or enclosing WebElement. 
+     * @param timeout maximum allowed time.
+     * @returns found enclosing WebElement.
+     */
     protected static async findParent(element?: WebElement | Locator, timeout?: number): Promise<WebElement> {
         const driver = SeleniumBrowser.instance.driver;
         timeout = AbstractElement.getTimeout(timeout);
 
         try {
+            // If enclosing element is undefined then use html element instead.
             if (element === undefined) {
                 if (timeout > 0) {
                     return driver.wait(until.elementLocated(By.css('html')), timeout);
@@ -197,6 +271,7 @@ export abstract class AbstractElement extends WebElement {
                 return element;
             }
             else {
+                // If timeout = 0 then use instant find method. Otherwise use repetitive method.
                 if (timeout > 0) {
                     return driver.wait(until.elementLocated(element), timeout);
                 }
@@ -204,41 +279,58 @@ export abstract class AbstractElement extends WebElement {
             }
         }
         catch (e) {
+            // In case user entered invalid locator then it is not possible to recover.
             if (e instanceof error.InvalidSelectorError && element instanceof By) {
                 throw createInvalidLocatorError(element);
             }
+            // Unsupported data type was passed. Unrecoverable.
             else if (e instanceof TypeError && e.message.includes('Invalid locator')) {
                 throw new TypeError(e.message + ` Element: ${element?.toString()}. Type: ${typeof element}`);
             }
+            // Delegate an error to upstream.
             else {
                 throw e;
             }
         }
     }
 
+    /**
+     * Find element and enclosing element and attempt to recover when an error occurs.
+     * @param parent enclosing element to be found.
+     * @param base this element to be found.
+     * @param timeout maximum allowed time reserver for searching.
+     * @returns a tuple of (element, enclosingElement).
+     */
     protected static async findElement(parent: Locator | WebElement | undefined, base: Locator, timeout?: number): Promise<Array<WebElement>> {
+        // Find enclosing element.
         let parentElement = await AbstractElement.findParent(parent, timeout);
         let repeatTimeout = AbstractElement.getTimeout(timeout);
 
         try {
+            // Attempt to repetitive find the element.
             const element = await repeat(async () => {
                 try {
                     const element = await parentElement.findElement(base);
                     return element;
                 }
                 catch (e) {
+                    // The element was not found. Recoverable, try again.
                     if (e instanceof error.NoSuchElementError) {
                         return undefined;
                     }
+                    // Enclosing element has become stale. It is possible to recover
+                    // if we have parent locator available.
                     else if (e instanceof error.StaleElementReferenceError) {
                         if (parent instanceof WebElement) {
                             throw new Error(`StaleElementReferenceError of parent element. Try using locator.\n${e}`);
                         }
                         parentElement = await AbstractElement.findParent(parent, timeout);
                     }
+                    // Invalid locator was passed, nothing to do.
                     else if (e instanceof error.InvalidSelectorError) {
                         throw createInvalidLocatorError(base);
                     }
+                    // Unknown error.
                     else {
                         throw e;
                     }

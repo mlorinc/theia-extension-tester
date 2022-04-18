@@ -30,8 +30,7 @@ export class QuickPickScroller extends MonacoScrollWidget<QuickPickItem> {
     async length(): Promise<number> {
         const counter = await this.input.getCounter();
         const text = await counter.getAttribute('innerText');
-        const [count, ..._] = text.split(/\s+/);
-        return Number.parseInt(count);
+        return Number.parseInt(text.split(/\s+/)[0]);
     }
 
     protected async mapItem(item: TheiaElement): Promise<QuickPickItem> {

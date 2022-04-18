@@ -46,7 +46,7 @@ export class Threshold {
 		return Date.now() - this.start >= this.interval;
 	}
 
-	
+
 	public get resetCount() : number {
 		return this.resetCounter;
 	}
@@ -66,6 +66,69 @@ export class RepeatError extends Error {}
 export class RepeatExitError extends Error {}
 export class RepeatUnsuccessfulException extends TimeoutError {}
 
+const FUNCTION_RESULT_KEYS = new Set<string>(['value', 'delay', 'loopStatus']);
+
+/**
+ * Repeat class was heavily inspired by Selenium WebDriver.wait method.
+ * However it was not possible to use in [@theia-extension-tester/abstract-element](https://www.npmjs.com/package/@theia-extension-tester/abstract-element)
+ * due to recursion problem when searching elements. By the time the functionality was
+ * extended even further and the repeat function was prioritized more than driver.wait function.
+ * Primarily to emulate [vscode-extension-tester](https://www.npmjs.com/package/vscode-extension-tester) behavior
+ * timeout usage was changed. All about that and other features will be described further in next paragraphs.
+ *
+ * The Repeat class implements the same features as driver.wait but there are some key differences:
+ *  1. Method behavior when timeout = 0 :: driver.wait uses infinity timeout instead / the Repeat class performs single iteration
+ *  2. Method behavior when timeout = undefined :: The same behavior. Loop indefinitely.
+ *  3. The Repeat class supports threshold timer. Timer which does not resolve promise immediately but checks
+ *  returned value was truthful for duration of threshold time. Useful when some page object is laggy.
+ *
+ *  Single loop in the class is one execution of given function as argument. This behavior can be overridden
+ *  by returning object in the given function. The object has the following format:
+ *  ```ts
+ *  {
+ *      // Value to be checked and returned.
+ *      value?: T;
+ *      // Use one of these to mark loop end.
+ *      // If given LOOP_DONE and timeout = 0 then the repeat returns the value.
+ *      loopStatus: LoopStatus.LOOP_DONE | LoopStatus.LOOP_UNDONE
+ *      // Delay next loop. Default is 0.
+ *      delay?: number;
+ *  }
+ * ```
+ *
+ *  Support for delaying next iteration. Some operations requires multiple checks but the checks cannot be repeated rapidly
+ *  in consecutive manner. This feature was for example used in TextEditor page object. Without delays Eclipse Che web sockets
+ *  were failing. To see how to use delays please refer to example above.
+ *
+ * Verify Input page object does not have error message when given input.
+ * This action is sometimes flaky and therefore repeat might be good for this situation.
+ * @example
+ * const input = await InputBox.create();
+ * // Do not await on purpose of demonstration.
+ * input.setText("hello@world.com");
+ * // Verify email validation went through.
+ * await repeat(async () => {
+ *  try {
+ *      // In case the input becomes stale.
+ *      const in = await InputBox.create();
+ *      return await in.hasError() === false;
+ *      // or
+ *      // return {
+ *      //   value: await in.hasError() === false,
+ *      //   loopStatus: LoopStatus.LOOP_DONE,
+ *      //   delay: 150
+ *      // };
+ *  }
+ *  catch (e) {
+ *      return false;
+ *  }
+ * }, {
+ *  timeout: 30000,
+ *  message: "Email could not be successfully verified.",
+ *  // Make sure the result is stable.
+ *  threshold: 1000
+ * })
+ */
 export class Repeat<T> {
 	protected timeout?: number;
 	protected id: string;
@@ -89,12 +152,15 @@ export class Repeat<T> {
 		this.cleanup = this.cleanup.bind(this);
 	}
 
+    /**
+     * Perform single loop of the task.
+     */
 	protected async loop(): Promise<void> {
 		// task has been started
 		this.clearTask = undefined;
 
 		if (this.run === false || process.exitCode !== undefined) {
-			this.reject(new RepeatExitError(`Aborted task with id"${this.id}".`));
+			this.reject(new RepeatExitError(`Aborted task with id "${this.id}".`));
 		}
 
 		try {
@@ -102,33 +168,19 @@ export class Repeat<T> {
 
 			let value: T | undefined = undefined;
 			let delay = 0;
-			let simpleForm = true;
-
-			if (functionResult !== undefined && Object.keys(functionResult).includes('delay')) {
-				const status = functionResult as RepeatLoopResult<T>;
-				delay = status.delay ?? 0;
-				simpleForm = false;
-			}
-
-			if (functionResult !== undefined && Object.keys(functionResult).includes('loopStatus')) {
-				const status = functionResult as RepeatLoopResult<T>;
-				this.finishedLoop = this.finishedLoop || status.loopStatus === LoopStatus.LOOP_DONE;
-				this.usingExplicitLoopSignaling = true;
-				simpleForm = false;
-			}
-
-			if (functionResult !== undefined && Object.keys(functionResult).includes('value')) {
-				const status = functionResult as RepeatLoopResult<T>;
-				value = status.value;
-				simpleForm = false;
-			}
 
 			// check if repeat object was returned
-			if (simpleForm) {
+			if (functionResult !== undefined && Object.keys(functionResult).some((k) => FUNCTION_RESULT_KEYS.has(k))) {
+				const status = functionResult as RepeatLoopResult<T>;
+				delay = status.delay ?? 0;
+				this.finishedLoop = this.finishedLoop || status.loopStatus === LoopStatus.LOOP_DONE;
+				value = status.value;
+			}
+			else {
 				value = functionResult as T;
 			}
-		
-			if (value && this.threshold.hasFinished()) {
+
+				if (value && this.threshold.hasFinished()) {
 				this.resolve(value);
 			}
 			else if (value) {
@@ -146,6 +198,10 @@ export class Repeat<T> {
 		}
 	}
 
+    /**
+     * Execute repeat task.
+     * @returns A task result.
+     */
 	async execute(): Promise<T> {
 		if (this.hasStarted) {
 			throw new RepeatError('It is not possible to run Repeat task again. Create new instance.');
@@ -174,6 +230,13 @@ export class Repeat<T> {
 		}
 	}
 
+    /**
+     * Abort repeat task. This function does not return anything but it makes the repeat function
+     * return the given value.
+     * @param value
+     *  Error | undefined :: Abort task and make repeat function return rejected promise.
+     *  T :: Abort task but make repeat function return resolved promise with the given value.
+     */
 	abort(value: Error | T | undefined): void {
 		if (!this.hasStarted) {
 			throw new RepeatError('Repeat has not been started.');
@@ -192,6 +255,9 @@ export class Repeat<T> {
 		}
 	}
 
+    /**
+     * Cleanup all timers and setImmediate handlers.
+     */
 	protected cleanup(): void {
 		this.run = false;
 		if (this.clearTask) {
@@ -200,6 +266,10 @@ export class Repeat<T> {
 		}
 	}
 
+    /**
+     * Schedule next loop. If delay is set  then use setTimeout instead of setImmediate.
+     * @param delay Minimum time in ms until next iteration is executed.
+     */
 	private scheduleNextLoop(delay: number = 0): void {
 		if (this.timeout !== 0 || (this.usingExplicitLoopSignaling && !this.finishedLoop)) {
 			if (delay === 0) {
@@ -228,10 +298,12 @@ export class Repeat<T> {
 }
 
 /**
- * Repeat function until it returns truthy value.
- * 
+ * Repeat function until it returns truthy value. For more information
+ * please see {@link Repeat}.
+ *
  * @param func function to repeat
  * @param options repeat options
+ * @returns output value of the {@link func} function.
  */
 export async function repeat<T>(func: (() => T | PromiseLike<T> | RepeatLoopResult<T> | PromiseLike<RepeatLoopResult<T>>), options?: RepeatArguments): Promise<T> {
 	return new Repeat(func, options).execute();
