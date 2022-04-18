@@ -31,13 +31,12 @@ import {
     CheTheiaBrowser,
     CheTheiaFactoryRunner,
     OpenShiftAuthenticator,
-    OpenShiftAuthenticatorMethod,
     TheiaBrowser,
     TheiaBrowserRunner
 } from './';
 import { config } from 'dotenv';
 import { getBrowserLocation, getBrowserName, parseObjectJsonArgument } from './parser';
-import { theia } from '@theia-extension-tester/adapters';
+import { AdapterModuleNotFound, theia } from '@theia-extension-tester/adapters';
 
 /**
  * List of supported truthy strings.
@@ -110,7 +109,6 @@ abstract class ExTester<T extends BaseOptions, V extends BaseStrictOptions> {
         let output: any = { ...options };
         for (const key of Object.keys(defaultOptions)) {
             output[key] = options[key] !== undefined ? options[key] : (defaultOptions as any)[key];
-            console.log(`Rewriting "${key}" from "${options[key]}" to "${output[key]}".`)
         }
 
         return output;
@@ -185,8 +183,15 @@ export class CheExTester extends ExTester<CheOptions, CheStrictOptions> {
      * @returns 0 if successful or any number otherwise
      */
     async runTests(): Promise<number> {
-        // apply theia adapter just in case if tests are using vscode-extension-tester
-        theia();
+        try {
+            // apply theia adapter just in case if tests are using vscode-extension-tester
+            theia();
+        }
+        catch (e) {
+            if (!(e instanceof AdapterModuleNotFound)) {
+                throw e;
+            }
+        }
 
         if (this.backendOptions[ENV_OPTION]) {
             config({
@@ -290,8 +295,8 @@ function createOpenshiftAuthenticator() {
                 value: process.env.CHE_PASSWORD
             }
         ],
-        multiStepForm: process.env.CHE_MULTI_STEP_FORM ? stringToBoolean(process.env.CHE_MULTI_STEP_FORM) : false,
-        loginMethod: process.env.CHE_LOGIN_METHOD ?? OpenShiftAuthenticatorMethod.DEVSANDBOX
+        multiStepForm: process.env.CHE_MULTI_STEP_FORM ? stringToBoolean(process.env.CHE_MULTI_STEP_FORM) : true,
+        loginMethod: process.env.CHE_LOGIN_METHOD ?? 'DevSandbox'
     });
 }
 
