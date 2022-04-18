@@ -1,14 +1,20 @@
 {
   "name": "@theia-extension-tester/base-browser",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Browser helper when working with Selenium WebDriver. Configure, create and load locators into memory when testing extensions using theia-extension-tester.",
+  "keywords": [
+    "selenium",
+    "testing",
+    "theia-extension-tester",
+    "webdriver"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
   "homepage": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "files": [
     "lib"
@@ -22,15 +28,17 @@
     "build": "tsc",
     "clean": "rimraf lib"
   },
-  "dependencies": {
-    "@theia-extension-tester/locator-loader": "^1.0.0",
-    "@theia-extension-tester/timeout-manager": "^1.0.0",
-    "@theia-extension-tester/theia-element": "^1.0.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/browser-base"
   },
-  "devDependencies": {
-    "@types/selenium-webdriver": "^3.0.15"
+  "dependencies": {
+    "@theia-extension-tester/locator-loader": "0.1.0",
+    "@theia-extension-tester/theia-element": "0.1.0",
+    "@theia-extension-tester/timeout-manager": "0.1.0"
   },
   "peerDependencies": {
-    "extension-tester-page-objects": "^1.0.0"
+    "extension-tester-page-objects": "^0.1.0"
   }
 }

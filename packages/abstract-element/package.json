@@ -1,11 +1,18 @@
 {
   "name": "@theia-extension-tester/abstract-element",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "version": "0.1.0",
+  "description": "Abstract element class extending functionality of Selenium WebDriver. Used as part of theia-extension-tester.",
+  "keywords": [
+    "selenium",
+    "testing",
+    "theia-extension-tester",
+    "webdriver"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
-  "homepage": "",
-  "license": "ISC",
+  "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/abstract-element",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "directories": {
     "lib": "lib"
   },
@@ -21,11 +28,16 @@
     "build": "tsc",
     "clean": "rimraf lib"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlorinc/theia-extension-tester.git",
+    "directory": "packages/abstract-element"
+  },
   "dependencies": {
-    "@theia-extension-tester/repeat": "^1.0.0",
-    "@theia-extension-tester/until": "^1.0.0"
+    "@theia-extension-tester/repeat": "0.1.0",
+    "@theia-extension-tester/until": "0.1.0"
   },
   "peerDependencies": {
-    "extension-tester-page-objects": "^1.0.0"
+    "extension-tester-page-objects": "^0.1.1"
   }
 }
