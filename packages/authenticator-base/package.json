@@ -2,7 +2,9 @@
   "name": "@theia-extension-tester/base-authenticator",
   "version": "0.1.0",
   "description": "Authentication protocol for theia-extension-tester.",
-  "keywords": ["theia-extension-tester"],
+  "keywords": [
+    "theia-extension-tester"
+  ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
   "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/authenticator-base",
   "license": "Apache-2.0",

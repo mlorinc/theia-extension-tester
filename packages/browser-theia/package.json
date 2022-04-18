@@ -36,7 +36,7 @@
     "directory": "packages/browser-theia"
   },
   "dependencies": {
-    "@theia-extension-tester/base-browser": "0.1.0"
+    "@theia-extension-tester/base-browser": "^0.1.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "0.1.1"

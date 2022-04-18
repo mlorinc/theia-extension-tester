@@ -38,12 +38,12 @@
     "directory": "packages/runner-theia-browser"
   },
   "dependencies": {
-    "@theia-extension-tester/base-authenticator": "0.1.0",
-    "@theia-extension-tester/base-browser": "0.1.0",
-    "@theia-extension-tester/locator-loader": "0.1.0",
-    "@theia-extension-tester/mocha-runner": "0.1.0",
-    "@theia-extension-tester/path-utils": "0.1.0",
-    "@theia-extension-tester/theia-element": "0.1.0"
+    "@theia-extension-tester/base-authenticator": "^0.1.0",
+    "@theia-extension-tester/base-browser": "^0.1.0",
+    "@theia-extension-tester/locator-loader": "^0.1.0",
+    "@theia-extension-tester/mocha-runner": "^0.1.0",
+    "@theia-extension-tester/path-utils": "^0.1.0",
+    "@theia-extension-tester/theia-element": "^0.1.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "0.1.1"

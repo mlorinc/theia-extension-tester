@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "Authenticate users into Eclipse Che instances installed from OperatorHub. Used as part of theia-extension-tester.",
   "keywords": [
-      "selenium",
-      "theia-extension-tester",
-      "testing",
-      "openshift",
-      "keycloak",
-      "Eclipse Che"
+    "selenium",
+    "theia-extension-tester",
+    "testing",
+    "openshift",
+    "keycloak",
+    "Eclipse Che"
   ],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
   "homepage": "https://github.com/mlorinc/theia-extension-tester/tree/master/packages/authenticator-openshift",
@@ -37,10 +37,10 @@
     "directory": "packages/authenticator-openshift"
   },
   "dependencies": {
-    "@theia-extension-tester/base-authenticator": "0.1.0",
-    "@theia-extension-tester/base-browser": "0.1.0",
-    "@theia-extension-tester/repeat": "0.1.0",
-    "@theia-extension-tester/theia-element": "0.1.0"
+    "@theia-extension-tester/base-authenticator": "^0.1.0",
+    "@theia-extension-tester/base-browser": "^0.1.0",
+    "@theia-extension-tester/repeat": "^0.1.0",
+    "@theia-extension-tester/theia-element": "^0.1.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "^0.1.0"

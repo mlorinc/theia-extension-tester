@@ -33,13 +33,13 @@
     "publishConfig": {
         "access": "public",
         "registry": "https://registry.npmjs.com/"
-      },
+    },
     "dependencies": {
-        "@theia-extension-tester/locator-loader": "0.1.0",
-        "@theia-extension-tester/path-utils": "0.1.0",
-        "@theia-extension-tester/repeat": "0.1.0",
-        "@theia-extension-tester/timeout-promise": "0.1.0",
-        "@theia-extension-tester/until": "0.1.0",
+        "@theia-extension-tester/locator-loader": "^0.1.0",
+        "@theia-extension-tester/path-utils": "^0.1.0",
+        "@theia-extension-tester/repeat": "^0.1.0",
+        "@theia-extension-tester/timeout-promise": "^0.1.0",
+        "@theia-extension-tester/until": "^0.1.0",
         "clipboardy": "2.3.0"
     },
     "peerDependencies": {

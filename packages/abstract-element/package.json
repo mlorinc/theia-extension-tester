@@ -35,8 +35,8 @@
     "directory": "packages/abstract-element"
   },
   "dependencies": {
-    "@theia-extension-tester/repeat": "0.1.0",
-    "@theia-extension-tester/until": "0.1.0"
+    "@theia-extension-tester/repeat": "^0.1.0",
+    "@theia-extension-tester/until": "^0.1.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "^0.1.1"

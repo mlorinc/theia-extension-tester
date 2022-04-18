@@ -35,9 +35,9 @@
     "directory": "packages/browser-base"
   },
   "dependencies": {
-    "@theia-extension-tester/locator-loader": "0.1.0",
-    "@theia-extension-tester/theia-element": "0.1.0",
-    "@theia-extension-tester/timeout-manager": "0.1.0"
+    "@theia-extension-tester/locator-loader": "^0.1.0",
+    "@theia-extension-tester/theia-element": "^0.1.0",
+    "@theia-extension-tester/timeout-manager": "^0.1.0"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "^0.1.0"
