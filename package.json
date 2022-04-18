@@ -2,7 +2,7 @@
   "name": "@theia-extension-tester/root",
   "description": "Lerna root package. Used for configuration and grouping dev dependencies.",
   "license": "Apache-2.0",
-  "private": true,
+  "private": "true",
   "devDependencies": {
     "@types/chai": "4.2.15",
     "@types/clone-deep": "4.0.1",
@@ -17,11 +17,16 @@
   },
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/*",
+    "tests/*"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/mlorinc/theia-extension-tester.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.com/"
   },
   "scripts": {
     "prepare": "lerna run build"

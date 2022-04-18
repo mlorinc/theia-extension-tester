@@ -1,9 +1,11 @@
 {
-  "packages": [
-    "packages/*",
-    "examples/*"
-  ],
   "npmClient": "yarn",
   "useWorkspaces": true,
-  "version": "independent"
+  "version": "independent",
+  "command": {
+    "publish": {
+      "ignoreChanges": ["*.md"],
+      "registry": "https://registry.npmjs.com/"
+    }
+  }
 }

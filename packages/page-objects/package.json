@@ -30,6 +30,10 @@
         "url": "https://github.com/mlorinc/theia-extension-tester.git",
         "directory": "packages/page-objects"
     },
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.com/"
+      },
     "dependencies": {
         "@theia-extension-tester/locator-loader": "0.1.0",
         "@theia-extension-tester/path-utils": "0.1.0",

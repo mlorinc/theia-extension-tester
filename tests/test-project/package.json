@@ -1,9 +1,8 @@
 {
   "name": "@theia-extension-tester/tests",
   "version": "0.1.0",
-  "description": "",
+  "description": "Tests for theia-extension-tester package.",
   "main": "out/index.js",
-  "private": "true",
   "scripts": {
     "prepublish": "yarn run clean && yarn run build",
     "build": "tsc",
@@ -11,9 +10,13 @@
     "che-api:test": "node -r dotenv/config out/che.runner.api.js out/tests/*.test.js",
     "theia-browser-api:test": "node out/theia.runner.api.js out/tests/*.test.js"
   },
-  "keywords": [],
+  "keywords": ["testing", "theia-extension-tester"],
   "author": "Marian Lorinc <mlorinc@redhat.com>",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.com/"
+  },
   "dependencies": {
     "@theia-extension-tester/browser-runner": "0.1.0",
     "@theia-extension-tester/che-browser": "0.1.0",
