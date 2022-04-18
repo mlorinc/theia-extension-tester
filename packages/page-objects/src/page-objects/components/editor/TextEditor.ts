@@ -17,7 +17,9 @@ import {
     WebElementPromise
 } from '../../../module';
 import { URL } from 'url';
-import { repeat, TimeoutError } from '@theia-extension-tester/repeat';
+import { LoopStatus, repeat, TimeoutError } from '@theia-extension-tester/repeat';
+
+const EOLs = ["\n", "\r\n", "\r"];
 
 export class TextEditor extends Editor implements ITextEditor {
 
@@ -41,7 +43,7 @@ export class TextEditor extends Editor implements ITextEditor {
         await body.safeClick(Button.LEFT, timeout);
     }
 
-    async sendKeys(...var_args: (string | Promise<string>)[]): Promise<void> {  
+    async sendKeys(...var_args: (string | Promise<string>)[]): Promise<void> {
         if (await (await this.getTab()).isSelected() === false) {
             throw new Error(`Cannot send keys. Editor "${await this.toString()}" is not opened in the window.`);
         }
@@ -127,6 +129,7 @@ export class TextEditor extends Editor implements ITextEditor {
             await this.cancelHighlight(oldClipboard);
         }
     }
+
     async setText(text: string, formatText?: boolean): Promise<void> {
         await this.clearText();
         await this.sendKeys(text);
@@ -148,7 +151,7 @@ export class TextEditor extends Editor implements ITextEditor {
         try {
             await this.moveCursor(line, 1);
             await this.sendKeys(Key.chord(Key.SHIFT, Key.END), Key.chord(TextEditor.ctlKey, 'c'));
-            text = await clipboardy.read();
+            text = stripNewLine(await clipboardy.read());
             return text;
         }
         finally {
@@ -160,25 +163,29 @@ export class TextEditor extends Editor implements ITextEditor {
             }
         }
     }
+
     async setTextAtLine(line: number, text: string): Promise<void> {
-        const newLineIndex = text.lastIndexOf('\n');
-        if (newLineIndex !== -1) {
-            throw new Error(`setTextAtLine does not support strings with "\\n". Got: "${text.replace(/\\n/g, '<EOL>')}".`);
+        if (hasEOL(text)) {
+            throw new Error(`setTextAtLine does not support strings with EOL characters (\\n, \\r, \\r\\n). Got: "${text.replace(/\\n/g, '<EOL>')}".`);
         }
 
         await this.moveCursor(line, 1);
         await this.sendKeys(Key.END, Key.chord(Key.SHIFT, Key.HOME), Key.BACK_SPACE, text);
 
         try {
-            await repeat(async () => await this.getTextAtLine(line) === text, {
+            await repeat(async () => ({
+                value: await this.getTextAtLine(line) === text,
+                delay: 750,
+                loopStatus: LoopStatus.LOOP_DONE
+            }), {
                 timeout: this.timeoutManager().defaultTimeout(),
                 message: `Could not set text at line ${line} to "${text}".`
-            })
+            });
         }
         catch (e) {
-            const text = await this.getTextAtLine(line).catch(() => '');
+            const text = showWhiteSpaceCharacters(await this.getTextAtLine(line).catch(() => ''));
             if (e instanceof TimeoutError && text) {
-                e.appendMessage(` Current text on line ${line}: "${text}".`);
+                e.appendMessage(` Current text on line ${line}: "${text}".\n`);
             }
             throw e;
         }
@@ -193,6 +200,7 @@ export class TextEditor extends Editor implements ITextEditor {
             Key.chord(TextEditor.ctlKey, Key.HOME),
             ...Array<string>(line - 1).fill(Key.ARROW_DOWN),
             ...Array<string>(column - 1).fill(Key.ARROW_RIGHT));
+        await new Promise((resolve) => setTimeout(resolve, 500));
     }
     async getNumberOfLines(): Promise<number> {
         const lines = await this.findElement(TheiaElement.locators.components.editor.lines) as TheiaElement;
@@ -239,4 +247,20 @@ export class TextEditor extends Editor implements ITextEditor {
     protected async toString(): Promise<string> {
         return await this.getFilePath();
     }
+}
+
+function showWhiteSpaceCharacters(str: string): string {
+    return str
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t");
+}
+
+function stripNewLine(str: string): string {
+    const eol = EOLs.find((eol) => str.endsWith(eol)) ?? '';
+    return str.slice(0, str.length - eol.length);
+}
+
+function hasEOL(str: string): boolean {
+    return EOLs.some((eol) => str.includes(eol));
 }
