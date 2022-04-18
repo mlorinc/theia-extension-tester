@@ -41,11 +41,9 @@
   },
   "dependencies": {
     "@theia-extension-tester/abstract-element": "0.1.0",
+    "@theia-extension-tester/locator-loader": "0.1.0",
     "@theia-extension-tester/repeat": "0.1.0",
     "@theia-extension-tester/timeout-manager": "0.1.0"
-  },
-  "devDependencies": {
-    "ts-essentials": "7.0.1"
   },
   "peerDependencies": {
     "extension-tester-page-objects": "0.1.1"

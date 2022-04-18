@@ -1,7 +1,7 @@
 {
   "name": "@theia-extension-tester/locator-loader",
   "version": "0.1.0",
-  "description": "Load objects from JavaScript files and apply release changes.",
+  "description": "Load objects from JavaScript files and apply diff changes made thorough each version.",
   "keywords": [
     "testing",
     "theia-extension-tester"

@@ -11,7 +11,7 @@ import compareVersions = require('compare-versions');
 /**
  * Utility for loading locators for a given editor version
  */
-export abstract class LocatorLoader<T> {
+export class LocatorLoader<T> {
     private baseVersion: string;
     private baseFolder: string;
     private version: string;
@@ -30,7 +30,9 @@ export abstract class LocatorLoader<T> {
         this.locators = temp.locators;
     }
 
-    protected abstract parseVersion(version: string): string;
+    protected parseVersion(version: string): string {
+        return version;
+    }
 
     /**
      * Loads locators for the selected editor version
