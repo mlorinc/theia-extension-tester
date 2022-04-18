@@ -1,0 +1,14 @@
+{
+  "name": "hello-world-che",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": "true",
+  "scripts": {
+    "che:test:ui": "theiatest che:run https://codeready-codeready-workspaces-operator.apps.sandbox.x8i5.p1.openshiftapps.com/devfile-registry/devfiles/03_java11-maven-quarkus/devfile.yaml src/tests/ui/*.test.js --url \"https://workspaces.openshift.com/\" --env .env --browser chrome",
+    "theia:test:ui": "theiatest theia:run --env .env --browser chrome src/tests/ui/*.test.js"
+  },
+  "devDependencies": {
+    "theia-extension-tester": "0.1.0"
+  }
+}
