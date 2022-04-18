@@ -22,5 +22,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mlorinc/theia-extension-tester.git"
+  },
+  "scripts": {
+    "prepare": "lerna run build"
   }
 }
