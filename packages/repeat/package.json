@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/repeat",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Repeat function until it returns truthful value.",
   "keywords": [
     "repeat",
@@ -34,6 +34,6 @@
     "directory": "packages/repeat"
   },
   "dependencies": {
-    "@theia-extension-tester/timeout-promise": "^0.1.1"
+    "@theia-extension-tester/timeout-promise": "^0.1.2"
   }
 }

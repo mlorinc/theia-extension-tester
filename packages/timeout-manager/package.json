@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/timeout-manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Manage timeouts in theia-extension-tester",
   "keywords": [
     "theia-extension-tester"

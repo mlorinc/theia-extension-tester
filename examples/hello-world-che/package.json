@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/hello-world-che",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "index.js",
   "license": "Apache-2.0",
   "publishConfig": {
@@ -12,6 +12,6 @@
     "theia:test:ui": "theiatest theia:run --env .env --browser chrome src/tests/ui/*.test.js"
   },
   "devDependencies": {
-    "theia-extension-tester": "^0.1.3"
+    "theia-extension-tester": "^0.1.4"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/timeout-promise",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Extended promises with timeout support for theia-extension-tester.",
   "keywords": [
     "promise",

@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/che-factory-runner",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Run theia-extension-tester UI tests on Eclipse Che.",
   "keywords": [
     "che",
@@ -38,11 +38,11 @@
     "directory": "packages/runner-che-factory"
   },
   "dependencies": {
-    "@theia-extension-tester/base-authenticator": "^0.1.0",
-    "@theia-extension-tester/base-browser": "^0.1.1",
-    "@theia-extension-tester/locator-loader": "^0.1.0",
-    "@theia-extension-tester/mocha-runner": "^0.1.1",
-    "@theia-extension-tester/theia-element": "^0.1.1"
+    "@theia-extension-tester/base-authenticator": "^0.1.1",
+    "@theia-extension-tester/base-browser": "^0.1.2",
+    "@theia-extension-tester/locator-loader": "^0.1.1",
+    "@theia-extension-tester/mocha-runner": "^0.1.2",
+    "@theia-extension-tester/theia-element": "^0.1.2"
   },
   "peerDependencies": {
     "mocha": "^8.2.1"

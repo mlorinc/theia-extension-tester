@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/adapters",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Run vscode-extension-tester UI tests in Eclipse Theia based editors.",
   "keywords": [
     "vscode-extension-tester",

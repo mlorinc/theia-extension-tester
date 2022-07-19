@@ -1,6 +1,6 @@
 {
     "name": "@theia-extension-tester/page-objects",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Common page object API implementation for Eclipse Theia based editors.",
     "keywords": [
         "extension-tester-page-objects",
@@ -35,11 +35,11 @@
         "registry": "https://registry.npmjs.org/"
     },
     "dependencies": {
-        "@theia-extension-tester/locator-loader": "^0.1.0",
-        "@theia-extension-tester/path-utils": "^0.1.0",
-        "@theia-extension-tester/repeat": "^0.1.1",
-        "@theia-extension-tester/timeout-promise": "^0.1.1",
-        "@theia-extension-tester/until": "^0.1.0",
+        "@theia-extension-tester/locator-loader": "^0.1.1",
+        "@theia-extension-tester/path-utils": "^0.1.1",
+        "@theia-extension-tester/repeat": "^0.1.2",
+        "@theia-extension-tester/timeout-promise": "^0.1.2",
+        "@theia-extension-tester/until": "^0.1.1",
         "clipboardy": "2.3.0"
     },
     "peerDependencies": {

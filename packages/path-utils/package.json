@@ -1,6 +1,6 @@
 {
     "name": "@theia-extension-tester/path-utils",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Path utilities for theia-extension-tester.",
     "keywords": [
         "theia-extension-tester",
