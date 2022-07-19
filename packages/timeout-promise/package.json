@@ -32,8 +32,5 @@
     "type": "git",
     "url": "https://github.com/mlorinc/theia-extension-tester.git",
     "directory": "packages/timeout-promise"
-  },
-  "peerDependencies": {
-    "extension-tester-page-objects": "^0.1.0"
   }
 }

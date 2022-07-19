@@ -248,7 +248,7 @@ export class DefaultTreeSection extends ViewSection implements IDefaultTreeSecti
             throw new Error('Unexpected state.');
         }
 
-        await TimeoutPromise.createFrom(menu.isDisplayed(), this.timeoutManager().findElementTimeout(timeout), {
+        await TimeoutPromise.createFrom(menu.isDisplayed() as Promise<boolean>, this.timeoutManager().findElementTimeout(timeout), {
             message: `Could not load context menu when creating new ${type === FileType.FILE ? 'file' : 'folder'}.`
         });
 

@@ -43,6 +43,6 @@
         "clipboardy": "2.3.0"
     },
     "peerDependencies": {
-        "extension-tester-page-objects": "0.1.1"
+        "extension-tester-page-objects": "^0.1.1"
     }
 }

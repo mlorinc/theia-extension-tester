@@ -1,5 +1,3 @@
-import { promise as SeleniumPromise } from "extension-tester-page-objects";
-
 export type Resolver<T> = (value: T | PromiseLike<T>) => void;
 export type Rejecter = (reason?: any) => void;
 type Executor<T> = (resolve: Resolver<T>, reject: Rejecter) => void;
@@ -202,18 +200,10 @@ class TimeoutPromise<T> extends Promise<T> {
      * // Crate new TimeoutPromise from existing promise.
      * TimeoutPromise.createFrom(returnFivePromise, 5000, {id: "Return 5", message: "Could not return 5."});
      */
-	static createFrom<T>(promise: Promise<T> | SeleniumPromise.Promise<T>, timeout?: number, options?: TimeoutPromiseOptions): TimeoutPromise<T> {
+	static createFrom<T>(promise: Promise<T>, timeout?: number, options?: TimeoutPromiseOptions): TimeoutPromise<T> {
 		return new TimeoutPromise<T>((resolve, reject) => {
-            // Handle TypeScript non callable compiler errors.
-            if (promise instanceof SeleniumPromise.Promise) {
-                promise.then(resolve);
-                promise.catch(reject);
-            }
-            else {
-                promise.then(resolve);
-                promise.catch(reject);
-            }
-
+            promise.then(resolve);
+            promise.catch(reject);
 		}, timeout, options);
 	}
 }
