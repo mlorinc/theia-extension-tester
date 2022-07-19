@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/theia-element",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Abstract element implementation for Eclipse Theia based editors.",
   "keywords": [
     "che",
@@ -41,9 +41,9 @@
     "directory": "packages/theia-element"
   },
   "dependencies": {
-    "@theia-extension-tester/abstract-element": "^0.1.0",
+    "@theia-extension-tester/abstract-element": "^0.1.1",
     "@theia-extension-tester/locator-loader": "^0.1.0",
-    "@theia-extension-tester/repeat": "^0.1.0",
+    "@theia-extension-tester/repeat": "^0.1.1",
     "@theia-extension-tester/timeout-manager": "^0.1.0"
   },
   "peerDependencies": {

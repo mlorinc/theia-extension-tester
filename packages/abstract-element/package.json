@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/abstract-element",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Abstract element class extending functionality of Selenium WebDriver. Used as part of theia-extension-tester.",
   "keywords": [
     "selenium",
@@ -35,7 +35,7 @@
     "directory": "packages/abstract-element"
   },
   "dependencies": {
-    "@theia-extension-tester/repeat": "^0.1.0",
+    "@theia-extension-tester/repeat": "^0.1.1",
     "@theia-extension-tester/until": "^0.1.0"
   },
   "peerDependencies": {
