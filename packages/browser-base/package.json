@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/base-browser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browser helper when working with Selenium WebDriver. Configure, create and load locators into memory when testing extensions using theia-extension-tester.",
   "keywords": [
     "selenium",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@theia-extension-tester/locator-loader": "^0.1.0",
-    "@theia-extension-tester/theia-element": "^0.1.0",
+    "@theia-extension-tester/theia-element": "^0.1.1",
     "@theia-extension-tester/timeout-manager": "^0.1.0"
   },
   "peerDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "@theia-extension-tester/tests",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tests for theia-extension-tester package.",
   "main": "out/index.js",
   "scripts": {
@@ -21,17 +21,17 @@
     "registry": "https://registry.npmjs.com/"
   },
   "dependencies": {
-    "@theia-extension-tester/browser-runner": "^0.1.0",
-    "@theia-extension-tester/che-browser": "^0.1.0",
-    "@theia-extension-tester/che-factory-runner": "^0.1.0",
-    "@theia-extension-tester/openshift-authenticator": "^0.1.0",
-    "@theia-extension-tester/page-objects": "^0.1.0",
-    "@theia-extension-tester/repeat": "^0.1.0",
-    "@theia-extension-tester/theia-browser": "^0.1.0",
+    "@theia-extension-tester/browser-runner": "^0.1.1",
+    "@theia-extension-tester/che-browser": "^0.1.1",
+    "@theia-extension-tester/che-factory-runner": "^0.1.1",
+    "@theia-extension-tester/openshift-authenticator": "^0.1.1",
+    "@theia-extension-tester/page-objects": "^0.1.1",
+    "@theia-extension-tester/repeat": "^0.1.1",
+    "@theia-extension-tester/theia-browser": "^0.1.1",
     "chai": "4.3.0",
     "dotenv": "8.2.0",
     "fs-extra": "10.0.0",
     "mocha": "8.3.0",
-    "theia-extension-tester": "^0.1.0"
+    "theia-extension-tester": "^0.1.3"
   }
 }
