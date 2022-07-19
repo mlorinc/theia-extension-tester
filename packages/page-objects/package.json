@@ -32,7 +32,7 @@
     },
     "publishConfig": {
         "access": "public",
-        "registry": "https://registry.npmjs.com/"
+        "registry": "https://registry.npmjs.org/"
     },
     "dependencies": {
         "@theia-extension-tester/locator-loader": "^0.1.0",

@@ -18,7 +18,7 @@
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.com/"
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@theia-extension-tester/browser-runner": "^0.1.1",
